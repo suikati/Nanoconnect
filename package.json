@@ -10,6 +10,9 @@
     "postinstall": "nuxt prepare"
   },
   "dependencies": {
-    "nuxt": "^3.18.1"
+    "@supabase/supabase-js": "^2.56.0",
+    "chart.js": "^4.5.0",
+    "nuxt": "^3.18.1",
+    "openai": "^5.15.0"
   }
 }
