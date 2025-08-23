@@ -647,7 +647,11 @@ const _inlineRuntimeConfig = {
       }
     }
   },
-  "public": {}
+  "public": {
+    "supabaseUrl": "https://gadyzdsvtnnwxergktix.supabase.co",
+    "supabaseKey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdhZHl6ZHN2dG5ud3hlcmdrdGl4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU5NTEzNjEsImV4cCI6MjA3MTUyNzM2MX0._XJZHEJThEzetiCfh4hdWiydY9Jx7XluZEUpyGB_Ksc",
+    "supabaseSecretKey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdhZHl6ZHN2dG5ud3hlcmdrdGl4Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1NTk1MTM2MSwiZXhwIjoyMDcxNTI3MzYxfQ.YXZbkk4sZvA4lm9L-HJZPNcvUuSmOQLCBUeNIqE3v-M"
+  }
 };
 const envOptions = {
   prefix: "NITRO_",
