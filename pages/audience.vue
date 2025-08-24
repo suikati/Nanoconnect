@@ -132,13 +132,17 @@ function startListeners(code: string) {
 async function onVote(choiceKey: string) {
   const code = codeInput.value;
   try {
-  if (!r) r = useRoom();
-  voting.value = true;
-  await r.submitVoteSafe(code, `slide_${slideNumber.value}`, choiceKey);
-  pushLog(`voted ${choiceKey}`);
-  voted.value = true;
-  myVote.value = choiceKey;
-  voting.value = false;
+    if (!r) r = useRoom();
+    voting.value = true;
+    const ok = await r.submitVoteSafe(code, `slide_${slideNumber.value}`, choiceKey);
+    if (ok) {
+      pushLog(`voted ${choiceKey}`);
+      voted.value = true;
+      myVote.value = choiceKey;
+    } else {
+      pushLog('vote was no-op (same choice)');
+    }
+    voting.value = false;
   } catch (e: any) { pushLog('vote error: ' + e.message); }
 }
 

@@ -89,8 +89,40 @@ export default function useRoom() {
       return;
     }
 
-  // write new vote only; functions will recalc aggregates
-  await set(voteRef, { choiceId, votedAt: new Date().toISOString() });
+    // write new vote
+    try {
+      await set(voteRef, { choiceId, votedAt: new Date().toISOString() });
+    } catch (e) {
+      // write failed
+      // eslint-disable-next-line no-console
+      console.error('submitVoteSafe: failed to write vote', e);
+      throw e;
+    }
+
+    // adjust aggregates in one transaction
+    const aggRef = dbRef(db, `rooms/${roomCode}/aggregates/${slideId}`);
+    try {
+      await runTransaction(aggRef, (current: any) => {
+        current = current || { counts: {}, total: 0 };
+        current.counts = current.counts || {};
+        if (prevChoice) {
+          current.counts[prevChoice] = Math.max((current.counts[prevChoice] || 0) - 1, 0);
+          current.total = Math.max((current.total || 0) - 1, 0);
+        }
+        current.counts[choiceId] = (current.counts[choiceId] || 0) + 1;
+        current.total = (current.total || 0) + 1;
+        return current;
+      });
+      // eslint-disable-next-line no-console
+      console.log('submitVoteSafe: aggregates transaction succeeded', { roomCode, slideId, choiceId, prevChoice });
+    } catch (e) {
+      // transaction failed: log and rethrow so caller can handle
+      // eslint-disable-next-line no-console
+      console.error('submitVoteSafe: transaction failed', e);
+      throw e;
+    }
+
+    return true;
   };
 
   const pushComment = async (roomCode: string, text: string) => {
