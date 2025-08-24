@@ -15,7 +15,7 @@ const btnClass = computed(() => {
   const disabled = props.disabled ? 'opacity-60 pointer-events-none' : '';
   return [base, active, disabled, 'anim-pop'].join(' ');
 });
-const emit = defineEmits<('vote')[]>();
+const emit = defineEmits<{ vote: (choiceKey: string) => void }>();
 let locked = false;
 const onClick = (e: Event) => {
   try { e.stopImmediatePropagation(); e.preventDefault(); } catch (err) { /* ignore */ }

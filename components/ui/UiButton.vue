@@ -30,7 +30,7 @@ const computedClass = computed(() => {
   const width = props.full ? 'w-full' : '';
   return [base, sizes[size], map[v], disabled, width].join(' ');
 });
-const emit = defineEmits<('pressed' | 'click')[]>();
+const emit = defineEmits<{ pressed: (e: Event) => void; click?: (e: Event) => void }>();
 const locked = ref(false);
 const handleClick = (e: Event) => {
   // prevent bubbling and accidental native form submits

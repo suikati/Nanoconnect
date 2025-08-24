@@ -25,7 +25,7 @@ import type { Comment } from '~/types/models';
 const props = defineProps<{ comment: Comment & { id: string }; currentAnonId: string | null }>();
 const time = computed(() => new Date(props.comment.createdAt).toLocaleTimeString());
 const fullTime = computed(() => new Date(props.comment.createdAt).toISOString());
-const emit = defineEmits<('like'|'delete')[]>();
+const emit = defineEmits<{ like: (id: string) => void; delete: (id: string) => void }>();
 let likeLocked = false;
 const onLike = (e: Event) => {
   try { e.stopImmediatePropagation(); e.preventDefault(); } catch (err) { /* ignore */ }
