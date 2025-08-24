@@ -3,17 +3,17 @@ import { getDatabase, type Database } from "firebase/database";
 import { getAuth, type Auth } from "firebase/auth";
 
 export default defineNuxtPlugin(() => {
-  // client-only plugin（.client.ts にしたので process.client チェックは不要）
+  // クライアント専用プラグイン（.client.ts にしたので process.client チェックは不要）
   const config = useRuntimeConfig();
   const firebaseConfig = config.public?.firebase as Record<string, any> | undefined;
   if (!firebaseConfig) {
-    // eslint-disable-next-line no-console
+  // eslint-disable-next-line no-console
     console.warn("Firebase config not found in runtimeConfig.public.firebase");
     return;
   }
 
   try {
-    // getApps()/global ガードで HMR による二重初期化を回避
+  // getApps()/global ガードで HMR による二重初期化を回避
     if (!getApps().length && !(globalThis as any).__nanosuke_firebase_initialized) {
       const app: FirebaseApp = initializeApp(firebaseConfig as any);
       const db: Database = getDatabase(app);
@@ -40,7 +40,7 @@ export default defineNuxtPlugin(() => {
       },
     };
   } catch (e) {
-    // eslint-disable-next-line no-console
+  // eslint-disable-next-line no-console
     console.error("Firebase initialization error:", e);
     return;
   }

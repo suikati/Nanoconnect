@@ -1,84 +1,110 @@
 <template>
-  <div>
-    <h1>Audience</h1>
+  <AppShell>
+    <div class="max-w-5xl mx-auto grid lg:grid-cols-5 gap-8">
+      <!-- Left: Join & Voting -->
+      <div class="lg:col-span-3 space-y-6">
+        <UiCard>
+          <template #header>
+            <div class="flex items-center gap-2">
+              <span class="text-pink-600 font-bold text-lg">参加者</span>
+            </div>
+          </template>
+          <div class="flex flex-wrap items-center gap-3 mb-4">
+            <input v-model="codeInput" placeholder="ルームコードを入力" class="border rounded-lg px-3 py-2 w-40 focus-ring" />
+            <UiButton variant="secondary" @pressed="onJoin">参加する</UiButton>
+            <div v-if="joined" class="text-xs text-gray-500">as <strong class="text-indigo-600">{{ anonId }}</strong></div>
+          </div>
 
-    <div>
-      <input v-model="codeInput" placeholder="Room code" />
-      <button @click="onJoin">Join</button>
-      <div v-if="joined">joined as {{ anonId }}</div>
+          <div v-if="joined && slide" class="space-y-5">
+            <div class="flex items-center justify-between">
+              <h2 class="text-base font-semibold text-indigo-600">Slide {{ slideNumber }}: {{ slide.title }}</h2>
+              <span class="text-xs bg-indigo-50 text-indigo-600 px-2 py-1 rounded-full">Total {{ aggregates?.total ?? 0 }}</span>
+            </div>
+            <div v-if="aggregates" class="bg-white rounded-xl border border-indigo-100 p-4">
+              <VoteChart :counts="aggregates.counts || {}" :choices="choicesArray" />
+            </div>
+            <ul class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <li v-for="(c, idx) in choicesArray" :key="idx">
+                <VoteOption :choice="c" :count="counts[c.key] ?? 0" :selected="myVote===c.key" :disabled="voted || voting" @vote="onVote" />
+              </li>
+            </ul>
+            <div v-if="voted" class="text-xs text-green-600">Voted: <strong>{{ myVote }}</strong></div>
+          </div>
+        </UiCard>
+      </div>
+
+      <!-- Right: Comments -->
+      <div class="lg:col-span-2 space-y-6">
+        <UiCard title="Comments" titleClass="text-pink-600">
+          <div v-if="!joined" class="text-xs text-gray-400">参加するとコメントできます。</div>
+          <div v-else class="flex gap-3 mb-4">
+            <input v-model="commentText" placeholder="コメントを書く..." class="flex-1 border rounded-lg px-3 py-2 focus-ring" />
+            <UiButton variant="primary" :disabled="!commentText" @pressed="onPostComment">Post</UiButton>
+          </div>
+          <ul class="space-y-3 max-h-[420px] overflow-y-auto pr-1">
+            <CommentItem v-for="c in comments" :key="c.id" :comment="c" :currentAnonId="anonId" @like="onLikeComment" @delete="onDeleteComment" />
+          </ul>
+        </UiCard>
+        <pre v-if="isDev" class="text-[10px] text-gray-400 whitespace-pre-wrap">{{ log.join('\n') }}</pre>
+      </div>
     </div>
-
-    <section v-if="joined && slide">
-      <h3>Slide {{ slideNumber }}: {{ slide.title }}</h3>
-      <div v-if="aggregates">
-        <VoteChart :counts="aggregates.counts || {}" :choices="choicesArray" />
-      </div>
-      <ul>
-        <li v-for="(c, idx) in choicesArray" :key="idx">
-          <button @click="onVote(c.key)" :disabled="voted || voting">{{ c.text }} ({{ counts[c.key] ?? 0 }})</button>
-        </li>
-      </ul>
-      <div v-if="voted">You voted: {{ myVote }}</div>
-    </section>
-
-    <section v-if="joined" style="margin-top:16px;">
-      <h3>Comments</h3>
-      <div style="display:flex; gap:8px; margin-bottom:8px;">
-        <input v-model="commentText" placeholder="Write a comment..." style="flex:1" />
-        <button @click="onPostComment" :disabled="!commentText">Post</button>
-      </div>
-      <ul>
-        <li v-for="c in comments" :key="c.id" style="margin-bottom:8px;">
-          <small>{{ new Date(c.createdAt).toLocaleTimeString() }}</small>
-          <div>
-            <em v-if="c.deleted">(削除済み)</em>
-            <span v-else>{{ c.text }}</span>
-          </div>
-          <div style="display:flex; gap:8px; margin-top:4px;">
-            <button @click="onLikeComment(c.id)" :disabled="c.deleted">{{ (c.userLikes && c.userLikes[anonId]) ? '💙' : '👍' }} {{ c.likes || 0 }}</button>
-            <button v-if="!c.deleted && c.anonId === anonId" @click="onDeleteComment(c.id)">Delete</button>
-          </div>
-        </li>
-      </ul>
-    </section>
-
-    <pre style="margin-top:12px;">{{ log.join('\n') }}</pre>
-  </div>
+  </AppShell>
 </template>
 
 <script setup lang="ts">
 import { ref, reactive, onUnmounted, onMounted } from 'vue';
 import useRoom from '~/composables/useRoom';
-import { ref as dbRef, onValue } from 'firebase/database';
 import VoteChart from '~/components/VoteChart.vue';
+import createDbListener from '~/composables/useDbListener';
+import AppShell from '~/components/ui/AppShell.vue';
+import UiButton from '~/components/ui/UiButton.vue';
+import UiCard from '~/components/ui/UiCard.vue';
+import VoteOption from '~/components/VoteOption.vue';
+import CommentItem from '~/components/CommentItem.vue';
+import type { Aggregate, Comment as CommentType, Choice, Slide } from '~/types/models';
 
-let r: ReturnType<typeof useRoom> | null = null;
+// ここで使う composable の簡易 API 形
+type RoomApi = {
+  joinRoom: (code: string) => Promise<{ anonId: string }>;
+  submitVoteSafe: (code: string, slideId: string, choiceKey: string) => Promise<boolean>;
+  pushComment: (code: string, text: string) => Promise<void>;
+  likeComment: (code: string, commentId: string) => Promise<void>;
+  deleteComment: (code: string, commentId: string) => Promise<void>;
+  createRoom?: () => Promise<string>;
+  saveSlides?: (code: string, slides: any[]) => Promise<void>;
+};
+
+type UIComment = CommentType & { id: string };
+
+let r: RoomApi | null = null;
+const ensureR = () => { if (!r) r = useRoom() as unknown as RoomApi; return r; };
 const codeInput = ref('');
 const joined = ref(false);
 const anonId = ref('');
-const slide = ref<any>(null);
+const slide = ref<Slide | null>(null);
 const slideNumber = ref<number>(0);
-const choicesArray = ref<Array<{ key: string; text: string }>>([]);
+const choicesArray = ref<Choice[]>([]);
 const counts = reactive<Record<string, number>>({});
 const myVote = ref<string | null>(null);
 const voted = ref(false);
 const voting = ref(false);
 const log = ref<string[]>([]);
-const aggregates = ref<any>(null);
+const aggregates = ref<Aggregate | null>(null);
 const commentText = ref('');
-const comments = ref<Array<any>>([]);
-let unsubSlide: any = null;
-let unsubAgg: any = null;
-let unsubVotes: any = null;
-let unsubComments: any = null;
+const comments = ref<UIComment[]>([]);
+const isDev = false; // simplified: devログ非表示
+let unsubSlide: (() => void) | null = null;
+let unsubSlideContent: (() => void) | null = null;
+let unsubAgg: (() => void) | null = null;
+let unsubVotes: (() => void) | null = null;
+let unsubComments: (() => void) | null = null;
+const pushLog = (s: string) => { log.value.unshift(`${new Date().toISOString()} ${s}`); };
 
-function pushLog(s: string) { log.value.unshift(`${new Date().toISOString()} ${s}`); }
-
-async function onJoin() {
+const onJoin = async () => {
   try {
     const code = codeInput.value;
-    if (!r) r = useRoom();
-    const res = await r.joinRoom(code);
+    ensureR();
+    const res = await (r as any).joinRoom(code);
     anonId.value = res.anonId;
     joined.value = true;
     pushLog(`joined ${code} as ${anonId.value}`);
@@ -86,60 +112,53 @@ async function onJoin() {
   } catch (e: any) {
     pushLog('join error: ' + e.message);
   }
-}
+};
 
 onMounted(() => {
-  // initialize client-only composable
-  if (!r) r = useRoom();
+  // クライアント専用の composable を初期化
+  ensureR();
 });
 
-function startListeners(code: string) {
+const startListeners = (code: string) => {
   const nuxt = useNuxtApp();
   const db = nuxt.$firebaseDb;
-  // slideIndex listener
-  const slideIndexRef = dbRef(db, `rooms/${code}/slideIndex`);
-  // When slideIndex changes we re-register per-slide listeners (slide content, aggregates, my vote)
-  unsubSlide = onValue(slideIndexRef, async (snap: any) => {
+
+  // slideIndex のリスナー（前のリスナーをクリーンアップ）
+  if (unsubSlide) { try { unsubSlide(); } catch (e) { /* ignore */ } }
+  unsubSlide = createDbListener(db, `rooms/${code}/slideIndex`, async (snap: any) => {
     const idx = snap.exists() ? snap.val() : 0;
-    // 1-based slide number in UI
     slideNumber.value = idx + 1;
 
-    // fetch slide content
-    const slideRef = dbRef(db, `rooms/${code}/slides/slide_${idx + 1}`);
-    // update slide content listener
-    if (unsubSlide) {
-      // slideRef listener for content is contained in this callback; no-op for unsubSlide here
-    }
-    onValue(slideRef, (s: any) => {
-      slide.value = s.exists() ? s.val() : null;
+  // スライド内容のリスナー
+    if (unsubSlideContent) { try { unsubSlideContent(); } catch (e) { /* ignore */ } unsubSlideContent = null; }
+    unsubSlideContent = createDbListener(db, `rooms/${code}/slides/slide_${idx + 1}`, (s: any) => {
+      slide.value = s.exists() ? s.val() as Slide : null;
       if (slide.value && slide.value.choices) {
-        choicesArray.value = Object.entries(slide.value.choices).map(([k, v]: any) => ({ key: k, text: v.text }));
+        choicesArray.value = Object.entries(slide.value.choices).map(([k, v]) => {
+          const item = v as { text: string; index?: number };
+          return { key: k, text: item.text };
+        });
       } else {
         choicesArray.value = [];
       }
     });
 
-    // re-register aggregates listener for this slide
+  // 集計（aggregates）のリスナー
     if (unsubAgg) { try { unsubAgg(); } catch (e) { /* ignore */ } }
-    const aggRef = dbRef(db, `rooms/${code}/aggregates/slide_${idx + 1}`);
-    unsubAgg = onValue(aggRef, (snapAgg: any) => {
+    unsubAgg = createDbListener(db, `rooms/${code}/aggregates/slide_${idx + 1}`, (snapAgg: any) => {
       const val = snapAgg.exists() ? snapAgg.val() : { counts: {} };
       const agg = val.counts || {};
-      // update counts reactive
       Object.keys(counts).forEach(k => delete counts[k]);
       Object.entries(agg).forEach(([k, v]) => { counts[k] = v as number; });
-      // also expose aggregates object for chart
       aggregates.value = { counts: agg, total: val.total || 0 };
     });
 
-    // re-register my vote listener for this slide
+  // 自分の投票状態を監視するリスナー
     if (unsubVotes) { try { unsubVotes(); } catch (e) { /* ignore */ } }
-    // make sure anonId exists (joinRoom should have set it)
     if (anonId.value) {
-      const myVoteRef = dbRef(db, `rooms/${code}/votes/slide_${idx + 1}/${anonId.value}`);
-      unsubVotes = onValue(myVoteRef, (s: any) => {
+      unsubVotes = createDbListener(db, `rooms/${code}/votes/slide_${idx + 1}/${anonId.value}`, (s: any) => {
         if (s.exists()) {
-          myVote.value = s.val().choiceId;
+          myVote.value = s.val().choiceId as string;
           voted.value = true;
         } else {
           myVote.value = null;
@@ -151,26 +170,25 @@ function startListeners(code: string) {
       voted.value = false;
     }
 
-    // register comments listener for the room (once)
+  // コメント一覧のリスナー
     if (unsubComments) { try { unsubComments(); } catch (e) { /* ignore */ } }
-    const commentsRef = dbRef(db, `rooms/${code}/comments`);
-    unsubComments = onValue(commentsRef, (snap: any) => {
-      const arr: any[] = [];
+    unsubComments = createDbListener(db, `rooms/${code}/comments`, (snap: any) => {
+      const arr: UIComment[] = [];
       snap.forEach((child: any) => {
-        const v = child.val();
-        arr.unshift({ id: child.key, ...v });
+        const v = child.val() as CommentType;
+        arr.unshift({ id: child.key as string, ...v });
       });
       comments.value = arr;
     });
   });
-}
+};
 
-async function onVote(choiceKey: string) {
+const onVote = async (choiceKey: string) => {
   const code = codeInput.value;
   try {
-    if (!r) r = useRoom();
+    ensureR();
     voting.value = true;
-    const ok = await r.submitVoteSafe(code, `slide_${slideNumber.value}`, choiceKey);
+    const ok = await (r as any).submitVoteSafe(code, `slide_${slideNumber.value}`, choiceKey);
     if (ok) {
       pushLog(`voted ${choiceKey}`);
       voted.value = true;
@@ -180,41 +198,42 @@ async function onVote(choiceKey: string) {
     }
     voting.value = false;
   } catch (e: any) { pushLog('vote error: ' + e.message); }
-}
+};
 
 onUnmounted(() => {
   if (unsubSlide) unsubSlide();
+  if (unsubSlideContent) { try { unsubSlideContent(); } catch (e) { /* ignore */ } }
   if (unsubAgg) unsubAgg();
   if (unsubVotes) unsubVotes();
   if (unsubComments) unsubComments();
 });
 
-async function onPostComment() {
+const onPostComment = async () => {
   const code = codeInput.value;
   if (!code) return;
   const text = commentText.value.trim();
   if (!text) return;
   try {
-    if (!r) r = useRoom();
-    await r.pushComment(code, text);
+    ensureR();
+    await (r as any).pushComment(code, text);
     pushLog('comment posted');
     commentText.value = '';
   } catch (e: any) { pushLog('comment error: ' + e.message); }
-}
+};
 
-async function onLikeComment(commentId: string) {
+const onLikeComment = async (commentId: string) => {
   const code = codeInput.value;
   try {
-    if (!r) r = useRoom();
-    await r.likeComment(code, commentId);
+    ensureR();
+    await (r as any).likeComment(code, commentId);
   } catch (e: any) { pushLog('like error: ' + e.message); }
-}
+};
 
-async function onDeleteComment(commentId: string) {
+const onDeleteComment = async (commentId: string) => {
   const code = codeInput.value;
   try {
-    if (!r) r = useRoom();
-    await r.deleteComment(code, commentId);
+    ensureR();
+    await (r as any).deleteComment(code, commentId);
   } catch (e: any) { pushLog('delete error: ' + e.message); }
-}
+};
 </script>

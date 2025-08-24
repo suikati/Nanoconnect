@@ -1,126 +1,148 @@
 <template>
-  <div>
-    <h1>Presenter</h1>
-    <div>
-      <button @click="onCreateRoom">Create Room</button>
-      <span v-if="roomCode">Room: {{ roomCode }}</span>
+  <AppShell>
+    <div class="max-w-6xl mx-auto grid xl:grid-cols-5 gap-8">
+      <!-- Left: Slide builder -->
+      <div class="xl:col-span-3 space-y-6">
+        <UiCard>
+          <template #header>
+            <div class="flex items-center gap-3">
+              <span class="text-indigo-600 font-extrabold">発表者</span>
+              <UiButton size="sm" variant="primary" @pressed="onCreateRoom">ルームを作る</UiButton>
+              <span v-if="roomCode" class="text-xs bg-indigo-50 text-indigo-600 px-2 py-1 rounded-full">ルームコード: {{ roomCode }}</span>
+            </div>
+          </template>
+          <h3 class="text-sm font-semibold text-gray-500 mb-3">アンケート</h3>
+          <div v-for="(s, i) in slides" :key="i" class="mb-4 space-y-2 p-3 rounded-xl border border-gray-100 bg-gray-50/60">
+            <div class="flex items-center gap-2">
+              <input v-model="s.title" placeholder="Title" class="flex-1 border rounded-lg px-3 py-2 focus-ring text-sm" />
+              <UiButton size="sm" variant="ghost" @pressed="removeSlide(i)">削除</UiButton>
+            </div>
+            <input v-model="s.choicesText" placeholder="Choices (comma separated)" class="w-full border rounded-lg px-3 py-2 focus-ring text-sm" />
+          </div>
+          <div class="flex flex-wrap items-center gap-3">
+            <UiButton variant="secondary" size="sm" @pressed="addSlide">アンケートを追加する</UiButton>
+            <UiButton variant="primary" size="sm" @pressed="onSaveSlides" :disabled="!roomCode">アンケートを保存する</UiButton>
+          </div>
+        </UiCard>
+        <UiCard v-if="roomCode" title="Slide Control" titleClass="text-gray-700">
+          <div class="flex items-center gap-4 flex-wrap">
+            <span class="text-sm text-gray-600">Current: <strong class="text-indigo-600">{{ currentIndex }}</strong></span>
+            <div class="ml-auto flex items-center gap-2">
+              <UiButton size="sm" variant="ghost" @pressed="prevSlide">Prev</UiButton>
+              <UiButton size="sm" variant="primary" @pressed="nextSlide">Next</UiButton>
+            </div>
+          </div>
+        </UiCard>
+      </div>
+
+      <!-- Right: Live Result & Comments -->
+      <div class="xl:col-span-2 space-y-6">
+        <UiCard v-if="aggregates && currentSlideChoices.length" title="Live Results" titleClass="text-indigo-700">
+          <VoteChart :counts="aggregates.counts" :choices="currentSlideChoices" />
+        </UiCard>
+        <UiCard v-if="roomCode" title="Comments" titleClass="text-pink-600">
+          <ul class="space-y-3 max-h-[460px] overflow-y-auto pr-1">
+            <CommentItem v-for="c in comments" :key="c.id" :comment="c" :currentAnonId="myAnonId" @like="onLikeComment" @delete="onDeleteComment" />
+          </ul>
+        </UiCard>
+        <pre v-if="isDev" class="text-[10px] text-gray-400 whitespace-pre-wrap">{{ log }}</pre>
+      </div>
     </div>
-
-    <section style="margin-top:12px;">
-      <h3>Slides (max 5)</h3>
-      <div v-for="(s, i) in slides" :key="i" style="margin-bottom:8px;">
-        <input v-model="s.title" placeholder="Slide title" />
-        <input v-model="s.choicesText" placeholder="Choices (comma separated)" />
-        <button @click="removeSlide(i)">Remove</button>
-      </div>
-      <button @click="addSlide" :disabled="slides.length >= 5">Add Slide</button>
-      <div style="margin-top:8px;">
-        <button @click="onSaveSlides" :disabled="!roomCode">Save Slides</button>
-      </div>
-    </section>
-
-    <section style="margin-top:16px;" v-if="roomCode">
-      <h3>Slide Control</h3>
-      <div>Current index: {{ currentIndex }}</div>
-      <button @click="prevSlide">Prev</button>
-      <button @click="nextSlide">Next</button>
-    </section>
-
-    <section v-if="aggregates && currentSlideChoices.length">
-      <h3>Live Results</h3>
-      <VoteChart :counts="aggregates.counts" :choices="currentSlideChoices" />
-    </section>
-
-    <section v-if="roomCode" style="margin-top:16px;">
-      <h3>Comments</h3>
-      <ul>
-        <li v-for="c in comments" :key="c.id" style="margin-bottom:8px;">
-          <small>{{ new Date(c.createdAt).toLocaleTimeString() }}</small>
-          <div>
-            <em v-if="c.deleted">(削除済み)</em>
-            <span v-else>{{ c.text }}</span>
-          </div>
-          <div style="display:flex; gap:8px; margin-top:4px;">
-            <button @click="onLikeComment(c.id)" :disabled="c.deleted">{{ (c.userLikes && c.userLikes[myAnonId]) ? '💙' : '👍' }} {{ c.likes || 0 }}</button>
-            <button v-if="!c.deleted && c.anonId === myAnonId" @click="onDeleteComment(c.id)">Delete</button>
-          </div>
-        </li>
-      </ul>
-    </section>
-
-    <pre style="margin-top:12px;">{{ log }}</pre>
-  </div>
+  </AppShell>
 </template>
 
 <script setup lang="ts">
 import { reactive, ref, onMounted, watch, onUnmounted } from 'vue';
 import useRoom from '~/composables/useRoom';
 import VoteChart from '~/components/VoteChart.vue';
-import { ref as dbRef, onValue } from 'firebase/database';
+import createDbListener from '~/composables/useDbListener';
+import AppShell from '~/components/ui/AppShell.vue';
+import UiButton from '~/components/ui/UiButton.vue';
+import UiCard from '~/components/ui/UiCard.vue';
+import CommentItem from '~/components/CommentItem.vue';
+import type { Aggregate, Comment as CommentType, Choice, Slide } from '~/types/models';
 
-let r: ReturnType<typeof useRoom> | null = null;
+type RoomApi = {
+  createRoom?: () => Promise<string>;
+  saveSlides?: (code: string, slides: any[]) => Promise<void>;
+  setSlideIndex?: (code: string, idx: number) => Promise<void>;
+  getAnonId?: () => string | null;
+  likeComment?: (code: string, commentId: string) => Promise<void>;
+  deleteComment?: (code: string, commentId: string) => Promise<void>;
+};
+
+type UIComment = CommentType & { id: string };
+
+let r: RoomApi | null = null;
 const roomCode = ref('');
 const currentIndex = ref(0);
 const log = ref('');
 
+// TODO: 開発が終わったらplaceholderに変更
 const slides = reactive<Array<{ title: string; choicesText: string }>>([
   { title: '好きな色は？', choicesText: '赤,青,緑' },
 ]);
-const aggregates = ref<any>(null);
-const currentSlideChoices = ref<Array<{ key: string; text: string }>>([]);
-const comments = ref<Array<any>>([]);
+const aggregates = ref<Aggregate | null>(null);
+const currentSlideChoices = ref<Choice[]>([]);
+const comments = ref<UIComment[]>([]);
 let unsubComments: (() => void) | null = null;
 const myAnonId = ref<string | null>(null);
-// listener cleanup handles
+const isDev = false; // simplified: devログ非表示
+// リスナーのクリーンアップ用ハンドル
 let unsubSlideIndex: (() => void) | null = null;
 let unsubAggregates: (() => void) | null = null;
 let unsubSlideContent: (() => void) | null = null;
 
-function addSlide() { slides.push({ title: '', choicesText: '' }); }
-function removeSlide(i: number) { slides.splice(i, 1); }
-
-async function onCreateRoom() {
-  try {
+const ensureR = () => {
   if (!r) r = useRoom();
-  const code = await r.createRoom();
+  return r;
+};
+
+const addSlide = () => { slides.push({ title: '', choicesText: '' }); };
+const removeSlide = (i: number) => { slides.splice(i, 1); };
+
+const onCreateRoom = async () => {
+  try {
+    ensureR();
+    const code = await (r as any).createRoom();
     roomCode.value = code;
     log.value = `created ${code}`;
   } catch (e: any) { log.value = `create error: ${e.message}`; }
-}
+};
 
-async function onSaveSlides() {
+const onSaveSlides = async () => {
   if (!roomCode.value) { log.value = 'no room'; return; }
   const payload = slides.map((s: { title: string; choicesText: string }) => ({ title: s.title || 'untitled', choices: s.choicesText.split(',').map((c: string) => c.trim()).filter(Boolean) }));
   try {
-  if (!r) r = useRoom();
-  await r.saveSlides(roomCode.value, payload);
-    log.value = 'saved slides';
+  ensureR();
+  await (r as any).saveSlides(roomCode.value, payload);
+  log.value = 'saved slides';
   } catch (e: any) { log.value = `save error: ${e.message}`; }
-}
+};
 
-async function setIdx(idx: number) {
+const setIdx = async (idx: number) => {
   if (!roomCode.value) return;
   try {
-    if (!r) r = useRoom();
-    await r.setSlideIndex(roomCode.value, idx);
+  ensureR();
+  await (r as any).setSlideIndex(roomCode.value, idx);
     currentIndex.value = idx;
   } catch (e: any) { log.value = `set index error: ${e.message}`; }
-}
+};
 
 onMounted(() => {
-  if (!r) r = useRoom();
-  try { myAnonId.value = r.getAnonId(); } catch (e) { myAnonId.value = null; }
-  // listen to aggregates when room exists
-  // (presenter can later add a listener similar to index/audience)
+  ensureR();
+  try { myAnonId.value = (r as any).getAnonId(); } catch (e) { myAnonId.value = null; }
+  // ルームがあるときに集計を監視する
+  // （後で presenter 用にも index/audience と同様のリスナーを追加可能）
 });
 
-// re-use logic similar to audience: when roomCode set, subscribe to slideIndex and slides
+// audience と似たロジックを再利用：roomCode が設定されたら slideIndex とスライドを購読する
 watch(roomCode, async (val: string | null) => {
-  // cleanup previous
+  // 以前のリスナーをクリーンアップ
   try {
-    if (!r) r = useRoom();
+    ensureR();
   } catch (e) {
-    // nothing
+  // なし（エラーハンドリング）
   }
   if (!val) return;
 
@@ -128,77 +150,67 @@ watch(roomCode, async (val: string | null) => {
   const db = (nuxt.$firebaseDb as any) || null;
   if (!db) return;
 
-  // helper to stop a firebase onValue listener
-  const registerOnValue = (path: string, cb: (snap: any) => void) => {
-    const p = dbRef(db, path);
-    const off = onValue(p, cb);
-    return () => off();
-  };
-
-  // slideIndex listener (register per-slide content listener inside)
+  // slideIndex のリスナー（前のリスナーをクリーンアップ）
   if (unsubSlideIndex) { unsubSlideIndex(); unsubSlideIndex = null; }
-  unsubSlideIndex = registerOnValue(`rooms/${val}/slideIndex`, (snap: any) => {
+  unsubSlideIndex = createDbListener(db, `rooms/${val}/slideIndex`, (snap: any) => {
     if (!snap) return;
     const idx = snap.val();
     currentIndex.value = typeof idx === 'number' ? idx : 0;
 
-    // cleanup previous slide content listener
+  // スライド内容のリスナー
     if (unsubSlideContent) { try { unsubSlideContent(); } catch (e) { /* ignore */ } unsubSlideContent = null; }
+      unsubSlideContent = createDbListener(db, `rooms/${val}/slides/slide_${(currentIndex.value || 0) + 1}`, (s: any) => {
+        const slideObj = s && s.val ? s.val() as Slide : null;
+        if (slideObj && slideObj.choices) {
+          currentSlideChoices.value = Object.entries(slideObj.choices).map(([k, v]) => ({ key: k, text: (v as any).text }));
+        } else {
+          currentSlideChoices.value = [];
+        }
+      });
 
-    // register slide content listener for this slide
-    const slideRefPath = `rooms/${val}/slides/slide_${(currentIndex.value || 0) + 1}`;
-    unsubSlideContent = registerOnValue(slideRefPath, (s: any) => {
-      const slideObj = s && s.val ? s.val() : null;
-      if (slideObj && slideObj.choices) {
-        currentSlideChoices.value = Object.entries(slideObj.choices).map(([k, v]: any) => ({ key: k, text: v.text }));
-      } else {
-        currentSlideChoices.value = [];
-      }
-    });
-    // register aggregates listener for this slide (cleanup previous first)
+  // 集計（aggregates）のリスナー
     if (unsubAggregates) { try { (unsubAggregates as any)(); } catch (e) { /* ignore */ } unsubAggregates = null; }
-    const aggRefPath = `rooms/${val}/aggregates/slide_${(currentIndex.value || 0) + 1}`;
-    unsubAggregates = registerOnValue(aggRefPath, (snap: any) => {
+    unsubAggregates = createDbListener(db, `rooms/${val}/aggregates/slide_${(currentIndex.value || 0) + 1}`, (snap: any) => {
       const a = snap && snap.val ? snap.val() : null;
       aggregates.value = a || { counts: {}, total: 0 };
     });
-    // comments listener for presenter view
+
+  // コメント一覧のリスナー
     if (unsubComments) { try { (unsubComments as any)(); } catch (e) { /* ignore */ } unsubComments = null; }
-    const commentsPath = `rooms/${val}/comments`;
-    unsubComments = registerOnValue(commentsPath, (snap: any) => {
-      const arr: any[] = [];
+    unsubComments = createDbListener(db, `rooms/${val}/comments`, (snap: any) => {
+      const arr: UIComment[] = [];
       snap.forEach((child: any) => {
-        arr.unshift({ id: child.key, ...child.val() });
+        arr.unshift({ id: child.key as string, ...(child.val() as CommentType) });
       });
       comments.value = arr;
     });
   });
+});
 
-  // aggregates will be registered per-slide inside slideIndex handler (below)
-
-  onUnmounted(() => {
+// コンポーネント単位で一度だけクリーンアップを登録
+onUnmounted(() => {
   try { if (unsubSlideIndex) (unsubSlideIndex as any)(); } catch (e) { /* ignore */ }
   try { if (unsubSlideContent) (unsubSlideContent as any)(); } catch (e) { /* ignore */ }
   try { if (unsubAggregates) (unsubAggregates as any)(); } catch (e) { /* ignore */ }
-  });
+  try { if (unsubComments) (unsubComments as any)(); } catch (e) { /* ignore */ }
 });
 
-function prevSlide() { setIdx(Math.max(0, currentIndex.value - 1)); }
-function nextSlide() { setIdx(currentIndex.value + 1); }
+const prevSlide = () => { setIdx(Math.max(0, currentIndex.value - 1)); };
+const nextSlide = () => { setIdx(currentIndex.value + 1); };
 
-async function onLikeComment(commentId: string) {
+const onLikeComment = async (commentId: string) => {
   if (!roomCode.value) return;
   try {
-    if (!r) r = useRoom();
-    await r.likeComment(roomCode.value, commentId);
+  ensureR();
+  await (r as any).likeComment(roomCode.value, commentId);
   } catch (e: any) { log.value = `like error: ${e.message}`; }
-}
+};
 
-async function onDeleteComment(commentId: string) {
+const onDeleteComment = async (commentId: string) => {
   if (!roomCode.value) return;
   try {
-    if (!r) r = useRoom();
-    await r.deleteComment(roomCode.value, commentId);
+  ensureR();
+  await (r as any).deleteComment(roomCode.value, commentId);
   } catch (e: any) { log.value = `delete error: ${e.message}`; }
-}
+};
 </script>

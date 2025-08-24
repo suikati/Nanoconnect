@@ -1,102 +1,30 @@
 <template>
-  <div style="padding:16px">
-    <h1>Nanosuke Linka</h1>
-    <p>
-      <NuxtLink to="/presenter"><button>Presenter</button></NuxtLink>
-      <NuxtLink to="/audience" style="margin-left:8px"><button>Audience</button></NuxtLink>
-    </p>
-    <p style="margin-top:12px;color:#666">開発用: presenter と audience ページへ移動してください。</p>
-  </div>
+  <AppShell>
+    <div class="max-w-4xl mx-auto">
+      <div class="text-center mb-14">
+        <h1 class="text-4xl sm:text-5xl font-extrabold leading-tight text-gradient mb-4">リアルタイム<span class="block sm:inline">アンケートアプリ</span></h1>
+        <p class="text-gray-600 text-sm sm:text-base max-w-2xl mx-auto">ナノすけ&リンカさんと説明会を楽しもう</p>
+      </div>
+      <div class="grid gap-6 sm:grid-cols-2">
+        <NuxtLink to="/presenter" class="group block">
+          <div class="h-full bg-white rounded-2xl p-6 border border-indigo-100 shadow-md hover:shadow-pop transition relative overflow-hidden">
+            <span class="absolute inset-0 opacity-0 group-hover:opacity-10 bg-gradient-to-tr from-indigo-500 to-pink-500 transition" />
+            <h2 class="text-xl font-bold text-indigo-600 mb-1">発表者</h2>
+            <p class="text-sm text-gray-500">アンケートを作成して、リアルタイムで進行・集計</p>
+          </div>
+        </NuxtLink>
+        <NuxtLink to="/audience" class="group block">
+          <div class="h-full bg-white rounded-2xl p-6 border border-pink-100 shadow-md hover:shadow-pop transition relative overflow-hidden">
+            <span class="absolute inset-0 opacity-0 group-hover:opacity-10 bg-gradient-to-tr from-pink-500 to-indigo-500 transition" />
+            <h2 class="text-xl font-bold text-pink-600 mb-1">参加者</h2>
+            <p class="text-sm text-gray-500">コード入力で即参加・投票・コメント</p>
+          </div>
+        </NuxtLink>
+      </div>
+    </div>
+  </AppShell>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue';
-import useRoom from '~/composables/useRoom';
-import { ref as dbRef, onValue } from 'firebase/database';
-
-let r: ReturnType<typeof useRoom> | null = null;
-
-const roomCode = ref<string>('');
-const joinCode = ref<string>('');
-const anonId = ref<string>('');
-const joined = ref(false);
-const logs = ref<string[]>([]);
-const aggregates = ref<any>(null);
-
-function log(s: string) { logs.value.unshift(`${new Date().toISOString()} ${s}`); }
-
-async function onCreate() {
-  try {
-  if (!r) r = useRoom();
-  const code = await r.createRoom();
-    roomCode.value = code;
-    log(`created ${code}`);
-  } catch (e: any) {
-    log('create error: ' + e.message);
-  }
-}
-
-async function onJoin() {
-  try {
-    const code = joinCode.value || roomCode.value;
-  if (!r) r = useRoom();
-  const res = await r.joinRoom(code);
-    anonId.value = res.anonId;
-    joined.value = true;
-    log(`joined ${code} as ${res.anonId}`);
-    startListen(code);
-  } catch (e: any) {
-    log('join error: ' + e.message);
-  }
-}
-
-async function onSaveSlides() {
-  if (!roomCode.value && !joinCode.value) { log('no room'); return; }
-  const code = roomCode.value || joinCode.value;
-  try {
-  if (!r) r = useRoom();
-  await r.saveSlides(code, [{ title: '好きな色は？', choices: ['赤', '青', '緑'] }]);
-    log('saved slides');
-  } catch (e: any) { log('saveSlides error: ' + e.message); }
-}
-
-async function onVote() {
-  const code = roomCode.value || joinCode.value;
-  if (!code) { log('no room'); return; }
-  try {
-  if (!r) r = useRoom();
-  await r.submitVote(code, 'slide_1', 'choice_0');
-    log('voted slide_1 -> choice_0');
-  } catch (e: any) { log('vote error: ' + e.message); }
-}
-
-async function onComment() {
-  const code = roomCode.value || joinCode.value;
-  if (!code) { log('no room'); return; }
-  try {
-    await r.pushComment(code, 'テストコメントです');
-    log('pushed comment');
-  } catch (e: any) { log('comment error: ' + e.message); }
-}
-
-/* リアルタイム集計の監視（ページ上に表示） */
-let unsubscribe: (() => void) | null = null;
-function startListen(code: string) {
-  const nuxt = useNuxtApp();
-  const db = nuxt.$firebaseDb;
-  const aggRef = dbRef(db, `rooms/${code}/aggregates/slide_1`);
-  // onValue を登録
-  unsubscribe = onValue(aggRef, (snap) => {
-    aggregates.value = snap.exists() ? snap.val() : null;
-    log('aggregates updated');
-  }) as unknown as () => void;
-}
-
-onUnmounted(() => {
-  if (unsubscribe) unsubscribe();
-});
-
-onMounted(() => {
-  if (!r) r = useRoom();
-});
+import AppShell from '~/components/ui/AppShell.vue';
 </script>

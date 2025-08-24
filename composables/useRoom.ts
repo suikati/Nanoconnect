@@ -1,14 +1,29 @@
 import { ref as dbRef, set, push, get, runTransaction } from "firebase/database";
 import type { Database } from "firebase/database";
 
-export default function useRoom() {
-  if (!process.client) {
-    throw new Error("useRoom はクライアントサイドでのみ使用してください");
-  }
+type UseRoomApi = {
+  generateRoomCode: (len?: number) => string;
+  getAnonId: () => string;
+  createRoom: (roomCode?: string) => Promise<string>;
+  joinRoom: (roomCode: string) => Promise<{ roomCode: string; anonId: string; room: any }>;
+  saveSlides: (roomCode: string, slides: Array<{ title: string; choices: string[] }>) => Promise<void>;
+  setSlideIndex: (roomCode: string, index: number) => Promise<void>;
+  submitVote: (roomCode: string, slideId: string, choiceId: string) => Promise<void>;
+  submitVoteSafe: (roomCode: string, slideId: string, choiceId: string) => Promise<boolean>;
+  pushComment: (roomCode: string, text: string) => Promise<void>;
+  likeComment: (roomCode: string, commentId: string) => Promise<void>;
+  deleteComment: (roomCode: string, commentId: string) => Promise<void>;
+};
+
+const useRoom = (): UseRoomApi => {
+  // クライアントでのみ関数を呼ぶことを保証する。firebase が利用できない場合は getDb が例外を投げる
 
   const nuxt = useNuxtApp();
-  const db = nuxt.$firebaseDb as Database | undefined;
-  if (!db) throw new Error("firebaseDb not available");
+  const getDb = (): Database => {
+    const d = (nuxt as any).$firebaseDb as Database | undefined;
+    if (!d) throw new Error("firebaseDb not available");
+    return d;
+  };
 
   const generateRoomCode = (len = 6) => {
     const alphabet = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
@@ -34,11 +49,11 @@ export default function useRoom() {
     }
   };
 
-  const createRoom = async (roomCode?: string) => {
+  const createRoom = async (roomCode?: string): Promise<string> => {
     const code = roomCode || generateRoomCode();
     const anonId = getAnonId();
     const now = new Date().toISOString();
-    const roomRef = dbRef(db, `rooms/${code}`);
+  const roomRef = dbRef(getDb(), `rooms/${code}`);
     await set(roomRef, {
       presenterId: anonId,
       slideIndex: 0,
@@ -47,13 +62,13 @@ export default function useRoom() {
     return code;
   };
 
-  const joinRoom = async (roomCode: string) => {
-    const snap = await get(dbRef(db, `rooms/${roomCode}`));
+  const joinRoom = async (roomCode: string): Promise<{ roomCode: string; anonId: string; room: any }> => {
+    const snap = await get(dbRef(getDb(), `rooms/${roomCode}`));
     if (!snap.exists()) throw new Error("Room not found");
     return { roomCode, anonId: getAnonId(), room: snap.val() };
   };
 
-  const saveSlides = async (roomCode: string, slides: Array<{ title: string; choices: string[] }>) => {
+  const saveSlides = async (roomCode: string, slides: Array<{ title: string; choices: string[] }>): Promise<void> => {
     const slidesObj: Record<string, any> = {};
     slides.forEach((s, i) => {
       slidesObj[`slide_${i + 1}`] = {
@@ -62,45 +77,45 @@ export default function useRoom() {
         choices: Object.fromEntries(s.choices.map((c, idx) => [`choice_${idx}`, { text: c, index: idx }])),
       };
     });
-    await set(dbRef(db, `rooms/${roomCode}/slides`), slidesObj);
+  await set(dbRef(getDb(), `rooms/${roomCode}/slides`), slidesObj);
   };
 
-  const setSlideIndex = async (roomCode: string, index: number) => {
-    await set(dbRef(db, `rooms/${roomCode}/slideIndex`), index);
+  const setSlideIndex = async (roomCode: string, index: number): Promise<void> => {
+    await set(dbRef(getDb(), `rooms/${roomCode}/slideIndex`), index);
   };
 
-  const submitVote = async (roomCode: string, slideId: string, choiceId: string) => {
+  const submitVote = async (roomCode: string, slideId: string, choiceId: string): Promise<void> => {
     const anonId = getAnonId();
-    const votePath = `rooms/${roomCode}/votes/${slideId}/${anonId}`;
-    // 同一 anonId の上書きにより重複投票を防止
-  await set(dbRef(db, votePath), { choiceId, votedAt: new Date().toISOString() });
+  const votePath = `rooms/${roomCode}/votes/${slideId}/${anonId}`;
+  // 同一 anonId の上書きにより重複投票を防止
+  await set(dbRef(getDb(), votePath), { choiceId, votedAt: new Date().toISOString() });
   };
 
-  // safer vote that adjusts aggregates when changing vote
-  const submitVoteSafe = async (roomCode: string, slideId: string, choiceId: string) => {
+  // 投票を変更したときに集計を調整する安全な投票処理
+  const submitVoteSafe = async (roomCode: string, slideId: string, choiceId: string): Promise<boolean> => {
     const anonId = getAnonId();
-    const voteRef = dbRef(db, `rooms/${roomCode}/votes/${slideId}/${anonId}`);
+  const voteRef = dbRef(getDb(), `rooms/${roomCode}/votes/${slideId}/${anonId}`);
 
-    // read previous vote
+  // 以前の投票を読み取る
     const prevSnap = await get(voteRef);
     const prevChoice = prevSnap.exists() ? (prevSnap.val().choiceId as string | null) : null;
     if (prevChoice === choiceId) {
-      // no change
-      return;
+      // 変更なし
+      return false;
     }
 
-    // write new vote
+  // 新しい投票を書き込む
     try {
       await set(voteRef, { choiceId, votedAt: new Date().toISOString() });
     } catch (e) {
-      // write failed
+      // 書き込み失敗
       // eslint-disable-next-line no-console
       console.error('submitVoteSafe: failed to write vote', e);
       throw e;
     }
 
-    // adjust aggregates in one transaction
-    const aggRef = dbRef(db, `rooms/${roomCode}/aggregates/${slideId}`);
+  // 集計をトランザクションで一括調整
+  const aggRef = dbRef(getDb(), `rooms/${roomCode}/aggregates/${slideId}`);
     try {
       await runTransaction(aggRef, (current: any) => {
         current = current || { counts: {}, total: 0 };
@@ -113,39 +128,39 @@ export default function useRoom() {
         current.total = (current.total || 0) + 1;
         return current;
       });
-      // eslint-disable-next-line no-console
+  // eslint-disable-next-line no-console
       console.log('submitVoteSafe: aggregates transaction succeeded', { roomCode, slideId, choiceId, prevChoice });
     } catch (e) {
-      // transaction failed: log and rethrow so caller can handle
-      // eslint-disable-next-line no-console
+  // トランザクション失敗：ログを出し呼び出し元で処理できるよう再スロー
+  // eslint-disable-next-line no-console
       console.error('submitVoteSafe: transaction failed', e);
       throw e;
     }
 
-    return true;
+  return true;
   };
 
-  const pushComment = async (roomCode: string, text: string) => {
+  const pushComment = async (roomCode: string, text: string): Promise<void> => {
     const anonId = getAnonId();
-    const commentRef = dbRef(db, `rooms/${roomCode}/comments`);
+  const commentRef = dbRef(getDb(), `rooms/${roomCode}/comments`);
   await push(commentRef, { anonId, text, likes: 0, userLikes: {}, deleted: false, createdAt: new Date().toISOString() });
   };
 
-  const likeComment = async (roomCode: string, commentId: string) => {
+  const likeComment = async (roomCode: string, commentId: string): Promise<void> => {
     const anonId = getAnonId();
-    const commentRef = dbRef(db, `rooms/${roomCode}/comments/${commentId}`);
-    // run transaction on the whole comment node to check userLikes and deleted flag
+  const commentRef = dbRef(getDb(), `rooms/${roomCode}/comments/${commentId}`);
+    // コメントノード全体をトランザクションで扱い、userLikes と deleted フラグを確認する
     await runTransaction(commentRef, (current: any) => {
-      if (!current) return current; // comment missing
-      if (current.deleted) return current; // don't like deleted comments
+      if (!current) return current; // コメントが存在しない場合
+      if (current.deleted) return current; // 削除済みコメントにはいいねを付けない
       current.userLikes = current.userLikes || {};
       const already = !!current.userLikes[anonId];
       if (already) {
-        // toggle off
+        // オフにする（いいねを取り消す）
         delete current.userLikes[anonId];
         current.likes = Math.max((current.likes || 1) - 1, 0);
       } else {
-        // toggle on
+        // オンにする（いいねを付ける）
         current.userLikes[anonId] = true;
         current.likes = (current.likes || 0) + 1;
       }
@@ -153,14 +168,14 @@ export default function useRoom() {
     });
   };
 
-  const deleteComment = async (roomCode: string, commentId: string) => {
+  const deleteComment = async (roomCode: string, commentId: string): Promise<void> => {
     const anonId = getAnonId();
-    const commentRef = dbRef(db, `rooms/${roomCode}/comments/${commentId}`);
-    // soft-delete via transaction: mark deleted flag and remove text
+  const commentRef = dbRef(getDb(), `rooms/${roomCode}/comments/${commentId}`);
+    // ソフトデリート（トランザクション）：deleted フラグを立てテキストを削除
     await runTransaction(commentRef, (current: any) => {
       if (!current) return current;
-      // allow deletion only by same anonId (client-side check) — rules should enforce server-side
-      // mark deleted and record who deleted
+      // 同一 anonId のみ削除を許可（クライアント側チェック）。実際はセキュリティルールでサーバ側で制御すべき
+      // 削除フラグや削除者を記録する
       current.deleted = true;
       current.deletedAt = new Date().toISOString();
       current.deletedBy = anonId;
@@ -176,10 +191,12 @@ export default function useRoom() {
     joinRoom,
     saveSlides,
     setSlideIndex,
-  submitVote,
-  submitVoteSafe,
+    submitVote,
+    submitVoteSafe,
     pushComment,
-  likeComment,
-  deleteComment,
+    likeComment,
+    deleteComment,
   };
-}
+};
+
+export default useRoom;
