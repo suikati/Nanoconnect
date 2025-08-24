@@ -135,8 +135,8 @@ const startListeners = (code: string) => {
       slide.value = s.exists() ? s.val() as Slide : null;
       if (slide.value && slide.value.choices) {
         choicesArray.value = Object.entries(slide.value.choices).map(([k, v]) => {
-          const item = v as { text: string; index?: number };
-          return { key: k, text: item.text };
+          const item = v as { text: string; color?: string };
+          return { key: k, text: item.text, color: item.color };
         });
       } else {
         choicesArray.value = [];

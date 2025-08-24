@@ -113,11 +113,31 @@ const onCreateRoom = async () => {
 
 const onSaveSlides = async () => {
   if (!roomCode.value) { log.value = 'no room'; return; }
-  const payload = slides.map((s: { title: string; choices: any[] }) => ({ title: s.title || 'untitled', choices: s.choices }));
+
+  // UI validation: each slide must have at least 2 non-empty choices
+  const palette = ['#4F46E5', '#EC4899', '#F97316', '#10B981', '#06B6D4', '#F59E0B'];
+  for (const s of slides) {
+    const nonEmpty = (s.choices || []).filter((c: any) => c && String(c.text).trim().length > 0);
+    if (nonEmpty.length < 2) {
+      // user-visible validation
+      window.alert(`スライド "${s.title || '無題'}" は最低2つの選択肢が必要です。`);
+      return;
+    }
+  }
+
+  // Normalize slides and auto-assign colors when missing
+  const payload = slides.map((s: { title: string; choices: any[] }, si: number) => {
+    const choices = (s.choices || []).map((c: any, ci: number) => ({
+      text: String(c.text || '').trim(),
+      color: c.color || palette[(ci + si) % palette.length],
+    }));
+    return { title: s.title || 'untitled', choices };
+  });
+
   try {
-  ensureR();
-  await (r as any).saveSlides(roomCode.value, payload);
-  log.value = 'saved slides';
+    ensureR();
+    await (r as any).saveSlides(roomCode.value, payload);
+    log.value = 'saved slides';
   } catch (e: any) { log.value = `save error: ${e.message}`; }
 };
 
@@ -163,7 +183,10 @@ watch(roomCode, async (val: string | null) => {
       unsubSlideContent = createDbListener(db, `rooms/${val}/slides/slide_${(currentIndex.value || 0) + 1}`, (s: any) => {
         const slideObj = s && s.val ? s.val() as Slide : null;
         if (slideObj && slideObj.choices) {
-          currentSlideChoices.value = Object.entries(slideObj.choices).map(([k, v]) => ({ key: k, text: (v as any).text }));
+          currentSlideChoices.value = Object.entries(slideObj.choices).map(([k, v]) => {
+            const item = v as { text: string; color?: string };
+            return { key: k, text: item.text, color: item.color };
+          });
         } else {
           currentSlideChoices.value = [];
         }
