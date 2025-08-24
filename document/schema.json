@@ -1,48 +1,36 @@
 {
   "rooms": {
-    "room_code_1": {
-      "presenterId": "user_id_1",
-      "currentSlideId": "slide_id_1"
-    }
-  },
-  "slides": {
-    "slide_id_1": {
-      "roomId": "room_code_1",
-      "title": "好きな色は何ですか？",
-      "slideNumber": 1
-    }
-  },
-  "options": {
-    "option_id_1": {
-      "slideId": "slide_id_1",
-      "text": "赤"
-    },
-    "option_id_2": {
-      "slideId": "slide_id_1",
-      "text": "青"
-    }
-  },
-  "votes": {
-    "room_code_1": {
-      "slide_id_1": {
-        "user_id_A": {
-          "optionIndex": 0,
-          "votedAt": "2025-08-24T02:00:00Z"
-        },
-        "user_id_B": {
-          "optionIndex": 1,
-          "votedAt": "2025-08-24T02:01:00Z"
+    "room_ABC123": {
+      "presenterId": "presenter_1",
+      "slideIndex": 0,
+      "createdAt": "2025-08-24T00:00:00Z",
+      "slides": {
+        "slide_1": {
+          "title": "好きな色は何ですか？",
+          "slideNumber": 1,
+          "choices": {
+            "choice_0": { "text": "赤", "index": 0 },
+            "choice_1": { "text": "青", "index": 1 }
+          }
         }
+      },
+      "votes": {
+        "slide_1": {
+          "anon_001": { "choiceId": "choice_0", "votedAt": "2025-08-24T02:00:00Z" },
+          "anon_002": { "choiceId": "choice_1", "votedAt": "2025-08-24T02:01:00Z" }
+        }
+      },
+      "comments": {
+        "comment_001": { "anonId": "anon_003", "text": "このアンケート面白い！", "likes": 5, "createdAt": "2025-08-24T02:10:00Z" }
+      },
+      "aggregates": {
+        "slide_1": { "counts": { "choice_0": 1, "choice_1": 1 }, "total": 2 }
       }
     }
   },
-  "comments": {
-    "room_code_1": {
-      "comment_id_1": {
-        "userId": "user_id_D",
-        "content": "このアンケート面白い！",
-        "likes": 5
-      }
+  "users": {
+    "anon_001": {
+      "nanosuke": { "exp": 3, "evolved": false, "points": 0 }
     }
   }
 }
