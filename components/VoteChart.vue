@@ -1,44 +1,50 @@
 <template>
-  <div>
-    <canvas ref="canvas" :width="width" :height="height"></canvas>
+  <div class="chart-container" ref="container">
+    <canvas ref="canvas"></canvas>
   </div>
 </template>
 
 <script setup lang="ts">
-import { onMounted, onBeforeUnmount, ref, watch } from 'vue';
+import { onMounted, onBeforeUnmount, ref, watch, nextTick } from 'vue';
 import { Chart, BarController, BarElement, CategoryScale, LinearScale, Tooltip, Legend } from 'chart.js';
 
 Chart.register(BarController, BarElement, CategoryScale, LinearScale, Tooltip, Legend);
 
-const props = defineProps<{ counts: Record<string, number>, choices: Array<{ key: string, text: string }>, width?: number, height?: number }>();
+const props = defineProps<{ counts: Record<string, number>, choices: Array<{ key: string, text: string }> }>();
 const canvas = ref<HTMLCanvasElement | null>(null);
+const container = ref<HTMLDivElement | null>(null);
 let chart: Chart | null = null;
 
-const width = props.width ?? 400;
-const height = props.height ?? 200;
-
 function buildData() {
-  const labels = props.choices.map(c => c.text);
-  const data = props.choices.map(c => props.counts[c.key] ?? 0);
+  const labels = props.choices.map((c: any) => c.text);
+  const data = props.choices.map((c: any) => props.counts[c.key] ?? 0);
   return { labels, data };
 }
 
-onMounted(() => {
-  if (!canvas.value) return;
+async function renderChart() {
+  await nextTick();
+  if (!canvas.value || !container.value) return;
   const ctx = canvas.value.getContext('2d');
   if (!ctx) return;
   const d = buildData();
+  const color = '#3b82f6';
   chart = new Chart(ctx, {
     type: 'bar',
     data: {
       labels: d.labels,
-      datasets: [{ label: 'Votes', data: d.data, backgroundColor: '#3b82f6' }]
+      datasets: [{ label: 'Votes', data: d.data, backgroundColor: d.data.map(() => color) }]
     },
     options: {
-      responsive: false,
-      animation: { duration: 200 }
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }
     }
   });
+}
+
+onMounted(() => {
+  renderChart();
 });
 
 watch(() => props.counts, () => {
@@ -58,5 +64,6 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped>
-canvas { display:block; }
+.chart-container { position: relative; width: 100%; height: 260px; }
+canvas { display:block; width:100% !important; height:100% !important; }
 </style>
