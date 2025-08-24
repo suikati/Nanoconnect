@@ -18,7 +18,7 @@ type NuxtAppInjections =
   InjectionType<typeof import("../../node_modules/.pnpm/nuxt@3.18.1_@vue+compiler-sfc@3.5.18_typescript@5.9.2_vite@7.1.2/node_modules/nuxt/dist/pages/runtime/plugins/check-if-page-unused.js")> &
   InjectionType<typeof import("../../node_modules/.pnpm/nuxt@3.18.1_@vue+compiler-sfc@3.5.18_typescript@5.9.2_vite@7.1.2/node_modules/nuxt/dist/app/plugins/dev-server-logs.js")> &
   InjectionType<typeof import("../../node_modules/.pnpm/nuxt@3.18.1_@vue+compiler-sfc@3.5.18_typescript@5.9.2_vite@7.1.2/node_modules/nuxt/dist/app/plugins/check-if-layout-used.js")> &
-  InjectionType<typeof import("../../plugins/firebase")>
+  InjectionType<typeof import("../../plugins/firebase.client")>
 
 declare module '#app' {
   interface NuxtApp extends NuxtAppInjections { }
