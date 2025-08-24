@@ -29,5 +29,6 @@ export { withCtx, withDirectives, withKeys, withMemo, withModifiers, withScopeId
 export { requestIdleCallback, cancelIdleCallback } from '#app/compat/idle-callback';
 export { setInterval } from '#app/compat/interval';
 export { defineLazyHydrationComponent } from '#app/composables/lazy-hydration';
+export { default as useDbListener, createDbListener } from '../composables/useDbListener';
 export { default as useRoom } from '../composables/useRoom';
-export { definePageMeta } from '../node_modules/.pnpm/nuxt@3.18.1_@vue+compiler-sfc@3.5.18_typescript@5.9.2_vite@7.1.2/node_modules/nuxt/dist/pages/runtime/composables';
+export { definePageMeta } from '../node_modules/.pnpm/nuxt@3.18.1_@types+node@20.19.11_@vue+compiler-sfc@3.5.18_typescript@5.9.2_vite@7.1.2/node_modules/nuxt/dist/pages/runtime/composables';
