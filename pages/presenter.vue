@@ -6,22 +6,22 @@
         <UiCard>
           <template #header>
             <div class="flex items-center gap-3">
-              <span class="text-indigo-600 font-extrabold">Presenter</span>
-              <UiButton size="sm" variant="primary" @pressed="onCreateRoom">Create Room</UiButton>
-              <span v-if="roomCode" class="text-xs bg-indigo-50 text-indigo-600 px-2 py-1 rounded-full">Room: {{ roomCode }}</span>
+              <span class="text-indigo-600 font-extrabold">発表者</span>
+              <UiButton size="sm" variant="primary" @pressed="onCreateRoom">ルームを作る</UiButton>
+              <span v-if="roomCode" class="text-xs bg-indigo-50 text-indigo-600 px-2 py-1 rounded-full">ルームコード: {{ roomCode }}</span>
             </div>
           </template>
-          <h3 class="text-sm font-semibold text-gray-500 mb-3">Slides (max 5)</h3>
+          <h3 class="text-sm font-semibold text-gray-500 mb-3">アンケート (最大 5つ)</h3>
           <div v-for="(s, i) in slides" :key="i" class="mb-4 space-y-2 p-3 rounded-xl border border-gray-100 bg-gray-50/60">
             <div class="flex items-center gap-2">
               <input v-model="s.title" placeholder="Title" class="flex-1 border rounded-lg px-3 py-2 focus-ring text-sm" />
-              <UiButton size="sm" variant="ghost" @pressed="removeSlide(i)">Remove</UiButton>
+              <UiButton size="sm" variant="ghost" @pressed="removeSlide(i)">削除</UiButton>
             </div>
             <input v-model="s.choicesText" placeholder="Choices (comma separated)" class="w-full border rounded-lg px-3 py-2 focus-ring text-sm" />
           </div>
           <div class="flex flex-wrap items-center gap-3">
-            <UiButton variant="secondary" size="sm" @pressed="addSlide" :disabled="slides.length >= 5">Add Slide</UiButton>
-            <UiButton variant="primary" size="sm" @pressed="onSaveSlides" :disabled="!roomCode">Save Slides</UiButton>
+            <UiButton variant="secondary" size="sm" @pressed="addSlide" :disabled="slides.length >= 5">アンケートを追加する</UiButton>
+            <UiButton variant="primary" size="sm" @pressed="onSaveSlides" :disabled="!roomCode">アンケートを保存する</UiButton>
           </div>
         </UiCard>
         <UiCard v-if="roomCode" title="Slide Control" titleClass="text-gray-700">

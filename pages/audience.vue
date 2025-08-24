@@ -6,11 +6,11 @@
         <UiCard>
           <template #header>
             <div class="flex items-center gap-2">
-              <span class="text-pink-600 font-bold text-lg">Audience</span>
+              <span class="text-pink-600 font-bold text-lg">参加者</span>
             </div>
           </template>
           <div class="flex flex-wrap items-center gap-3 mb-4">
-            <input v-model="codeInput" placeholder="Room code" class="border rounded-lg px-3 py-2 w-40 focus-ring" />
+            <input v-model="codeInput" placeholder="ルームコードを入力" class="border rounded-lg px-3 py-2 w-40 focus-ring" />
             <UiButton variant="secondary" @pressed="onJoin">Join</UiButton>
             <div v-if="joined" class="text-xs text-gray-500">as <strong class="text-indigo-600">{{ anonId }}</strong></div>
           </div>
