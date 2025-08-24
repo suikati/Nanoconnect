@@ -15,17 +15,24 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
-import { getDatabase, set } from "firebase/database";
+import { ref, onMounted } from 'vue';
+import { getDatabase, ref as dbRef, set } from "firebase/database";
 import { nanoid } from 'nanoid';
+import { useRoute, useRouter } from 'vue-router';
 
+// Nuxtプラグインで提供されたインスタンスを取得
 const { $firebaseDb } = useNuxtApp();
 const router = useRouter();
 const route = useRoute();
-const roomCode = route.params.roomCode;
+const roomCode = ref(null); // roomCodeをリアクティブなrefとして定義
+
+// コンポーネントがマウントされた後にroomCodeを取得
+onMounted(() => {
+  roomCode.value = route.params.roomCode;
+});
 
 const slides = ref([
-  { title: '', options: ['', ''] } // 初期スライド
+  { title: '', options: ['', ''] }
 ]);
 
 const addOption = (slideIndex) => {
@@ -41,28 +48,32 @@ const addSlide = () => {
 };
 
 const saveSlides = async () => {
+  if (!roomCode.value) {
+    alert('ルームコードが見つかりません。');
+    return;
+  }
+
   try {
     const slidesData = {};
     slides.value.forEach((slide, index) => {
-      const slideId = nanoid(); // ユニークなスライドIDを生成
+      const slideId = nanoid();
       slidesData[slideId] = {
         title: slide.title,
-        options: slide.options.filter(option => option !== ''), // 空の選択肢を削除
+        options: slide.options.filter(option => option !== ''),
         slideNumber: index + 1
       };
     });
 
-    const slidesRef = ref($firebaseDb, `slides/${roomCode}`);
+    // パスにroomCode.valueを使用
+    const slidesRef = dbRef($firebaseDb, `slides/${roomCode.value}`);
     await set(slidesRef, slidesData);
 
     alert('アンケートが保存されました！');
-    // 次のステップ（スライド開始画面）へリダイレクト
-    router.push(`/presenter/${roomCode}/control`);
+    router.push(`/presenter/${roomCode.value}/control`);
 
   } catch (error) {
     console.error('スライド保存エラー:', error);
-    // ここに error.message を追加
-    alert('スライドの保存に失敗しました: ' + error.message);
+    alert('スライドの保存に失敗しました。' + error.message);
   }
 };
 </script>
