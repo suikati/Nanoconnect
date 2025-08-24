@@ -54,7 +54,8 @@ const renderChart = async () => {
   };
 
   const bgColors = d.data.map((_, i) => {
-    const c1 = palette[i % palette.length];
+    const choice = props.choices[i] as any;
+    const c1 = (choice && choice.color) ? choice.color : palette[i % palette.length];
     const c2 = '#ffffff';
     return gradientFor(ctx, canvas.value!.getBoundingClientRect(), c1, c2);
   });
