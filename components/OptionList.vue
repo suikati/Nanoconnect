@@ -80,8 +80,7 @@ const onRemove = (id: string) => { const idx = options.findIndex((o: Opt) => o.i
 
 const emitUpdate = () => { emit('update:modelValue', toRaw(options)); };
 
-// Watch for any change to the options array (including reorder by draggable) and emit
-watch(options, () => { emit('update:modelValue', toRaw(options)); }, { deep: true });
+// Note: do not auto-emit from watching `options` to avoid recursive update loops.
 </script>
 
 <style scoped>
