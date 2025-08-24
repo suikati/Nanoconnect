@@ -8,7 +8,7 @@
       <div class="grid gap-6 sm:grid-cols-2">
         <NuxtLink to="/presenter" class="group block">
           <div class="h-full bg-white rounded-2xl p-6 border border-indigo-100 shadow-md hover:shadow-pop transition relative overflow-hidden">
-            <!-- hover gradient removed -->
+            <span class="absolute inset-0 opacity-0 group-hover:opacity-10 bg-gradient-to-tr from-indigo-500 to-pink-500 transition pointer-events-none" />
             <h2 class="text-xl font-bold text-indigo-600 mb-1">発表者</h2>
             <p class="text-sm text-gray-500">アンケートを作成して、リアルタイムで進行・集計</p>
           </div>

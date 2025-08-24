@@ -12,7 +12,7 @@
             </div>
           </template>
           <h3 class="text-sm font-semibold text-gray-500 mb-3">アンケート</h3>
-          <div v-for="(s, i) in slides" :key="i" class="mb-4 space-y-2 p-3 rounded-xl border border-gray-100 bg-gray-50/60">
+          <div v-for="(s, i) in slides" :key="s.id" class="mb-4 space-y-2 p-3 rounded-xl border border-gray-100 bg-gray-50/60">
             <div class="flex items-center gap-2">
               <input v-model="s.title" placeholder="Title" class="flex-1 border rounded-lg px-3 py-2 focus-ring text-sm" />
               <UiButton size="sm" variant="ghost" @pressed="removeSlide(i)">削除</UiButton>
@@ -81,8 +81,8 @@ const log = ref('');
 
 // TODO: 開発が終わったらplaceholderに変更
 const palette = ['#4F46E5', '#EC4899', '#F97316', '#10B981', '#06B6D4', '#F59E0B'];
-const slides = reactive<Array<{ title: string; choices: Array<{ text: string; color?: string }> }>>([
-  { title: '好きな色は？', choices: [{ text: '赤', color: '#EF4444' }, { text: '青', color: '#3B82F6' }, { text: '緑', color: '#10B981' }] },
+const slides = reactive<Array<{ id: string; title: string; choices: Array<{ text: string; color?: string }> }>>([
+  { id: `slide_0_${Date.now()}`, title: '好きな色は？', choices: [{ text: '赤', color: '#EF4444' }, { text: '青', color: '#3B82F6' }, { text: '緑', color: '#10B981' }] },
 ]);
 const aggregates = ref<Aggregate | null>(null);
 const currentSlideChoices = ref<Choice[]>([]);
@@ -103,7 +103,7 @@ const ensureR = () => {
 const addSlide = () => {
   // assign a palette color immediately so the color picker shows a value
   const idx = slides.length % palette.length;
-  slides.push({ title: '', choices: [{ text: '', color: palette[idx] }] });
+  slides.push({ id: `slide_${slides.length}_${Date.now()}`, title: '', choices: [{ text: '', color: palette[idx] }] });
 };
 const removeSlide = (i: number) => { slides.splice(i, 1); };
 
@@ -204,13 +204,14 @@ watch(roomCode, async (val: string | null) => {
         // Also reflect DB values into the editor model (`slides`) so color pickers show saved colors
         try {
           const slideObj2 = slideObj;
-          if (slideObj2) {
-            const idx = (currentIndex.value || 0);
-            const editorChoices = slideObj2.choices ? Object.entries(slideObj2.choices).map(([k, v]) => ({ id: k, text: (v as any).text || '', color: (v as any).color })) : [];
-            while (slides.length <= idx) slides.push({ title: '', choices: [{ text: '', color: '#F3F4F6' }] });
-            slides[idx].title = slideObj2.title || '';
-            slides[idx].choices = editorChoices;
-          }
+        if (slideObj2) {
+          const idx = (currentIndex.value || 0);
+          const editorChoices = slideObj2.choices ? Object.entries(slideObj2.choices).map(([k, v]) => ({ id: k, text: (v as any).text || '', color: (v as any).color })) : [];
+          while (slides.length <= idx) slides.push({ id: `slide_${slides.length}_${Date.now()}`, title: '', choices: [{ text: '', color: '#F3F4F6' }] });
+          // preserve existing slide id when updating
+          const existingId = slides[idx].id || `slide_${idx}_${Date.now()}`;
+          slides[idx] = { id: existingId, title: slideObj2.title || '', choices: editorChoices } as any;
+        }
         } catch (e) { /* ignore */ }
       });
 

@@ -1,10 +1,10 @@
 <template>
   <div class="option-list space-y-3">
-  <draggable v-model="options" item-key="id" handle=".drag-handle" @change="emitUpdate" @end="emitUpdate">
+    <Draggable v-model="options" item-key="id" handle=".drag-handle" @change="emitUpdate" @end="emitUpdate">
       <template #item="{ element, index }">
         <OptionItem :option="element" :index="index" @update="onUpdate" @remove="onRemove" />
       </template>
-    </draggable>
+    </Draggable>
     <div class="pt-2">
       <button class="w-full bg-gray-100 rounded-xl py-3 text-sm text-gray-700" @click.prevent="addOption">+ Add option</button>
     </div>
@@ -12,7 +12,7 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, toRaw } from 'vue';
+import { reactive, toRaw, watch, toRef } from 'vue';
 import Draggable from 'vuedraggable';
 import OptionItem from '~/components/OptionItem.vue';
 const props = defineProps<{ modelValue?: Array<{ text: string; color?: string; id?: string }> }>();
@@ -41,6 +41,20 @@ const initial: Opt[] = (() => {
 })();
 const options = reactive(initial as Opt[]);
 
+// Keep local options in sync when parent updates modelValue
+const mv = toRef(props, 'modelValue');
+watch(mv, (nv: any) => {
+  if (!nv) return;
+  // replace array while preserving the same reactive object
+  // preserve existing ids when possible so item-key doesn't change between updates
+  const newItems = (nv as any).map((o: any, i: number) => {
+    const existing = options[i];
+    const id = o.id || (existing && existing.id) || `opt_${i}_${Date.now()}`;
+    return { id, text: o.text || '', color: o.color || '' };
+  });
+  options.splice(0, options.length, ...newItems);
+}, { deep: true });
+
 const addOption = () => {
   const used = new Set<string>(options.map((o: Opt) => (o.color || '').toString()).filter(Boolean));
   const color = pickNextColor(used);
@@ -50,7 +64,6 @@ const addOption = () => {
 
 const onUpdate = (opt: any) => { const idx = options.findIndex((o: Opt) => o.id === opt.id); if (idx >= 0) { options[idx] = opt; emit('update:modelValue', toRaw(options)); } };
 const onRemove = (id: string) => { const idx = options.findIndex((o: Opt) => o.id === id); if (idx >= 0) { options.splice(idx, 1); emit('update:modelValue', toRaw(options)); } };
-import { watch } from 'vue';
 
 const emitUpdate = () => { emit('update:modelValue', toRaw(options)); };
 
