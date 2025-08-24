@@ -195,6 +195,18 @@ watch(roomCode, async (val: string | null) => {
         } else {
           currentSlideChoices.value = [];
         }
+
+        // Also reflect DB values into the editor model (`slides`) so color pickers show saved colors
+        try {
+          const slideObj2 = slideObj;
+          if (slideObj2) {
+            const idx = (currentIndex.value || 0);
+            const editorChoices = slideObj2.choices ? Object.entries(slideObj2.choices).map(([k, v]) => ({ id: k, text: (v as any).text || '', color: (v as any).color })) : [];
+            while (slides.length <= idx) slides.push({ title: '', choices: [{ text: '', color: '#F3F4F6' }] });
+            slides[idx].title = slideObj2.title || '';
+            slides[idx].choices = editorChoices;
+          }
+        } catch (e) { /* ignore */ }
       });
 
   // 集計（aggregates）のリスナー
