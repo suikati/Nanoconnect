@@ -35,7 +35,7 @@
             <span v-else>{{ c.text }}</span>
           </div>
           <div style="display:flex; gap:8px; margin-top:4px;">
-            <button @click="onLikeComment(c.id)" :disabled="c.deleted">👍 {{ c.likes || 0 }}</button>
+            <button @click="onLikeComment(c.id)" :disabled="c.deleted">{{ (c.userLikes && c.userLikes[anonId]) ? '💙' : '👍' }} {{ c.likes || 0 }}</button>
             <button v-if="!c.deleted && c.anonId === anonId" @click="onDeleteComment(c.id)">Delete</button>
           </div>
         </li>

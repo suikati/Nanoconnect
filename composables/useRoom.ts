@@ -139,12 +139,16 @@ export default function useRoom() {
       if (!current) return current; // comment missing
       if (current.deleted) return current; // don't like deleted comments
       current.userLikes = current.userLikes || {};
-      if (current.userLikes[anonId]) {
-        // already liked by this user, no-op
-        return current;
+      const already = !!current.userLikes[anonId];
+      if (already) {
+        // toggle off
+        delete current.userLikes[anonId];
+        current.likes = Math.max((current.likes || 1) - 1, 0);
+      } else {
+        // toggle on
+        current.userLikes[anonId] = true;
+        current.likes = (current.likes || 0) + 1;
       }
-      current.userLikes[anonId] = true;
-      current.likes = (current.likes || 0) + 1;
       return current;
     });
   };
