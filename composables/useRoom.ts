@@ -128,22 +128,41 @@ export default function useRoom() {
   const pushComment = async (roomCode: string, text: string) => {
     const anonId = getAnonId();
     const commentRef = dbRef(db, `rooms/${roomCode}/comments`);
-    await push(commentRef, { anonId, text, likes: 0, createdAt: new Date().toISOString() });
+  await push(commentRef, { anonId, text, likes: 0, userLikes: {}, deleted: false, createdAt: new Date().toISOString() });
   };
 
   const likeComment = async (roomCode: string, commentId: string) => {
-    const path = `rooms/${roomCode}/comments/${commentId}/likes`;
-    const likeRef = dbRef(db, path);
-    // use transaction to increment likes
-    await runTransaction(likeRef, (current: any) => {
-      return (current || 0) + 1;
+    const anonId = getAnonId();
+    const commentRef = dbRef(db, `rooms/${roomCode}/comments/${commentId}`);
+    // run transaction on the whole comment node to check userLikes and deleted flag
+    await runTransaction(commentRef, (current: any) => {
+      if (!current) return current; // comment missing
+      if (current.deleted) return current; // don't like deleted comments
+      current.userLikes = current.userLikes || {};
+      if (current.userLikes[anonId]) {
+        // already liked by this user, no-op
+        return current;
+      }
+      current.userLikes[anonId] = true;
+      current.likes = (current.likes || 0) + 1;
+      return current;
     });
   };
 
   const deleteComment = async (roomCode: string, commentId: string) => {
-    // remove the comment node
+    const anonId = getAnonId();
     const commentRef = dbRef(db, `rooms/${roomCode}/comments/${commentId}`);
-    await set(commentRef, null);
+    // soft-delete via transaction: mark deleted flag and remove text
+    await runTransaction(commentRef, (current: any) => {
+      if (!current) return current;
+      // allow deletion only by same anonId (client-side check) — rules should enforce server-side
+      // mark deleted and record who deleted
+      current.deleted = true;
+      current.deletedAt = new Date().toISOString();
+      current.deletedBy = anonId;
+      current.text = null;
+      return current;
+    });
   };
 
   return {

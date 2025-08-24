@@ -36,10 +36,13 @@
       <ul>
         <li v-for="c in comments" :key="c.id" style="margin-bottom:8px;">
           <small>{{ new Date(c.createdAt).toLocaleTimeString() }}</small>
-          <div>{{ c.text }}</div>
+          <div>
+            <em v-if="c.deleted">(削除済み)</em>
+            <span v-else>{{ c.text }}</span>
+          </div>
           <div style="display:flex; gap:8px; margin-top:4px;">
-            <button @click="onLikeComment(c.id)">👍 {{ c.likes || 0 }}</button>
-            <button v-if="c.anonId === myAnonId" @click="onDeleteComment(c.id)">Delete</button>
+            <button @click="onLikeComment(c.id)" :disabled="c.deleted">👍 {{ c.likes || 0 }}</button>
+            <button v-if="!c.deleted && c.anonId === myAnonId" @click="onDeleteComment(c.id)">Delete</button>
           </div>
         </li>
       </ul>
