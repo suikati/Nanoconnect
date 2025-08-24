@@ -1,10 +1,14 @@
 <template>
   <div class="option-list space-y-3">
-    <Draggable v-model="options" item-key="id" handle=".drag-handle" @change="emitUpdate" @end="emitUpdate">
-      <template #item="{ element, index }">
-        <OptionItem :option="element" :index="index" @update="onUpdate" @remove="onRemove" />
-      </template>
-    </Draggable>
+    <ul class="space-y-2">
+      <li v-for="(o, idx) in options" :key="o.id" class="flex items-center gap-3">
+        <OptionItem :option="o" :index="idx" @update="onUpdate" @remove="onRemove" />
+        <div class="flex flex-col gap-1 ml-2">
+          <button class="text-xs bg-gray-100 rounded px-2 py-1" :disabled="idx===0" @click.prevent="moveUp(idx)">↑</button>
+          <button class="text-xs bg-gray-100 rounded px-2 py-1" :disabled="idx===options.length-1" @click.prevent="moveDown(idx)">↓</button>
+        </div>
+      </li>
+    </ul>
     <div class="pt-2">
       <button class="w-full bg-gray-100 rounded-xl py-3 text-sm text-gray-700" @click.prevent="addOption">+ Add option</button>
     </div>
@@ -13,7 +17,6 @@
 
 <script setup lang="ts">
 import { reactive, toRaw, watch, toRef } from 'vue';
-import Draggable from 'vuedraggable';
 import OptionItem from '~/components/OptionItem.vue';
 const props = defineProps<{ modelValue?: Array<{ text: string; color?: string; id?: string }> }>();
 const emit = defineEmits<{ 'update:modelValue': (v: any) => void }>();
@@ -59,6 +62,20 @@ const addOption = () => {
   const used = new Set<string>(options.map((o: Opt) => (o.color || '').toString()).filter(Boolean));
   const color = pickNextColor(used);
   options.push({ id: `opt_${options.length}_${Date.now()}`, text: '', color });
+  emit('update:modelValue', toRaw(options));
+};
+
+const moveUp = (idx: number) => {
+  if (idx <= 0) return;
+  const [item] = options.splice(idx, 1);
+  options.splice(idx - 1, 0, item);
+  emit('update:modelValue', toRaw(options));
+};
+
+const moveDown = (idx: number) => {
+  if (idx >= options.length - 1) return;
+  const [item] = options.splice(idx, 1);
+  options.splice(idx + 1, 0, item);
   emit('update:modelValue', toRaw(options));
 };
 
