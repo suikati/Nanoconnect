@@ -44,9 +44,13 @@ const options = reactive(initial as Opt[]);
 const mv = toRef(props, 'modelValue');
 watch(mv, (nv: any) => {
   if (!nv) return;
+  const arr = nv as any[];
+  // quick equality check: same length and same ids/text
+  if (arr.length === options.length && arr.every((a, i) => ((a.id || '') === (options[i].id || '') && String(a.text || '') === String(options[i].text || '')))) {
+    return;
+  }
   // replace array while preserving the same reactive object
-  // preserve existing ids when possible so item-key doesn't change between updates
-  const newItems = (nv as any).map((o: any, i: number) => {
+  const newItems = arr.map((o: any, i: number) => {
     const existing = options[i];
     const id = o.id || (existing && existing.id) || `opt_${i}_${Date.now()}`;
     return { id, text: o.text || '', color: o.color || '' };
