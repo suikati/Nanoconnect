@@ -1,9 +1,10 @@
 <template>
   <button
+    type="button"
     :class="computedClass"
     class="inline-flex items-center justify-center font-semibold tracking-wide focus-ring select-none"
     :disabled="disabled"
-    @click="$emit('click', $event)"
+    @click="handleClick"
   >
     <slot />
   </button>
@@ -11,6 +12,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue';
+import { ref } from 'vue';
 const props = defineProps<{ variant?: 'primary'|'secondary'|'ghost'|'danger'|'pill'; size?: 'sm'|'md'; full?: boolean; disabled?: boolean }>();
 const computedClass = computed(() => {
   const v = props.variant || 'primary';
@@ -28,4 +30,15 @@ const computedClass = computed(() => {
   const width = props.full ? 'w-full' : '';
   return [base, sizes[size], map[v], disabled, width].join(' ');
 });
+const emit = defineEmits<('pressed' | 'click')[]>();
+const locked = ref(false);
+const handleClick = (e: Event) => {
+  // prevent bubbling and accidental native form submits
+  try { e.stopImmediatePropagation(); e.stopPropagation(); e.preventDefault(); } catch (err) { /* ignore */ }
+  if (props.disabled || locked.value) return;
+  locked.value = true;
+  emit('pressed', e);
+  // short cooldown to avoid duplicate handling
+  setTimeout(() => { locked.value = false; }, 300);
+};
 </script>

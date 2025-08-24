@@ -7,7 +7,7 @@
           <template #header>
             <div class="flex items-center gap-3">
               <span class="text-indigo-600 font-extrabold">Presenter</span>
-              <UiButton size="sm" variant="primary" @click="onCreateRoom">Create Room</UiButton>
+              <UiButton size="sm" variant="primary" @pressed="onCreateRoom">Create Room</UiButton>
               <span v-if="roomCode" class="text-xs bg-indigo-50 text-indigo-600 px-2 py-1 rounded-full">Room: {{ roomCode }}</span>
             </div>
           </template>
@@ -15,21 +15,21 @@
           <div v-for="(s, i) in slides" :key="i" class="mb-4 space-y-2 p-3 rounded-xl border border-gray-100 bg-gray-50/60">
             <div class="flex items-center gap-2">
               <input v-model="s.title" placeholder="Title" class="flex-1 border rounded-lg px-3 py-2 focus-ring text-sm" />
-              <UiButton size="sm" variant="ghost" @click="removeSlide(i)">Remove</UiButton>
+              <UiButton size="sm" variant="ghost" @pressed="removeSlide(i)">Remove</UiButton>
             </div>
             <input v-model="s.choicesText" placeholder="Choices (comma separated)" class="w-full border rounded-lg px-3 py-2 focus-ring text-sm" />
           </div>
           <div class="flex flex-wrap items-center gap-3">
-            <UiButton variant="secondary" size="sm" @click="addSlide" :disabled="slides.length >= 5">Add Slide</UiButton>
-            <UiButton variant="primary" size="sm" @click="onSaveSlides" :disabled="!roomCode">Save Slides</UiButton>
+            <UiButton variant="secondary" size="sm" @pressed="addSlide" :disabled="slides.length >= 5">Add Slide</UiButton>
+            <UiButton variant="primary" size="sm" @pressed="onSaveSlides" :disabled="!roomCode">Save Slides</UiButton>
           </div>
         </UiCard>
         <UiCard v-if="roomCode" title="Slide Control" titleClass="text-gray-700">
           <div class="flex items-center gap-4 flex-wrap">
             <span class="text-sm text-gray-600">Current: <strong class="text-indigo-600">{{ currentIndex }}</strong></span>
             <div class="ml-auto flex items-center gap-2">
-              <UiButton size="sm" variant="ghost" @click="prevSlide">Prev</UiButton>
-              <UiButton size="sm" variant="primary" @click="nextSlide">Next</UiButton>
+              <UiButton size="sm" variant="ghost" @pressed="prevSlide">Prev</UiButton>
+              <UiButton size="sm" variant="primary" @pressed="nextSlide">Next</UiButton>
             </div>
           </div>
         </UiCard>
@@ -187,11 +187,16 @@ watch(roomCode, async (val: string | null) => {
 
   // 集計は slideIndex ハンドラ内でスライドごとに登録される
 
-  onUnmounted(() => {
+  // (watch内で onUnmounted を登録してしまうと、watch が発火する度に
+  //  new unmount handlers が積み重なるため、ここでは何もしない)
+});
+
+// コンポーネント単位で一度だけクリーンアップを登録
+onUnmounted(() => {
   try { if (unsubSlideIndex) (unsubSlideIndex as any)(); } catch (e) { /* ignore */ }
   try { if (unsubSlideContent) (unsubSlideContent as any)(); } catch (e) { /* ignore */ }
   try { if (unsubAggregates) (unsubAggregates as any)(); } catch (e) { /* ignore */ }
-  });
+  try { if (unsubComments) (unsubComments as any)(); } catch (e) { /* ignore */ }
 });
 
 const prevSlide = () => { setIdx(Math.max(0, currentIndex.value - 1)); };

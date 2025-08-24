@@ -1,5 +1,5 @@
 <template>
-  <button :disabled="disabled" @click="$emit('vote', choice.key)" :class="btnClass">
+  <button :disabled="disabled" @click="onClick" :class="btnClass">
     <span class="font-medium">{{ choice.text }}</span>
     <span class="text-xs font-mono opacity-70">{{ count }}</span>
   </button>
@@ -15,4 +15,13 @@ const btnClass = computed(() => {
   const disabled = props.disabled ? 'opacity-60 pointer-events-none' : '';
   return [base, active, disabled, 'anim-pop'].join(' ');
 });
+const emit = defineEmits<('vote')[]>();
+let locked = false;
+const onClick = (e: Event) => {
+  try { e.stopImmediatePropagation(); e.preventDefault(); } catch (err) { /* ignore */ }
+  if (locked || props.disabled) return;
+  locked = true;
+  emit('vote', props.choice.key);
+  setTimeout(() => { locked = false; }, 300);
+};
 </script>

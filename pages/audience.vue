@@ -11,7 +11,7 @@
           </template>
           <div class="flex flex-wrap items-center gap-3 mb-4">
             <input v-model="codeInput" placeholder="Room code" class="border rounded-lg px-3 py-2 w-40 focus-ring" />
-            <UiButton variant="secondary" @click="onJoin">Join</UiButton>
+            <UiButton variant="secondary" @pressed="onJoin">Join</UiButton>
             <div v-if="joined" class="text-xs text-gray-500">as <strong class="text-indigo-600">{{ anonId }}</strong></div>
           </div>
 
@@ -39,7 +39,7 @@
           <div v-if="!joined" class="text-xs text-gray-400">参加するとコメントできます。</div>
           <div v-else class="flex gap-3 mb-4">
             <input v-model="commentText" placeholder="コメントを書く..." class="flex-1 border rounded-lg px-3 py-2 focus-ring" />
-            <UiButton variant="primary" :disabled="!commentText" @click="onPostComment">Post</UiButton>
+            <UiButton variant="primary" :disabled="!commentText" @pressed="onPostComment">Post</UiButton>
           </div>
           <ul class="space-y-3 max-h-[420px] overflow-y-auto pr-1">
             <CommentItem v-for="c in comments" :key="c.id" :comment="c" :currentAnonId="anonId" @like="onLikeComment" @delete="onDeleteComment" />
