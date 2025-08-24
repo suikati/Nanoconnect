@@ -68,16 +68,26 @@ const useRoom = (): UseRoomApi => {
     return { roomCode, anonId: getAnonId(), room: snap.val() };
   };
 
-  const saveSlides = async (roomCode: string, slides: Array<{ title: string; choices: string[] }>): Promise<void> => {
+  const saveSlides = async (roomCode: string, slides: Array<{ title: string; choices: any[] }>): Promise<void> => {
     const slidesObj: Record<string, any> = {};
     slides.forEach((s, i) => {
+      // choices may be array of strings or array of objects { text, color?, index? }
+      const choicesArr = Array.isArray(s.choices) ? s.choices : [];
+      const choicesMap: Record<string, any> = {};
+      choicesArr.forEach((c: any, idx: number) => {
+        if (typeof c === 'string') {
+          choicesMap[`choice_${idx}`] = { text: c, index: idx };
+        } else {
+          choicesMap[`choice_${idx}`] = { text: c.text || '', index: idx, color: c.color || undefined };
+        }
+      });
       slidesObj[`slide_${i + 1}`] = {
         title: s.title,
         slideNumber: i + 1,
-        choices: Object.fromEntries(s.choices.map((c, idx) => [`choice_${idx}`, { text: c, index: idx }])),
+        choices: choicesMap,
       };
     });
-  await set(dbRef(getDb(), `rooms/${roomCode}/slides`), slidesObj);
+    await set(dbRef(getDb(), `rooms/${roomCode}/slides`), slidesObj);
   };
 
   const setSlideIndex = async (roomCode: string, index: number): Promise<void> => {

@@ -17,7 +17,7 @@
               <input v-model="s.title" placeholder="Title" class="flex-1 border rounded-lg px-3 py-2 focus-ring text-sm" />
               <UiButton size="sm" variant="ghost" @pressed="removeSlide(i)">削除</UiButton>
             </div>
-            <input v-model="s.choicesText" placeholder="Choices (comma separated)" class="w-full border rounded-lg px-3 py-2 focus-ring text-sm" />
+            <OptionList v-model="s.choices" />
           </div>
           <div class="flex flex-wrap items-center gap-3">
             <UiButton variant="secondary" size="sm" @pressed="addSlide">アンケートを追加する</UiButton>
@@ -60,6 +60,7 @@ import AppShell from '~/components/ui/AppShell.vue';
 import UiButton from '~/components/ui/UiButton.vue';
 import UiCard from '~/components/ui/UiCard.vue';
 import CommentItem from '~/components/CommentItem.vue';
+import OptionList from '~/components/OptionList.vue';
 import type { Aggregate, Comment as CommentType, Choice, Slide } from '~/types/models';
 
 type RoomApi = {
@@ -79,8 +80,8 @@ const currentIndex = ref(0);
 const log = ref('');
 
 // TODO: 開発が終わったらplaceholderに変更
-const slides = reactive<Array<{ title: string; choicesText: string }>>([
-  { title: '好きな色は？', choicesText: '赤,青,緑' },
+const slides = reactive<Array<{ title: string; choices: Array<{ text: string; color?: string }> }>>([
+  { title: '好きな色は？', choices: [{ text: '赤', color: '#EF4444' }, { text: '青', color: '#3B82F6' }, { text: '緑', color: '#10B981' }] },
 ]);
 const aggregates = ref<Aggregate | null>(null);
 const currentSlideChoices = ref<Choice[]>([]);
@@ -98,7 +99,7 @@ const ensureR = () => {
   return r;
 };
 
-const addSlide = () => { slides.push({ title: '', choicesText: '' }); };
+const addSlide = () => { slides.push({ title: '', choices: [{ text: '', color: '#F3F4F6' }] }); };
 const removeSlide = (i: number) => { slides.splice(i, 1); };
 
 const onCreateRoom = async () => {
@@ -112,7 +113,7 @@ const onCreateRoom = async () => {
 
 const onSaveSlides = async () => {
   if (!roomCode.value) { log.value = 'no room'; return; }
-  const payload = slides.map((s: { title: string; choicesText: string }) => ({ title: s.title || 'untitled', choices: s.choicesText.split(',').map((c: string) => c.trim()).filter(Boolean) }));
+  const payload = slides.map((s: { title: string; choices: any[] }) => ({ title: s.title || 'untitled', choices: s.choices }));
   try {
   ensureR();
   await (r as any).saveSlides(roomCode.value, payload);
