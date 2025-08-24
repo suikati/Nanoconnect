@@ -48,7 +48,14 @@ const addOption = () => {
   emit('update:modelValue', toRaw(options));
 };
 
-const onUpdate = (opt: any) => { const idx = options.findIndex((o: Opt) => o.id === opt.id); if (idx >= 0) { options[idx] = opt; emit('update:modelValue', toRaw(options)); } };
+const onUpdate = (opt: any) => {
+  const idx = options.findIndex((o: Opt) => o.id === opt.id);
+  if (idx >= 0) {
+    // update properties in-place to preserve reactivity and avoid replacing the array element
+    Object.assign(options[idx], opt);
+    emit('update:modelValue', toRaw(options));
+  }
+};
 const onRemove = (id: string) => { const idx = options.findIndex((o: Opt) => o.id === id); if (idx >= 0) { options.splice(idx, 1); emit('update:modelValue', toRaw(options)); } };
 const emitUpdate = () => { emit('update:modelValue', toRaw(options)); };
 </script>
