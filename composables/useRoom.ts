@@ -73,17 +73,7 @@ export default function useRoom() {
     const anonId = getAnonId();
     const votePath = `rooms/${roomCode}/votes/${slideId}/${anonId}`;
     // 同一 anonId の上書きにより重複投票を防止
-    await set(dbRef(db, votePath), { choiceId, votedAt: new Date().toISOString() });
-
-    // 集計を transaction で安全に更新
-    const aggPath = `rooms/${roomCode}/aggregates/${slideId}`;
-    await runTransaction(dbRef(db, aggPath), (current) => {
-      current = current || { counts: {}, total: 0 };
-      current.counts = current.counts || {};
-      current.counts[choiceId] = (current.counts[choiceId] || 0) + 1;
-      current.total = (current.total || 0) + 1;
-      return current;
-    });
+  await set(dbRef(db, votePath), { choiceId, votedAt: new Date().toISOString() });
   };
 
   // safer vote that adjusts aggregates when changing vote
@@ -99,22 +89,8 @@ export default function useRoom() {
       return;
     }
 
-    // write new vote
-    await set(voteRef, { choiceId, votedAt: new Date().toISOString() });
-
-    // adjust aggregates in one transaction
-    const aggRef = dbRef(db, `rooms/${roomCode}/aggregates/${slideId}`);
-    await runTransaction(aggRef, (current: any) => {
-      current = current || { counts: {}, total: 0 };
-      current.counts = current.counts || {};
-      if (prevChoice) {
-        current.counts[prevChoice] = Math.max((current.counts[prevChoice] || 0) - 1, 0);
-        current.total = Math.max((current.total || 0) - 1, 0);
-      }
-      current.counts[choiceId] = (current.counts[choiceId] || 0) + 1;
-      current.total = (current.total || 0) + 1;
-      return current;
-    });
+  // write new vote only; functions will recalc aggregates
+  await set(voteRef, { choiceId, votedAt: new Date().toISOString() });
   };
 
   const pushComment = async (roomCode: string, text: string) => {
