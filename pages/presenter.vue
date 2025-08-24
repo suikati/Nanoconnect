@@ -131,8 +131,8 @@ const setIdx = async (idx: number) => {
 };
 
 onMounted(() => {
-  if (!r) r = useRoom();
-  try { myAnonId.value = r.getAnonId(); } catch (e) { myAnonId.value = null; }
+  ensureR();
+  try { myAnonId.value = (r as any).getAnonId(); } catch (e) { myAnonId.value = null; }
   // listen to aggregates when room exists
   // (presenter can later add a listener similar to index/audience)
 });
@@ -141,7 +141,7 @@ onMounted(() => {
 watch(roomCode, async (val: string | null) => {
   // cleanup previous
   try {
-    if (!r) r = useRoom();
+    ensureR();
   } catch (e) {
     // nothing
   }

@@ -2,13 +2,14 @@ import { ref as dbRef, set, push, get, runTransaction } from "firebase/database"
 import type { Database } from "firebase/database";
 
 const useRoom = () => {
-  if (!process.client) {
-    throw new Error("useRoom はクライアントサイドでのみ使用してください");
-  }
+  // ensure functions are called on client; getDb will throw if firebase isn't available
 
   const nuxt = useNuxtApp();
-  const db = nuxt.$firebaseDb as Database | undefined;
-  if (!db) throw new Error("firebaseDb not available");
+  const getDb = (): Database => {
+    const d = (nuxt as any).$firebaseDb as Database | undefined;
+    if (!d) throw new Error("firebaseDb not available");
+    return d;
+  };
 
   const generateRoomCode = (len = 6) => {
     const alphabet = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
@@ -38,7 +39,7 @@ const useRoom = () => {
     const code = roomCode || generateRoomCode();
     const anonId = getAnonId();
     const now = new Date().toISOString();
-    const roomRef = dbRef(db, `rooms/${code}`);
+  const roomRef = dbRef(getDb(), `rooms/${code}`);
     await set(roomRef, {
       presenterId: anonId,
       slideIndex: 0,
@@ -48,7 +49,7 @@ const useRoom = () => {
   };
 
   const joinRoom = async (roomCode: string) => {
-    const snap = await get(dbRef(db, `rooms/${roomCode}`));
+  const snap = await get(dbRef(getDb(), `rooms/${roomCode}`));
     if (!snap.exists()) throw new Error("Room not found");
     return { roomCode, anonId: getAnonId(), room: snap.val() };
   };
@@ -62,24 +63,24 @@ const useRoom = () => {
         choices: Object.fromEntries(s.choices.map((c, idx) => [`choice_${idx}`, { text: c, index: idx }])),
       };
     });
-    await set(dbRef(db, `rooms/${roomCode}/slides`), slidesObj);
+  await set(dbRef(getDb(), `rooms/${roomCode}/slides`), slidesObj);
   };
 
   const setSlideIndex = async (roomCode: string, index: number) => {
-    await set(dbRef(db, `rooms/${roomCode}/slideIndex`), index);
+  await set(dbRef(getDb(), `rooms/${roomCode}/slideIndex`), index);
   };
 
   const submitVote = async (roomCode: string, slideId: string, choiceId: string) => {
     const anonId = getAnonId();
-    const votePath = `rooms/${roomCode}/votes/${slideId}/${anonId}`;
-    // 同一 anonId の上書きにより重複投票を防止
-  await set(dbRef(db, votePath), { choiceId, votedAt: new Date().toISOString() });
+  const votePath = `rooms/${roomCode}/votes/${slideId}/${anonId}`;
+  // 同一 anonId の上書きにより重複投票を防止
+  await set(dbRef(getDb(), votePath), { choiceId, votedAt: new Date().toISOString() });
   };
 
   // safer vote that adjusts aggregates when changing vote
   const submitVoteSafe = async (roomCode: string, slideId: string, choiceId: string) => {
     const anonId = getAnonId();
-    const voteRef = dbRef(db, `rooms/${roomCode}/votes/${slideId}/${anonId}`);
+  const voteRef = dbRef(getDb(), `rooms/${roomCode}/votes/${slideId}/${anonId}`);
 
     // read previous vote
     const prevSnap = await get(voteRef);
@@ -100,7 +101,7 @@ const useRoom = () => {
     }
 
     // adjust aggregates in one transaction
-    const aggRef = dbRef(db, `rooms/${roomCode}/aggregates/${slideId}`);
+  const aggRef = dbRef(getDb(), `rooms/${roomCode}/aggregates/${slideId}`);
     try {
       await runTransaction(aggRef, (current: any) => {
         current = current || { counts: {}, total: 0 };
@@ -127,13 +128,13 @@ const useRoom = () => {
 
   const pushComment = async (roomCode: string, text: string) => {
     const anonId = getAnonId();
-    const commentRef = dbRef(db, `rooms/${roomCode}/comments`);
+  const commentRef = dbRef(getDb(), `rooms/${roomCode}/comments`);
   await push(commentRef, { anonId, text, likes: 0, userLikes: {}, deleted: false, createdAt: new Date().toISOString() });
   };
 
   const likeComment = async (roomCode: string, commentId: string) => {
     const anonId = getAnonId();
-    const commentRef = dbRef(db, `rooms/${roomCode}/comments/${commentId}`);
+  const commentRef = dbRef(getDb(), `rooms/${roomCode}/comments/${commentId}`);
     // run transaction on the whole comment node to check userLikes and deleted flag
     await runTransaction(commentRef, (current: any) => {
       if (!current) return current; // comment missing
@@ -155,7 +156,7 @@ const useRoom = () => {
 
   const deleteComment = async (roomCode: string, commentId: string) => {
     const anonId = getAnonId();
-    const commentRef = dbRef(db, `rooms/${roomCode}/comments/${commentId}`);
+  const commentRef = dbRef(getDb(), `rooms/${roomCode}/comments/${commentId}`);
     // soft-delete via transaction: mark deleted flag and remove text
     await runTransaction(commentRef, (current: any) => {
       if (!current) return current;
