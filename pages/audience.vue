@@ -21,6 +21,7 @@
               <span class="text-xs bg-indigo-50 text-indigo-600 px-2 py-1 rounded-full">Total {{ aggregates?.total ?? 0 }}</span>
             </div>
             <div v-if="aggregates" class="bg-white rounded-xl border border-indigo-100 p-4">
+              <!-- Keep small inline spark here if desired; main chart will appear on right column like presenter -->
               <VoteChart :counts="aggregates.counts || {}" :choices="choicesArray" />
             </div>
             <ul class="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -33,8 +34,11 @@
         </UiCard>
       </div>
 
-      <!-- Right: Comments -->
+      <!-- Right: Chart & Comments (chart first like presenter) -->
       <div class="lg:col-span-2 space-y-6">
+        <UiCard v-if="aggregates && choicesArray.length" title="Live Results" titleClass="text-indigo-700">
+          <VoteChart :counts="aggregates.counts || {}" :choices="choicesArray" />
+        </UiCard>
         <UiCard title="Comments" titleClass="text-pink-600">
           <div v-if="!joined" class="text-xs text-gray-400">参加するとコメントできます。</div>
           <div v-else class="flex gap-3 mb-4">

@@ -22,16 +22,28 @@ type Opt = { id: string; text: string; color?: string };
 // simple palette used for auto-assignment when adding or when incoming items lack color
 const palette = ['#4F46E5', '#EC4899', '#F97316', '#10B981', '#06B6D4', '#F59E0B'];
 
-// When loading existing modelValue, assign missing colors immediately so the editor shows them.
-const initial: Opt[] = (props.modelValue || []).map((o: any, i: number) => ({
-  id: o.id || `opt_${i}_${Date.now()}`,
-  text: o.text || '',
-  color: typeof o.color !== 'undefined' && o.color !== null && String(o.color).trim().length ? o.color : palette[i % palette.length]
-}));
+const pickNextColor = (used: Set<string>) => {
+  for (const c of palette) if (!used.has(c)) return c;
+  // all used -> pick next by cycling
+  return palette[used.size % palette.length];
+};
+
+// When loading existing modelValue, assign missing colors immediately and try to avoid duplicates
+const initial: Opt[] = (() => {
+  const items: Array<{ id: string; text: string; color: string }> = (props.modelValue || []).map((o: any, i: number) => ({ id: o.id || `opt_${i}_${Date.now()}`, text: o.text || '', color: (o.color || '').trim() }));
+  const used = new Set<string>();
+  return items.map((it: { id: string; text: string; color: string }, idx: number) => {
+    if (it.color) { used.add(it.color); return it; }
+    const c = pickNextColor(used);
+    used.add(c);
+    return { ...it, color: c };
+  });
+})();
 const options = reactive(initial as Opt[]);
 
 const addOption = () => {
-  const color = palette[options.length % palette.length];
+  const used = new Set<string>(options.map((o: Opt) => (o.color || '').toString()).filter(Boolean));
+  const color = pickNextColor(used);
   options.push({ id: `opt_${options.length}_${Date.now()}`, text: '', color });
   emit('update:modelValue', toRaw(options));
 };
