@@ -10,6 +10,9 @@
 
     <section v-if="joined && slide">
       <h3>Slide {{ slideNumber }}: {{ slide.title }}</h3>
+      <div v-if="aggregates">
+        <VoteChart :counts="aggregates.counts || {}" :choices="choicesArray" />
+      </div>
       <ul>
         <li v-for="(c, idx) in choicesArray" :key="idx">
           <button @click="onVote(c.key)" :disabled="voted || voting">{{ c.text }} ({{ counts[c.key] ?? 0 }})</button>
@@ -26,6 +29,7 @@
 import { ref, reactive, onUnmounted, onMounted } from 'vue';
 import useRoom from '~/composables/useRoom';
 import { ref as dbRef, onValue } from 'firebase/database';
+import VoteChart from '~/components/VoteChart.vue';
 
 let r: ReturnType<typeof useRoom> | null = null;
 const codeInput = ref('');
@@ -39,6 +43,7 @@ const myVote = ref<string | null>(null);
 const voted = ref(false);
 const voting = ref(false);
 const log = ref<string[]>([]);
+const aggregates = ref<any>(null);
 let unsubSlide: any = null;
 let unsubAgg: any = null;
 let unsubVotes: any = null;

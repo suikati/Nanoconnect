@@ -26,6 +26,11 @@
       <button @click="nextSlide">Next</button>
     </section>
 
+    <section v-if="aggregates && currentSlideChoices.length">
+      <h3>Live Results</h3>
+      <VoteChart :counts="aggregates.counts" :choices="currentSlideChoices" />
+    </section>
+
     <pre style="margin-top:12px;">{{ log }}</pre>
   </div>
 </template>
@@ -33,6 +38,7 @@
 <script setup lang="ts">
 import { reactive, ref, onMounted } from 'vue';
 import useRoom from '~/composables/useRoom';
+import VoteChart from '~/components/VoteChart.vue';
 
 let r: ReturnType<typeof useRoom> | null = null;
 const roomCode = ref('');
@@ -42,6 +48,8 @@ const log = ref('');
 const slides = reactive<Array<{ title: string; choicesText: string }>>([
   { title: '好きな色は？', choicesText: '赤,青,緑' },
 ]);
+const aggregates = ref<any>(null);
+const currentSlideChoices = ref<Array<{ key: string; text: string }>>([]);
 
 function addSlide() { slides.push({ title: '', choicesText: '' }); }
 function removeSlide(i: number) { slides.splice(i, 1); }
@@ -76,6 +84,8 @@ async function setIdx(idx: number) {
 
 onMounted(() => {
   if (!r) r = useRoom();
+  // listen to aggregates when room exists
+  // (presenter can later add a listener similar to index/audience)
 });
 
 function prevSlide() { setIdx(Math.max(0, currentIndex.value - 1)); }
