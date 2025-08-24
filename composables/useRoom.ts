@@ -6,16 +6,35 @@ type UseRoomApi = {
   getAnonId: () => string;
   createRoom: (roomCode?: string) => Promise<string>;
   joinRoom: (roomCode: string) => Promise<{ roomCode: string; anonId: string; room: any }>;
-  saveSlides: (
-    roomCode: string,
-    slides: Array<{ title: string; choices: string[] }>,
-  ) => Promise<void>;
+  saveSlides: (roomCode: string, slides: UiSlide[]) => Promise<void>;
   setSlideIndex: (roomCode: string, index: number) => Promise<void>;
   submitVote: (roomCode: string, slideId: string, choiceId: string) => Promise<void>;
   submitVoteSafe: (roomCode: string, slideId: string, choiceId: string) => Promise<boolean>;
   pushComment: (roomCode: string, text: string) => Promise<void>;
   likeComment: (roomCode: string, commentId: string) => Promise<void>;
   deleteComment: (roomCode: string, commentId: string) => Promise<void>;
+};
+
+// UI / DB shapes
+type UiChoice = { text: string; color?: string };
+type UiSlide = { title: string; choices: UiChoice[] };
+
+type DbChoice = { text: string; index: number; color?: string };
+type DbSlide = { title: string; slideNumber: number; choices: Record<string, DbChoice> };
+
+const toDbSlides = (slides: UiSlide[]): Record<string, DbSlide> => {
+  const slidesObj: Record<string, DbSlide> = {};
+  slides.forEach((s, i) => {
+    const choicesMap: Record<string, DbChoice> = {};
+    const choicesArr = Array.isArray(s.choices) ? s.choices : [];
+    choicesArr.forEach((c, idx) => {
+      const text = c && c.text ? String(c.text) : '';
+      const color = c && c.color ? String(c.color) : undefined;
+      choicesMap[`choice_${idx}`] = { text, index: idx, color };
+    });
+    slidesObj[`slide_${i + 1}`] = { title: s.title || '', slideNumber: i + 1, choices: choicesMap };
+  });
+  return slidesObj;
 };
 
 const useRoom = (): UseRoomApi => {
@@ -75,32 +94,8 @@ const useRoom = (): UseRoomApi => {
     return { roomCode, anonId: getAnonId(), room: snap.val() };
   };
 
-  const saveSlides = async (
-    roomCode: string,
-    slides: Array<{ title: string; choices: any[] }>,
-  ): Promise<void> => {
-    const slidesObj: Record<string, any> = {};
-    slides.forEach((s, i) => {
-      // choices may be array of strings or array of objects { text, color?, index? }
-      const choicesArr = Array.isArray(s.choices) ? s.choices : [];
-      const choicesMap: Record<string, any> = {};
-      choicesArr.forEach((c: any, idx: number) => {
-        if (typeof c === 'string') {
-          choicesMap[`choice_${idx}`] = { text: c, index: idx };
-        } else {
-          choicesMap[`choice_${idx}`] = {
-            text: c.text || '',
-            index: idx,
-            color: c.color || undefined,
-          };
-        }
-      });
-      slidesObj[`slide_${i + 1}`] = {
-        title: s.title,
-        slideNumber: i + 1,
-        choices: choicesMap,
-      };
-    });
+  const saveSlides = async (roomCode: string, slides: UiSlide[]): Promise<void> => {
+    const slidesObj = toDbSlides(slides);
     await set(dbRef(getDb(), `rooms/${roomCode}/slides`), slidesObj);
   };
 
