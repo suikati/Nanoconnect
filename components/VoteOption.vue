@@ -1,5 +1,5 @@
 <template>
-  <button :disabled="disabled" @click="onClick" :class="btnClass">
+  <button :disabled="disabled" @click="onClick" :class="btnClass" :style="btnStyle">
     <span class="font-medium">{{ choice.text }}</span>
     <span class="text-xs font-mono opacity-70">{{ count }}</span>
   </button>
@@ -10,10 +10,17 @@ import { computed } from 'vue';
 import type { Choice } from '~/types/models';
 const props = defineProps<{ choice: Choice; count: number; selected?: boolean; disabled?: boolean }>();
 const btnClass = computed(() => {
-  const base = 'w-full text-left px-4 py-3 rounded-xl border flex items-center justify-between transition-all focus-ring';
-  const active = props.selected ? 'bg-indigo-500 text-white border-indigo-500 shadow-pop' : 'bg-indigo-50 hover:bg-indigo-100 border-indigo-100 text-indigo-700';
+  // remove hover/animation classes for audience cards
+  const base = 'w-full text-left px-4 py-3 rounded-xl border flex items-center justify-between focus-ring';
   const disabled = props.disabled ? 'opacity-60 pointer-events-none' : '';
-  return [base, active, disabled, 'anim-pop'].join(' ');
+  return [base, disabled].join(' ');
+});
+
+const btnStyle = computed(() => {
+  const defaultBg = props.selected ? '#4F46E5' : '#F8FAFC';
+  const bg = (props.choice && (props.choice as any).color) ? (props.choice as any).color : defaultBg;
+  const color = props.selected ? '#ffffff' : (props.choice && (props.choice as any).color ? '#ffffff' : '#0f172a');
+  return { backgroundColor: bg, color };
 });
 const emit = defineEmits<{ vote: (choiceKey: string) => void }>();
 let locked = false;

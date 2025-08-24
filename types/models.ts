@@ -1,9 +1,10 @@
-export type Choice = { key: string; text: string };
+export type Choice = { key: string; text: string; color?: string };
 
 export type Slide = {
   title: string;
   slideNumber: number;
-  choices: Record<string, { text: string; index: number }>;
+  // choices is stored in Firebase as an object map choice_0, choice_1 ... but in UI we may use an array of {text,color,index}
+  choices: Record<string, { text: string; index: number; color?: string }>;
 };
 
 export type Aggregate = {
