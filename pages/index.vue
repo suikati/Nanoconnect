@@ -31,6 +31,7 @@ import useRoom from '~/composables/useRoom';
 import { ref as dbRef, onValue } from 'firebase/database';
 
 let r: ReturnType<typeof useRoom> | null = null;
+const ensureR = () => { if (!r) r = useRoom(); return r; };
 
 const roomCode = ref<string>('');
 const joinCode = ref<string>('');
@@ -39,24 +40,24 @@ const joined = ref(false);
 const logs = ref<string[]>([]);
 const aggregates = ref<any>(null);
 
-function log(s: string) { logs.value.unshift(`${new Date().toISOString()} ${s}`); }
+const log = (s: string) => { logs.value.unshift(`${new Date().toISOString()} ${s}`); };
 
-async function onCreate() {
+const onCreate = async () => {
   try {
-  if (!r) r = useRoom();
-  const code = await r.createRoom();
+    ensureR();
+    const code = await (r as any).createRoom();
     roomCode.value = code;
     log(`created ${code}`);
   } catch (e: any) {
     log('create error: ' + e.message);
   }
-}
+};
 
-async function onJoin() {
+const onJoin = async () => {
   try {
     const code = joinCode.value || roomCode.value;
-  if (!r) r = useRoom();
-  const res = await r.joinRoom(code);
+    ensureR();
+    const res = await (r as any).joinRoom(code);
     anonId.value = res.anonId;
     joined.value = true;
     log(`joined ${code} as ${res.anonId}`);
@@ -64,36 +65,37 @@ async function onJoin() {
   } catch (e: any) {
     log('join error: ' + e.message);
   }
-}
+};
 
-async function onSaveSlides() {
+const onSaveSlides = async () => {
   if (!roomCode.value && !joinCode.value) { log('no room'); return; }
   const code = roomCode.value || joinCode.value;
   try {
-  if (!r) r = useRoom();
-  await r.saveSlides(code, [{ title: '好きな色は？', choices: ['赤', '青', '緑'] }]);
+    ensureR();
+    await (r as any).saveSlides(code, [{ title: '好きな色は？', choices: ['赤', '青', '緑'] }]);
     log('saved slides');
   } catch (e: any) { log('saveSlides error: ' + e.message); }
-}
+};
 
-async function onVote() {
+const onVote = async () => {
   const code = roomCode.value || joinCode.value;
   if (!code) { log('no room'); return; }
   try {
-  if (!r) r = useRoom();
-  await r.submitVote(code, 'slide_1', 'choice_0');
+    ensureR();
+    await (r as any).submitVote(code, 'slide_1', 'choice_0');
     log('voted slide_1 -> choice_0');
   } catch (e: any) { log('vote error: ' + e.message); }
-}
+};
 
-async function onComment() {
+const onComment = async () => {
   const code = roomCode.value || joinCode.value;
   if (!code) { log('no room'); return; }
   try {
-    await r.pushComment(code, 'テストコメントです');
+    ensureR();
+    await (r as any).pushComment(code, 'テストコメントです');
     log('pushed comment');
   } catch (e: any) { log('comment error: ' + e.message); }
-}
+};
 
 /* リアルタイム集計の監視（ページ上に表示） */
 let unsubscribe: (() => void) | null = null;

@@ -75,6 +75,7 @@ import { ref as dbRef, onValue } from 'firebase/database';
 import VoteChart from '~/components/VoteChart.vue';
 
 let r: ReturnType<typeof useRoom> | null = null;
+const ensureR = () => { if (!r) r = useRoom(); return r; };
 const codeInput = ref('');
 const joined = ref(false);
 const anonId = ref('');
@@ -90,17 +91,17 @@ const aggregates = ref<any>(null);
 const commentText = ref('');
 const comments = ref<Array<any>>([]);
 let unsubSlide: any = null;
+let unsubSlideContent: any = null;
 let unsubAgg: any = null;
 let unsubVotes: any = null;
 let unsubComments: any = null;
+const pushLog = (s: string) => { log.value.unshift(`${new Date().toISOString()} ${s}`); };
 
-function pushLog(s: string) { log.value.unshift(`${new Date().toISOString()} ${s}`); }
-
-async function onJoin() {
+const onJoin = async () => {
   try {
     const code = codeInput.value;
-    if (!r) r = useRoom();
-    const res = await r.joinRoom(code);
+    ensureR();
+    const res = await (r as any).joinRoom(code);
     anonId.value = res.anonId;
     joined.value = true;
     pushLog(`joined ${code} as ${anonId.value}`);
@@ -108,19 +109,20 @@ async function onJoin() {
   } catch (e: any) {
     pushLog('join error: ' + e.message);
   }
-}
+};
 
 onMounted(() => {
   // initialize client-only composable
-  if (!r) r = useRoom();
+  ensureR();
 });
 
-function startListeners(code: string) {
+const startListeners = (code: string) => {
   const nuxt = useNuxtApp();
   const db = nuxt.$firebaseDb;
   // slideIndex listener
   const slideIndexRef = dbRef(db, `rooms/${code}/slideIndex`);
   // When slideIndex changes we re-register per-slide listeners (slide content, aggregates, my vote)
+  if (unsubSlide) { try { unsubSlide(); } catch (e) { /* ignore */ } }
   unsubSlide = onValue(slideIndexRef, async (snap: any) => {
     const idx = snap.exists() ? snap.val() : 0;
     // 1-based slide number in UI
@@ -128,11 +130,9 @@ function startListeners(code: string) {
 
     // fetch slide content
     const slideRef = dbRef(db, `rooms/${code}/slides/slide_${idx + 1}`);
-    // update slide content listener
-    if (unsubSlide) {
-      // slideRef listener for content is contained in this callback; no-op for unsubSlide here
-    }
-    onValue(slideRef, (s: any) => {
+    // update slide content listener (ensure previous unsubscribed)
+    if (unsubSlideContent) { try { unsubSlideContent(); } catch (e) { /* ignore */ } unsubSlideContent = null; }
+    unsubSlideContent = onValue(slideRef, (s: any) => {
       slide.value = s.exists() ? s.val() : null;
       if (slide.value && slide.value.choices) {
         choicesArray.value = Object.entries(slide.value.choices).map(([k, v]: any) => ({ key: k, text: v.text }));
@@ -142,7 +142,7 @@ function startListeners(code: string) {
     });
 
     // re-register aggregates listener for this slide
-    if (unsubAgg) { try { unsubAgg(); } catch (e) { /* ignore */ } }
+  if (unsubAgg) { try { unsubAgg(); } catch (e) { /* ignore */ } }
     const aggRef = dbRef(db, `rooms/${code}/aggregates/slide_${idx + 1}`);
     unsubAgg = onValue(aggRef, (snapAgg: any) => {
       const val = snapAgg.exists() ? snapAgg.val() : { counts: {} };
@@ -155,7 +155,7 @@ function startListeners(code: string) {
     });
 
     // re-register my vote listener for this slide
-    if (unsubVotes) { try { unsubVotes(); } catch (e) { /* ignore */ } }
+  if (unsubVotes) { try { unsubVotes(); } catch (e) { /* ignore */ } }
     // make sure anonId exists (joinRoom should have set it)
     if (anonId.value) {
       const myVoteRef = dbRef(db, `rooms/${code}/votes/slide_${idx + 1}/${anonId.value}`);
@@ -174,7 +174,7 @@ function startListeners(code: string) {
     }
 
     // register comments listener for the room (once)
-    if (unsubComments) { try { unsubComments(); } catch (e) { /* ignore */ } }
+  if (unsubComments) { try { unsubComments(); } catch (e) { /* ignore */ } }
     const commentsRef = dbRef(db, `rooms/${code}/comments`);
     unsubComments = onValue(commentsRef, (snap: any) => {
       const arr: any[] = [];
@@ -187,12 +187,12 @@ function startListeners(code: string) {
   });
 }
 
-async function onVote(choiceKey: string) {
+const onVote = async (choiceKey: string) => {
   const code = codeInput.value;
   try {
-    if (!r) r = useRoom();
+    ensureR();
     voting.value = true;
-    const ok = await r.submitVoteSafe(code, `slide_${slideNumber.value}`, choiceKey);
+    const ok = await (r as any).submitVoteSafe(code, `slide_${slideNumber.value}`, choiceKey);
     if (ok) {
       pushLog(`voted ${choiceKey}`);
       voted.value = true;
@@ -202,41 +202,42 @@ async function onVote(choiceKey: string) {
     }
     voting.value = false;
   } catch (e: any) { pushLog('vote error: ' + e.message); }
-}
+};
 
 onUnmounted(() => {
   if (unsubSlide) unsubSlide();
+  if (unsubSlideContent) { try { unsubSlideContent(); } catch (e) { /* ignore */ } }
   if (unsubAgg) unsubAgg();
   if (unsubVotes) unsubVotes();
   if (unsubComments) unsubComments();
 });
 
-async function onPostComment() {
+const onPostComment = async () => {
   const code = codeInput.value;
   if (!code) return;
   const text = commentText.value.trim();
   if (!text) return;
   try {
-    if (!r) r = useRoom();
-    await r.pushComment(code, text);
+    ensureR();
+    await (r as any).pushComment(code, text);
     pushLog('comment posted');
     commentText.value = '';
   } catch (e: any) { pushLog('comment error: ' + e.message); }
-}
+};
 
-async function onLikeComment(commentId: string) {
+const onLikeComment = async (commentId: string) => {
   const code = codeInput.value;
   try {
-    if (!r) r = useRoom();
-    await r.likeComment(code, commentId);
+    ensureR();
+    await (r as any).likeComment(code, commentId);
   } catch (e: any) { pushLog('like error: ' + e.message); }
-}
+};
 
-async function onDeleteComment(commentId: string) {
+const onDeleteComment = async (commentId: string) => {
   const code = codeInput.value;
   try {
-    if (!r) r = useRoom();
-    await r.deleteComment(code, commentId);
+    ensureR();
+    await (r as any).deleteComment(code, commentId);
   } catch (e: any) { pushLog('delete error: ' + e.message); }
-}
+};
 </script>

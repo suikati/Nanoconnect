@@ -1,7 +1,7 @@
 import { ref as dbRef, set, push, get, runTransaction } from "firebase/database";
 import type { Database } from "firebase/database";
 
-export default function useRoom() {
+const useRoom = () => {
   if (!process.client) {
     throw new Error("useRoom はクライアントサイドでのみ使用してください");
   }
@@ -86,7 +86,7 @@ export default function useRoom() {
     const prevChoice = prevSnap.exists() ? (prevSnap.val().choiceId as string | null) : null;
     if (prevChoice === choiceId) {
       // no change
-      return;
+      return false;
     }
 
     // write new vote
@@ -122,7 +122,7 @@ export default function useRoom() {
       throw e;
     }
 
-    return true;
+  return true;
   };
 
   const pushComment = async (roomCode: string, text: string) => {
@@ -176,10 +176,12 @@ export default function useRoom() {
     joinRoom,
     saveSlides,
     setSlideIndex,
-  submitVote,
-  submitVoteSafe,
+    submitVote,
+    submitVoteSafe,
     pushComment,
-  likeComment,
-  deleteComment,
+    likeComment,
+    deleteComment,
   };
-}
+};
+
+export default useRoom;
