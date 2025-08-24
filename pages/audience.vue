@@ -20,10 +20,7 @@
               <h2 class="text-base font-semibold text-indigo-600">Slide {{ slideNumber }}: {{ slide.title }}</h2>
               <span class="text-xs bg-indigo-50 text-indigo-600 px-2 py-1 rounded-full">Total {{ aggregates?.total ?? 0 }}</span>
             </div>
-            <div v-if="aggregates" class="bg-white rounded-xl border border-indigo-100 p-4">
-              <!-- Keep small inline spark here if desired; main chart will appear on right column like presenter -->
-              <VoteChart :counts="aggregates.counts || {}" :choices="choicesArray" />
-            </div>
+            <!-- inline chart removed; main chart appears on right column -->
             <ul class="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <li v-for="(c, idx) in choicesArray" :key="idx">
                 <VoteOption :choice="c" :count="counts[c.key] ?? 0" :selected="myVote===c.key" :disabled="voted || voting" @vote="onVote" />

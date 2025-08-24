@@ -80,6 +80,7 @@ const currentIndex = ref(0);
 const log = ref('');
 
 // TODO: 開発が終わったらplaceholderに変更
+const palette = ['#4F46E5', '#EC4899', '#F97316', '#10B981', '#06B6D4', '#F59E0B'];
 const slides = reactive<Array<{ title: string; choices: Array<{ text: string; color?: string }> }>>([
   { title: '好きな色は？', choices: [{ text: '赤', color: '#EF4444' }, { text: '青', color: '#3B82F6' }, { text: '緑', color: '#10B981' }] },
 ]);
@@ -99,7 +100,11 @@ const ensureR = () => {
   return r;
 };
 
-const addSlide = () => { slides.push({ title: '', choices: [{ text: '', color: '#F3F4F6' }] }); };
+const addSlide = () => {
+  // assign a palette color immediately so the color picker shows a value
+  const idx = slides.length % palette.length;
+  slides.push({ title: '', choices: [{ text: '', color: palette[idx] }] });
+};
 const removeSlide = (i: number) => { slides.splice(i, 1); };
 
 const onCreateRoom = async () => {
