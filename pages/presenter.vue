@@ -134,31 +134,22 @@ watch(roomCode, async (val: string | null) => {
         currentSlideChoices.value = [];
       }
     });
-  });
-
-  // aggregates listener for current slide
-  const ensureAggregatesListener = () => {
-    if (unsubAggregates) { unsubAggregates(); unsubAggregates = null; }
-    const slideKey = `slide_${currentIndex.value + 1}`;
-    unsubAggregates = registerOnValue(`rooms/${val}/aggregates/${slideKey}`, (snap: any) => {
+    // register aggregates listener for this slide (cleanup previous first)
+    if (unsubAggregates) { try { (unsubAggregates as any)(); } catch (e) { /* ignore */ } unsubAggregates = null; }
+    const aggRefPath = `rooms/${val}/aggregates/slide_${(currentIndex.value || 0) + 1}`;
+    unsubAggregates = registerOnValue(aggRefPath, (snap: any) => {
       const a = snap && snap.val ? snap.val() : null;
       aggregates.value = a || { counts: {}, total: 0 };
     });
-  };
-
-  // set up watch on currentIndex to re-register aggregates listener
-  watch(currentIndex, () => {
-    ensureAggregatesListener();
   });
+
+  // aggregates will be registered per-slide inside slideIndex handler (below)
 
   onUnmounted(() => {
-    try { if (unsubSlideIndex) unsubSlideIndex(); } catch (e) { /* ignore */ }
-  // unsubSlides removed; per-slide content listener is unsubSlideContent
-    try { if (unsubAggregates) unsubAggregates(); } catch (e) { /* ignore */ }
+  try { if (unsubSlideIndex) (unsubSlideIndex as any)(); } catch (e) { /* ignore */ }
+  try { if (unsubSlideContent) (unsubSlideContent as any)(); } catch (e) { /* ignore */ }
+  try { if (unsubAggregates) (unsubAggregates as any)(); } catch (e) { /* ignore */ }
   });
-
-  // initial aggregates listener
-  ensureAggregatesListener();
 });
 
 function prevSlide() { setIdx(Math.max(0, currentIndex.value - 1)); }
