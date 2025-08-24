@@ -23,18 +23,15 @@
     }
   },
   "votes": {
-    "slide_id_1": {
-      "option_id_1": {
-        "count": 15,
-        "users": {
-          "user_id_A": true,
-          "user_id_B": true
-        }
-      },
-      "option_id_2": {
-        "count": 10,
-        "users": {
-          "user_id_C": true
+    "room_code_1": {
+      "slide_id_1": {
+        "user_id_A": {
+          "optionIndex": 0,
+          "votedAt": "2025-08-24T02:00:00Z"
+        },
+        "user_id_B": {
+          "optionIndex": 1,
+          "votedAt": "2025-08-24T02:01:00Z"
         }
       }
     }
