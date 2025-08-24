@@ -29,6 +29,21 @@ const renderChart = async () => {
   if (!ctx) return;
   const d = buildData();
   const color = '#3b82f6';
+  // If a chart already exists, update it instead of creating a new one
+  if (chart) {
+    try {
+      chart.data.labels = d.labels as any;
+      chart.data.datasets![0].data = d.data as any;
+      chart.data.datasets![0].backgroundColor = d.data.map(() => color) as any;
+      chart.update();
+      return;
+    } catch (e) {
+      // if update fails, destroy and recreate
+      try { chart.destroy(); } catch (err) { /* ignore */ }
+      chart = null;
+    }
+  }
+
   chart = new Chart(ctx, {
     type: 'bar',
     data: {
@@ -50,27 +65,14 @@ onMounted(() => {
 
 // update when counts change
 watch(() => props.counts, () => {
-  if (!chart) return;
-  const d = buildData();
-  chart.data.labels = d.labels as any;
-  chart.data.datasets![0].data = d.data as any;
-  chart.update();
+  // central render/update logic
+  void renderChart();
 }, { deep: true });
 
 // update when choices (labels) change
 watch(() => props.choices, () => {
-  if (!chart) {
-    // if chart hasn't been created yet, render it
-    renderChart();
-    return;
-  }
-  const d = buildData();
-  chart.data.labels = d.labels as any;
-  chart.data.datasets![0].data = d.data as any;
-  // keep colors aligned with new data length
-  const color = '#3b82f6';
-  chart.data.datasets![0].backgroundColor = d.data.map(() => color) as any;
-  chart.update();
+  // central render/update logic
+  void renderChart();
 }, { deep: true, immediate: true });
 
 onBeforeUnmount(() => {
