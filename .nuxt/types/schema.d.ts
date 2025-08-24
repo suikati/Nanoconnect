@@ -46,11 +46,7 @@ declare module 'nuxt/schema' {
    },
   }
   interface PublicRuntimeConfig {
-   supabaseUrl: string,
 
-   supabaseKey: string,
-
-   supabaseSecretKey: string,
   }
 }
 declare module 'vue' {

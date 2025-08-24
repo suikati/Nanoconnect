@@ -1,13 +1,14 @@
 <template>
   <div>
-    <h1>Hello, Vue!</h1>
+    <h1>Firebase 接続確認</h1>
   </div>
 </template>
 
 <script setup>
-const { $supabase } = useNuxtApp()
-console.log($supabase)
-// ターミナルまたはブラウザのコンソールにクライアントインスタンスが表示されれば成功
+const { $firebaseDb } = useNuxtApp();
+
+// コンソールにFirebase Realtime Databaseのインスタンスが表示されれば成功
+console.log($firebaseDb);
 </script>
 
 <style scoped>
