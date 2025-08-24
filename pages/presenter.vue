@@ -31,6 +31,20 @@
       <VoteChart :counts="aggregates.counts" :choices="currentSlideChoices" />
     </section>
 
+    <section v-if="roomCode" style="margin-top:16px;">
+      <h3>Comments</h3>
+      <ul>
+        <li v-for="c in comments" :key="c.id" style="margin-bottom:8px;">
+          <small>{{ new Date(c.createdAt).toLocaleTimeString() }}</small>
+          <div>{{ c.text }}</div>
+          <div style="display:flex; gap:8px; margin-top:4px;">
+            <button @click="onLikeComment(c.id)">👍 {{ c.likes || 0 }}</button>
+            <button v-if="c.anonId === myAnonId" @click="onDeleteComment(c.id)">Delete</button>
+          </div>
+        </li>
+      </ul>
+    </section>
+
     <pre style="margin-top:12px;">{{ log }}</pre>
   </div>
 </template>
@@ -51,6 +65,9 @@ const slides = reactive<Array<{ title: string; choicesText: string }>>([
 ]);
 const aggregates = ref<any>(null);
 const currentSlideChoices = ref<Array<{ key: string; text: string }>>([]);
+const comments = ref<Array<any>>([]);
+let unsubComments: (() => void) | null = null;
+const myAnonId = ref<string | null>(null);
 // listener cleanup handles
 let unsubSlideIndex: (() => void) | null = null;
 let unsubAggregates: (() => void) | null = null;
@@ -89,6 +106,7 @@ async function setIdx(idx: number) {
 
 onMounted(() => {
   if (!r) r = useRoom();
+  try { myAnonId.value = r.getAnonId(); } catch (e) { myAnonId.value = null; }
   // listen to aggregates when room exists
   // (presenter can later add a listener similar to index/audience)
 });
@@ -141,6 +159,16 @@ watch(roomCode, async (val: string | null) => {
       const a = snap && snap.val ? snap.val() : null;
       aggregates.value = a || { counts: {}, total: 0 };
     });
+    // comments listener for presenter view
+    if (unsubComments) { try { (unsubComments as any)(); } catch (e) { /* ignore */ } unsubComments = null; }
+    const commentsPath = `rooms/${val}/comments`;
+    unsubComments = registerOnValue(commentsPath, (snap: any) => {
+      const arr: any[] = [];
+      snap.forEach((child: any) => {
+        arr.unshift({ id: child.key, ...child.val() });
+      });
+      comments.value = arr;
+    });
   });
 
   // aggregates will be registered per-slide inside slideIndex handler (below)
@@ -154,4 +182,20 @@ watch(roomCode, async (val: string | null) => {
 
 function prevSlide() { setIdx(Math.max(0, currentIndex.value - 1)); }
 function nextSlide() { setIdx(currentIndex.value + 1); }
+
+async function onLikeComment(commentId: string) {
+  if (!roomCode.value) return;
+  try {
+    if (!r) r = useRoom();
+    await r.likeComment(roomCode.value, commentId);
+  } catch (e: any) { log.value = `like error: ${e.message}`; }
+}
+
+async function onDeleteComment(commentId: string) {
+  if (!roomCode.value) return;
+  try {
+    if (!r) r = useRoom();
+    await r.deleteComment(roomCode.value, commentId);
+  } catch (e: any) { log.value = `delete error: ${e.message}`; }
+}
 </script>

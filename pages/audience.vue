@@ -28,9 +28,13 @@
         <button @click="onPostComment" :disabled="!commentText">Post</button>
       </div>
       <ul>
-        <li v-for="c in comments" :key="c.id">
-          <small>{{ c.anonId }} • {{ new Date(c.createdAt).toLocaleTimeString() }}</small>
+        <li v-for="c in comments" :key="c.id" style="margin-bottom:8px;">
+          <small>{{ new Date(c.createdAt).toLocaleTimeString() }}</small>
           <div>{{ c.text }}</div>
+          <div style="display:flex; gap:8px; margin-top:4px;">
+            <button @click="onLikeComment(c.id)">👍 {{ c.likes || 0 }}</button>
+            <button v-if="c.anonId === anonId" @click="onDeleteComment(c.id)">Delete</button>
+          </div>
         </li>
       </ul>
     </section>
@@ -193,5 +197,21 @@ async function onPostComment() {
     pushLog('comment posted');
     commentText.value = '';
   } catch (e: any) { pushLog('comment error: ' + e.message); }
+}
+
+async function onLikeComment(commentId: string) {
+  const code = codeInput.value;
+  try {
+    if (!r) r = useRoom();
+    await r.likeComment(code, commentId);
+  } catch (e: any) { pushLog('like error: ' + e.message); }
+}
+
+async function onDeleteComment(commentId: string) {
+  const code = codeInput.value;
+  try {
+    if (!r) r = useRoom();
+    await r.deleteComment(code, commentId);
+  } catch (e: any) { pushLog('delete error: ' + e.message); }
 }
 </script>

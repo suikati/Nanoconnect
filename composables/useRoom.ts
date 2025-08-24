@@ -131,6 +131,21 @@ export default function useRoom() {
     await push(commentRef, { anonId, text, likes: 0, createdAt: new Date().toISOString() });
   };
 
+  const likeComment = async (roomCode: string, commentId: string) => {
+    const path = `rooms/${roomCode}/comments/${commentId}/likes`;
+    const likeRef = dbRef(db, path);
+    // use transaction to increment likes
+    await runTransaction(likeRef, (current: any) => {
+      return (current || 0) + 1;
+    });
+  };
+
+  const deleteComment = async (roomCode: string, commentId: string) => {
+    // remove the comment node
+    const commentRef = dbRef(db, `rooms/${roomCode}/comments/${commentId}`);
+    await set(commentRef, null);
+  };
+
   return {
     generateRoomCode,
     getAnonId,
@@ -141,5 +156,7 @@ export default function useRoom() {
   submitVote,
   submitVoteSafe,
     pushComment,
+  likeComment,
+  deleteComment,
   };
 }
