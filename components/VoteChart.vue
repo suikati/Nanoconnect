@@ -7,9 +7,10 @@
 <script setup lang="ts">
 import { onMounted, onBeforeUnmount, ref, watch, nextTick } from 'vue';
 import { Chart, BarController, BarElement, CategoryScale, LinearScale, Tooltip, Legend } from 'chart.js';
+import ChartDataLabels from 'chartjs-plugin-datalabels';
 import type { Choice } from '~/types/models';
 
-Chart.register(BarController, BarElement, CategoryScale, LinearScale, Tooltip, Legend);
+Chart.register(BarController, BarElement, CategoryScale, LinearScale, Tooltip, Legend, ChartDataLabels);
 
 const props = defineProps<{ counts: Record<string, number>, choices: Choice[] }>();
 const canvas = ref<HTMLCanvasElement | null>(null);
@@ -28,13 +29,14 @@ const renderChart = async () => {
   const ctx = canvas.value.getContext('2d');
   if (!ctx) return;
   const d = buildData();
-  const color = '#3b82f6';
+  const palette = ['#6366F1', '#EC4899', '#06B6D4', '#F59E0B', '#10B981', '#F97316'];
+  const color = palette[0];
   // 既にチャートが存在する場合は新規作成せず更新する
   if (chart) {
     try {
       chart.data.labels = d.labels as any;
       chart.data.datasets![0].data = d.data as any;
-      chart.data.datasets![0].backgroundColor = d.data.map(() => color) as any;
+      chart.data.datasets![0].backgroundColor = d.data.map((_, i) => color) as any;
       chart.update();
       return;
     } catch (e) {
@@ -43,18 +45,61 @@ const renderChart = async () => {
       chart = null;
     }
   }
+  // グラデーションを作るユーティリティ
+  const gradientFor = (ctx: CanvasRenderingContext2D, area: any, from: string, to: string) => {
+    const g = ctx.createLinearGradient(0, area.top, 0, area.bottom);
+    g.addColorStop(0, from);
+    g.addColorStop(1, to);
+    return g;
+  };
+
+  const bgColors = d.data.map((_, i) => {
+    const c1 = palette[i % palette.length];
+    const c2 = '#ffffff';
+    return gradientFor(ctx, canvas.value!.getBoundingClientRect(), c1, c2);
+  });
 
   chart = new Chart(ctx, {
     type: 'bar',
     data: {
       labels: d.labels,
-      datasets: [{ label: 'Votes', data: d.data, backgroundColor: d.data.map(() => color) }]
+      datasets: [{
+        label: 'Votes',
+        data: d.data,
+        backgroundColor: bgColors as any,
+        borderRadius: 8,
+        borderSkipped: false,
+      }]
     },
     options: {
       responsive: true,
       maintainAspectRatio: false,
-      plugins: { legend: { display: false } },
-      scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: (ctx: any) => {
+              const v = ctx.parsed.y ?? ctx.parsed;
+              const total = d.data.reduce((a: number, b: number) => a + b, 0) || 1;
+              const pct = Math.round((v / total) * 100);
+              return `${v} (${pct}%)`;
+            }
+          }
+        },
+        // datalabels: バー内部に白い値ラベルを表示
+        datalabels: {
+          color: '#ffffff',
+          anchor: 'end',
+          align: 'end',
+          font: { weight: '600', size: 12 },
+          formatter: (val: number) => val > 0 ? val : ''
+        }
+      },
+      animation: { duration: 600, easing: 'easeOutCubic' },
+      scales: {
+        x: { grid: { display: false }, ticks: { maxRotation: 0, autoSkip: false } },
+        y: { beginAtZero: true, ticks: { precision: 0 } }
+      }
     }
   });
 };
