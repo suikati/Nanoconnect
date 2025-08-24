@@ -14,7 +14,7 @@ import { ref, onMounted, onUnmounted } from 'vue';
 import useRoom from '~/composables/useRoom';
 import { ref as dbRef, onValue } from 'firebase/database';
 
-const r = useRoom();
+let r: ReturnType<typeof useRoom> | null = null;
 
 const roomCode = ref<string>('');
 const joinCode = ref<string>('');
@@ -27,7 +27,8 @@ function log(s: string) { logs.value.unshift(`${new Date().toISOString()} ${s}`)
 
 async function onCreate() {
   try {
-    const code = await r.createRoom();
+  if (!r) r = useRoom();
+  const code = await r.createRoom();
     roomCode.value = code;
     log(`created ${code}`);
   } catch (e: any) {
@@ -38,7 +39,8 @@ async function onCreate() {
 async function onJoin() {
   try {
     const code = joinCode.value || roomCode.value;
-    const res = await r.joinRoom(code);
+  if (!r) r = useRoom();
+  const res = await r.joinRoom(code);
     anonId.value = res.anonId;
     joined.value = true;
     log(`joined ${code} as ${res.anonId}`);
@@ -52,7 +54,8 @@ async function onSaveSlides() {
   if (!roomCode.value && !joinCode.value) { log('no room'); return; }
   const code = roomCode.value || joinCode.value;
   try {
-    await r.saveSlides(code, [{ title: '好きな色は？', choices: ['赤', '青', '緑'] }]);
+  if (!r) r = useRoom();
+  await r.saveSlides(code, [{ title: '好きな色は？', choices: ['赤', '青', '緑'] }]);
     log('saved slides');
   } catch (e: any) { log('saveSlides error: ' + e.message); }
 }
@@ -61,7 +64,8 @@ async function onVote() {
   const code = roomCode.value || joinCode.value;
   if (!code) { log('no room'); return; }
   try {
-    await r.submitVote(code, 'slide_1', 'choice_0');
+  if (!r) r = useRoom();
+  await r.submitVote(code, 'slide_1', 'choice_0');
     log('voted slide_1 -> choice_0');
   } catch (e: any) { log('vote error: ' + e.message); }
 }
@@ -90,5 +94,9 @@ function startListen(code: string) {
 
 onUnmounted(() => {
   if (unsubscribe) unsubscribe();
+});
+
+onMounted(() => {
+  if (!r) r = useRoom();
 });
 </script>

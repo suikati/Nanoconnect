@@ -23,11 +23,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onUnmounted } from 'vue';
+import { ref, reactive, onUnmounted, onMounted } from 'vue';
 import useRoom from '~/composables/useRoom';
 import { ref as dbRef, onValue } from 'firebase/database';
 
-const r = useRoom();
+let r: ReturnType<typeof useRoom> | null = null;
 const codeInput = ref('');
 const joined = ref(false);
 const anonId = ref('');
@@ -47,6 +47,7 @@ function pushLog(s: string) { log.value.unshift(`${new Date().toISOString()} ${s
 async function onJoin() {
   try {
     const code = codeInput.value;
+    if (!r) r = useRoom();
     const res = await r.joinRoom(code);
     anonId.value = res.anonId;
     joined.value = true;
@@ -56,6 +57,11 @@ async function onJoin() {
     pushLog('join error: ' + e.message);
   }
 }
+
+onMounted(() => {
+  // initialize client-only composable
+  if (!r) r = useRoom();
+});
 
 function startListeners(code: string) {
   const nuxt = useNuxtApp();

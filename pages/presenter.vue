@@ -31,10 +31,10 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, ref } from 'vue';
+import { reactive, ref, onMounted } from 'vue';
 import useRoom from '~/composables/useRoom';
 
-const r = useRoom();
+let r: ReturnType<typeof useRoom> | null = null;
 const roomCode = ref('');
 const currentIndex = ref(0);
 const log = ref('');
@@ -48,7 +48,8 @@ function removeSlide(i: number) { slides.splice(i, 1); }
 
 async function onCreateRoom() {
   try {
-    const code = await r.createRoom();
+  if (!r) r = useRoom();
+  const code = await r.createRoom();
     roomCode.value = code;
     log.value = `created ${code}`;
   } catch (e: any) { log.value = `create error: ${e.message}`; }
@@ -58,7 +59,8 @@ async function onSaveSlides() {
   if (!roomCode.value) { log.value = 'no room'; return; }
   const payload = slides.map(s => ({ title: s.title || 'untitled', choices: s.choicesText.split(',').map(c => c.trim()).filter(Boolean) }));
   try {
-    await r.saveSlides(roomCode.value, payload);
+  if (!r) r = useRoom();
+  await r.saveSlides(roomCode.value, payload);
     log.value = 'saved slides';
   } catch (e: any) { log.value = `save error: ${e.message}`; }
 }
@@ -66,10 +68,15 @@ async function onSaveSlides() {
 async function setIdx(idx: number) {
   if (!roomCode.value) return;
   try {
+    if (!r) r = useRoom();
     await r.setSlideIndex(roomCode.value, idx);
     currentIndex.value = idx;
   } catch (e: any) { log.value = `set index error: ${e.message}`; }
 }
+
+onMounted(() => {
+  if (!r) r = useRoom();
+});
 
 function prevSlide() { setIdx(Math.max(0, currentIndex.value - 1)); }
 function nextSlide() { setIdx(currentIndex.value + 1); }
