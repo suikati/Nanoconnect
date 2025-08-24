@@ -6,22 +6,23 @@
 
 <script setup lang="ts">
 import { onMounted, onBeforeUnmount, ref, watch, nextTick } from 'vue';
-import { Chart, BarController, BarElement, CategoryScale, LinearScale, Tooltip, Legend } from 'chart.js';
+import { Chart, BarController, BarElement, CategoryScale, LinearScale, Tooltip, Legend, ChartType } from 'chart.js';
+import type { Choice } from '~/types/models';
 
 Chart.register(BarController, BarElement, CategoryScale, LinearScale, Tooltip, Legend);
 
-const props = defineProps<{ counts: Record<string, number>, choices: Array<{ key: string, text: string }> }>();
+const props = defineProps<{ counts: Record<string, number>, choices: Choice[] }>();
 const canvas = ref<HTMLCanvasElement | null>(null);
 const container = ref<HTMLDivElement | null>(null);
 let chart: Chart | null = null;
 
-function buildData() {
-  const labels = props.choices.map((c: any) => c.text);
-  const data = props.choices.map((c: any) => props.counts[c.key] ?? 0);
+const buildData = () => {
+  const labels: string[] = props.choices.map((c: Choice) => c.text);
+  const data: number[] = props.choices.map((c: Choice) => props.counts[c.key] ?? 0);
   return { labels, data };
-}
+};
 
-async function renderChart() {
+const renderChart = async () => {
   await nextTick();
   if (!canvas.value || !container.value) return;
   const ctx = canvas.value.getContext('2d');
@@ -41,7 +42,7 @@ async function renderChart() {
       scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }
     }
   });
-}
+};
 
 onMounted(() => {
   renderChart();

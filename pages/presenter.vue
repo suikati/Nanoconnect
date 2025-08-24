@@ -71,9 +71,21 @@
 import { reactive, ref, onMounted, watch, onUnmounted } from 'vue';
 import useRoom from '~/composables/useRoom';
 import VoteChart from '~/components/VoteChart.vue';
-import { ref as dbRef, onValue } from 'firebase/database';
+import createDbListener from '~/composables/useDbListener';
+import type { Aggregate, Comment as CommentType, Choice, Slide } from '~/types/models';
 
-let r: ReturnType<typeof useRoom> | null = null;
+type RoomApi = {
+  createRoom?: () => Promise<string>;
+  saveSlides?: (code: string, slides: any[]) => Promise<void>;
+  setSlideIndex?: (code: string, idx: number) => Promise<void>;
+  getAnonId?: () => string | null;
+  likeComment?: (code: string, commentId: string) => Promise<void>;
+  deleteComment?: (code: string, commentId: string) => Promise<void>;
+};
+
+type UIComment = CommentType & { id: string };
+
+let r: RoomApi | null = null;
 const roomCode = ref('');
 const currentIndex = ref(0);
 const log = ref('');
@@ -81,9 +93,9 @@ const log = ref('');
 const slides = reactive<Array<{ title: string; choicesText: string }>>([
   { title: '好きな色は？', choicesText: '赤,青,緑' },
 ]);
-const aggregates = ref<any>(null);
-const currentSlideChoices = ref<Array<{ key: string; text: string }>>([]);
-const comments = ref<Array<any>>([]);
+const aggregates = ref<Aggregate | null>(null);
+const currentSlideChoices = ref<Choice[]>([]);
+const comments = ref<UIComment[]>([]);
 let unsubComments: (() => void) | null = null;
 const myAnonId = ref<string | null>(null);
 // listener cleanup handles
@@ -151,47 +163,37 @@ watch(roomCode, async (val: string | null) => {
   const db = (nuxt.$firebaseDb as any) || null;
   if (!db) return;
 
-  // helper to stop a firebase onValue listener
-  const registerOnValue = (path: string, cb: (snap: any) => void) => {
-    const p = dbRef(db, path);
-    const off = onValue(p, cb);
-    return () => off();
-  };
-
-  // slideIndex listener (register per-slide content listener inside)
+  // slideIndex listener (cleanup previous)
   if (unsubSlideIndex) { unsubSlideIndex(); unsubSlideIndex = null; }
-  unsubSlideIndex = registerOnValue(`rooms/${val}/slideIndex`, (snap: any) => {
+  unsubSlideIndex = createDbListener(db, `rooms/${val}/slideIndex`, (snap: any) => {
     if (!snap) return;
     const idx = snap.val();
     currentIndex.value = typeof idx === 'number' ? idx : 0;
 
-    // cleanup previous slide content listener
+    // slide content listener
     if (unsubSlideContent) { try { unsubSlideContent(); } catch (e) { /* ignore */ } unsubSlideContent = null; }
+      unsubSlideContent = createDbListener(db, `rooms/${val}/slides/slide_${(currentIndex.value || 0) + 1}`, (s: any) => {
+        const slideObj = s && s.val ? s.val() as Slide : null;
+        if (slideObj && slideObj.choices) {
+          currentSlideChoices.value = Object.entries(slideObj.choices).map(([k, v]) => ({ key: k, text: (v as any).text }));
+        } else {
+          currentSlideChoices.value = [];
+        }
+      });
 
-    // register slide content listener for this slide
-    const slideRefPath = `rooms/${val}/slides/slide_${(currentIndex.value || 0) + 1}`;
-    unsubSlideContent = registerOnValue(slideRefPath, (s: any) => {
-      const slideObj = s && s.val ? s.val() : null;
-      if (slideObj && slideObj.choices) {
-        currentSlideChoices.value = Object.entries(slideObj.choices).map(([k, v]: any) => ({ key: k, text: v.text }));
-      } else {
-        currentSlideChoices.value = [];
-      }
-    });
-    // register aggregates listener for this slide (cleanup previous first)
+    // aggregates listener
     if (unsubAggregates) { try { (unsubAggregates as any)(); } catch (e) { /* ignore */ } unsubAggregates = null; }
-    const aggRefPath = `rooms/${val}/aggregates/slide_${(currentIndex.value || 0) + 1}`;
-    unsubAggregates = registerOnValue(aggRefPath, (snap: any) => {
+    unsubAggregates = createDbListener(db, `rooms/${val}/aggregates/slide_${(currentIndex.value || 0) + 1}`, (snap: any) => {
       const a = snap && snap.val ? snap.val() : null;
       aggregates.value = a || { counts: {}, total: 0 };
     });
-    // comments listener for presenter view
+
+    // comments listener
     if (unsubComments) { try { (unsubComments as any)(); } catch (e) { /* ignore */ } unsubComments = null; }
-    const commentsPath = `rooms/${val}/comments`;
-    unsubComments = registerOnValue(commentsPath, (snap: any) => {
-      const arr: any[] = [];
+    unsubComments = createDbListener(db, `rooms/${val}/comments`, (snap: any) => {
+      const arr: UIComment[] = [];
       snap.forEach((child: any) => {
-        arr.unshift({ id: child.key, ...child.val() });
+        arr.unshift({ id: child.key as string, ...(child.val() as CommentType) });
       });
       comments.value = arr;
     });

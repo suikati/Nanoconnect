@@ -1,7 +1,21 @@
 import { ref as dbRef, set, push, get, runTransaction } from "firebase/database";
 import type { Database } from "firebase/database";
 
-const useRoom = () => {
+type UseRoomApi = {
+  generateRoomCode: (len?: number) => string;
+  getAnonId: () => string;
+  createRoom: (roomCode?: string) => Promise<string>;
+  joinRoom: (roomCode: string) => Promise<{ roomCode: string; anonId: string; room: any }>;
+  saveSlides: (roomCode: string, slides: Array<{ title: string; choices: string[] }>) => Promise<void>;
+  setSlideIndex: (roomCode: string, index: number) => Promise<void>;
+  submitVote: (roomCode: string, slideId: string, choiceId: string) => Promise<void>;
+  submitVoteSafe: (roomCode: string, slideId: string, choiceId: string) => Promise<boolean>;
+  pushComment: (roomCode: string, text: string) => Promise<void>;
+  likeComment: (roomCode: string, commentId: string) => Promise<void>;
+  deleteComment: (roomCode: string, commentId: string) => Promise<void>;
+};
+
+const useRoom = (): UseRoomApi => {
   // ensure functions are called on client; getDb will throw if firebase isn't available
 
   const nuxt = useNuxtApp();
@@ -35,7 +49,7 @@ const useRoom = () => {
     }
   };
 
-  const createRoom = async (roomCode?: string) => {
+  const createRoom = async (roomCode?: string): Promise<string> => {
     const code = roomCode || generateRoomCode();
     const anonId = getAnonId();
     const now = new Date().toISOString();
@@ -48,13 +62,13 @@ const useRoom = () => {
     return code;
   };
 
-  const joinRoom = async (roomCode: string) => {
-  const snap = await get(dbRef(getDb(), `rooms/${roomCode}`));
+  const joinRoom = async (roomCode: string): Promise<{ roomCode: string; anonId: string; room: any }> => {
+    const snap = await get(dbRef(getDb(), `rooms/${roomCode}`));
     if (!snap.exists()) throw new Error("Room not found");
     return { roomCode, anonId: getAnonId(), room: snap.val() };
   };
 
-  const saveSlides = async (roomCode: string, slides: Array<{ title: string; choices: string[] }>) => {
+  const saveSlides = async (roomCode: string, slides: Array<{ title: string; choices: string[] }>): Promise<void> => {
     const slidesObj: Record<string, any> = {};
     slides.forEach((s, i) => {
       slidesObj[`slide_${i + 1}`] = {
@@ -66,11 +80,11 @@ const useRoom = () => {
   await set(dbRef(getDb(), `rooms/${roomCode}/slides`), slidesObj);
   };
 
-  const setSlideIndex = async (roomCode: string, index: number) => {
-  await set(dbRef(getDb(), `rooms/${roomCode}/slideIndex`), index);
+  const setSlideIndex = async (roomCode: string, index: number): Promise<void> => {
+    await set(dbRef(getDb(), `rooms/${roomCode}/slideIndex`), index);
   };
 
-  const submitVote = async (roomCode: string, slideId: string, choiceId: string) => {
+  const submitVote = async (roomCode: string, slideId: string, choiceId: string): Promise<void> => {
     const anonId = getAnonId();
   const votePath = `rooms/${roomCode}/votes/${slideId}/${anonId}`;
   // 同一 anonId の上書きにより重複投票を防止
@@ -78,7 +92,7 @@ const useRoom = () => {
   };
 
   // safer vote that adjusts aggregates when changing vote
-  const submitVoteSafe = async (roomCode: string, slideId: string, choiceId: string) => {
+  const submitVoteSafe = async (roomCode: string, slideId: string, choiceId: string): Promise<boolean> => {
     const anonId = getAnonId();
   const voteRef = dbRef(getDb(), `rooms/${roomCode}/votes/${slideId}/${anonId}`);
 
@@ -126,13 +140,13 @@ const useRoom = () => {
   return true;
   };
 
-  const pushComment = async (roomCode: string, text: string) => {
+  const pushComment = async (roomCode: string, text: string): Promise<void> => {
     const anonId = getAnonId();
   const commentRef = dbRef(getDb(), `rooms/${roomCode}/comments`);
   await push(commentRef, { anonId, text, likes: 0, userLikes: {}, deleted: false, createdAt: new Date().toISOString() });
   };
 
-  const likeComment = async (roomCode: string, commentId: string) => {
+  const likeComment = async (roomCode: string, commentId: string): Promise<void> => {
     const anonId = getAnonId();
   const commentRef = dbRef(getDb(), `rooms/${roomCode}/comments/${commentId}`);
     // run transaction on the whole comment node to check userLikes and deleted flag
@@ -154,7 +168,7 @@ const useRoom = () => {
     });
   };
 
-  const deleteComment = async (roomCode: string, commentId: string) => {
+  const deleteComment = async (roomCode: string, commentId: string): Promise<void> => {
     const anonId = getAnonId();
   const commentRef = dbRef(getDb(), `rooms/${roomCode}/comments/${commentId}`);
     // soft-delete via transaction: mark deleted flag and remove text

@@ -28,7 +28,8 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue';
 import useRoom from '~/composables/useRoom';
-import { ref as dbRef, onValue } from 'firebase/database';
+import createDbListener from '~/composables/useDbListener';
+import type { Aggregate } from '~/types/models';
 
 let r: ReturnType<typeof useRoom> | null = null;
 const ensureR = () => { if (!r) r = useRoom(); return r; };
@@ -38,7 +39,7 @@ const joinCode = ref<string>('');
 const anonId = ref<string>('');
 const joined = ref(false);
 const logs = ref<string[]>([]);
-const aggregates = ref<any>(null);
+const aggregates = ref<Aggregate | null>(null);
 
 const log = (s: string) => { logs.value.unshift(`${new Date().toISOString()} ${s}`); };
 
@@ -56,8 +57,8 @@ const onCreate = async () => {
 const onJoin = async () => {
   try {
     const code = joinCode.value || roomCode.value;
-    ensureR();
-    const res = await (r as any).joinRoom(code);
+  ensureR();
+  const res = await (r as any).joinRoom(code);
     anonId.value = res.anonId;
     joined.value = true;
     log(`joined ${code} as ${res.anonId}`);
@@ -99,16 +100,16 @@ const onComment = async () => {
 
 /* リアルタイム集計の監視（ページ上に表示） */
 let unsubscribe: (() => void) | null = null;
-function startListen(code: string) {
+const startListen = (code: string) => {
   const nuxt = useNuxtApp();
   const db = nuxt.$firebaseDb;
-  const aggRef = dbRef(db, `rooms/${code}/aggregates/slide_1`);
-  // onValue を登録
-  unsubscribe = onValue(aggRef, (snap) => {
+  // use the centralized listener helper
+  if (unsubscribe) { unsubscribe(); unsubscribe = null; }
+  unsubscribe = createDbListener(db, `rooms/${code}/aggregates/slide_1`, (snap: any) => {
     aggregates.value = snap.exists() ? snap.val() : null;
     log('aggregates updated');
-  }) as unknown as () => void;
-}
+  });
+};
 
 onUnmounted(() => {
   if (unsubscribe) unsubscribe();
