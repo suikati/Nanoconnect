@@ -53,8 +53,8 @@ const aggregates = ref<any>(null);
 const currentSlideChoices = ref<Array<{ key: string; text: string }>>([]);
 // listener cleanup handles
 let unsubSlideIndex: (() => void) | null = null;
-let unsubSlides: (() => void) | null = null;
 let unsubAggregates: (() => void) | null = null;
+let unsubSlideContent: (() => void) | null = null;
 
 function addSlide() { slides.push({ title: '', choicesText: '' }); }
 function removeSlide(i: number) { slides.splice(i, 1); }
@@ -114,24 +114,26 @@ watch(roomCode, async (val: string | null) => {
     return () => off();
   };
 
-  // slideIndex listener
+  // slideIndex listener (register per-slide content listener inside)
   if (unsubSlideIndex) { unsubSlideIndex(); unsubSlideIndex = null; }
   unsubSlideIndex = registerOnValue(`rooms/${val}/slideIndex`, (snap: any) => {
     if (!snap) return;
     const idx = snap.val();
     currentIndex.value = typeof idx === 'number' ? idx : 0;
-  });
 
-  // slides listener
-  if (unsubSlides) { unsubSlides(); unsubSlides = null; }
-  unsubSlides = registerOnValue(`rooms/${val}/slides`, (snap: any) => {
-    const s = snap && snap.val ? snap.val() : null;
-    if (!s) { currentSlideChoices.value = []; return; }
-    const slideKey = `slide_${currentIndex.value + 1}`;
-    const slide = s[slideKey];
-    if (!slide) { currentSlideChoices.value = []; return; }
-    const choices = Object.entries(slide.choices || {}).map(([k, v]: any) => ({ key: k, text: v.text }));
-    currentSlideChoices.value = choices;
+    // cleanup previous slide content listener
+    if (unsubSlideContent) { try { unsubSlideContent(); } catch (e) { /* ignore */ } unsubSlideContent = null; }
+
+    // register slide content listener for this slide
+    const slideRefPath = `rooms/${val}/slides/slide_${(currentIndex.value || 0) + 1}`;
+    unsubSlideContent = registerOnValue(slideRefPath, (s: any) => {
+      const slideObj = s && s.val ? s.val() : null;
+      if (slideObj && slideObj.choices) {
+        currentSlideChoices.value = Object.entries(slideObj.choices).map(([k, v]: any) => ({ key: k, text: v.text }));
+      } else {
+        currentSlideChoices.value = [];
+      }
+    });
   });
 
   // aggregates listener for current slide
@@ -151,7 +153,7 @@ watch(roomCode, async (val: string | null) => {
 
   onUnmounted(() => {
     try { if (unsubSlideIndex) unsubSlideIndex(); } catch (e) { /* ignore */ }
-    try { if (unsubSlides) unsubSlides(); } catch (e) { /* ignore */ }
+  // unsubSlides removed; per-slide content listener is unsubSlideContent
     try { if (unsubAggregates) unsubAggregates(); } catch (e) { /* ignore */ }
   });
 
