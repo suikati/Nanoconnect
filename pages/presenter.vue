@@ -17,7 +17,7 @@
               <input v-model="s.title" placeholder="Title" class="flex-1 border rounded-lg px-3 py-2 focus-ring text-sm" />
               <UiButton size="sm" variant="ghost" @pressed="removeSlide(i)">削除</UiButton>
             </div>
-            <input v-model="s.choicesText" placeholder="Choices (comma separated)" class="w-full border rounded-lg px-3 py-2 focus-ring text-sm" />
+            <OptionList v-model="s.choices" />
           </div>
           <div class="flex flex-wrap items-center gap-3">
             <UiButton variant="secondary" size="sm" @pressed="addSlide">アンケートを追加する</UiButton>
@@ -60,6 +60,7 @@ import AppShell from '~/components/ui/AppShell.vue';
 import UiButton from '~/components/ui/UiButton.vue';
 import UiCard from '~/components/ui/UiCard.vue';
 import CommentItem from '~/components/CommentItem.vue';
+import OptionList from '~/components/OptionList.vue';
 import type { Aggregate, Comment as CommentType, Choice, Slide } from '~/types/models';
 
 type RoomApi = {
@@ -79,8 +80,9 @@ const currentIndex = ref(0);
 const log = ref('');
 
 // TODO: 開発が終わったらplaceholderに変更
-const slides = reactive<Array<{ title: string; choicesText: string }>>([
-  { title: '好きな色は？', choicesText: '赤,青,緑' },
+const palette = ['#4F46E5', '#EC4899', '#F97316', '#10B981', '#06B6D4', '#F59E0B'];
+const slides = reactive<Array<{ title: string; choices: Array<{ text: string; color?: string }> }>>([
+  { title: '好きな色は？', choices: [{ text: '赤', color: '#EF4444' }, { text: '青', color: '#3B82F6' }, { text: '緑', color: '#10B981' }] },
 ]);
 const aggregates = ref<Aggregate | null>(null);
 const currentSlideChoices = ref<Choice[]>([]);
@@ -98,7 +100,11 @@ const ensureR = () => {
   return r;
 };
 
-const addSlide = () => { slides.push({ title: '', choicesText: '' }); };
+const addSlide = () => {
+  // assign a palette color immediately so the color picker shows a value
+  const idx = slides.length % palette.length;
+  slides.push({ title: '', choices: [{ text: '', color: palette[idx] }] });
+};
 const removeSlide = (i: number) => { slides.splice(i, 1); };
 
 const onCreateRoom = async () => {
@@ -112,11 +118,36 @@ const onCreateRoom = async () => {
 
 const onSaveSlides = async () => {
   if (!roomCode.value) { log.value = 'no room'; return; }
-  const payload = slides.map((s: { title: string; choicesText: string }) => ({ title: s.title || 'untitled', choices: s.choicesText.split(',').map((c: string) => c.trim()).filter(Boolean) }));
+
+  // UI validation: each slide must have at least 2 non-empty choices
+  const palette = ['#4F46E5', '#EC4899', '#F97316', '#10B981', '#06B6D4', '#F59E0B'];
+  for (const s of slides) {
+    const nonEmpty = (s.choices || []).filter((c: any) => c && String(c.text).trim().length > 0);
+    if (nonEmpty.length < 2) {
+      // user-visible validation
+      window.alert(`スライド "${s.title || '無題'}" は最低2つの選択肢が必要です。`);
+      return;
+    }
+  }
+
+  // Normalize slides and auto-assign colors when missing
+  const payload = slides.map((s: { title: string; choices: any[] }, si: number) => {
+    const choices = (s.choices || []).map((c: any, ci: number) => {
+      const rawColor = (c && c.color) ? String(c.color) : '';
+      const placeholder = '#f3f4f6';
+      const normalizedColor = rawColor && rawColor.toLowerCase() !== placeholder ? rawColor : palette[(ci + si) % palette.length];
+      return {
+        text: String(c.text || '').trim(),
+        color: normalizedColor,
+      };
+    });
+    return { title: s.title || 'untitled', choices };
+  });
+
   try {
-  ensureR();
-  await (r as any).saveSlides(roomCode.value, payload);
-  log.value = 'saved slides';
+    ensureR();
+    await (r as any).saveSlides(roomCode.value, payload);
+    log.value = 'saved slides';
   } catch (e: any) { log.value = `save error: ${e.message}`; }
 };
 
@@ -162,10 +193,25 @@ watch(roomCode, async (val: string | null) => {
       unsubSlideContent = createDbListener(db, `rooms/${val}/slides/slide_${(currentIndex.value || 0) + 1}`, (s: any) => {
         const slideObj = s && s.val ? s.val() as Slide : null;
         if (slideObj && slideObj.choices) {
-          currentSlideChoices.value = Object.entries(slideObj.choices).map(([k, v]) => ({ key: k, text: (v as any).text }));
+          currentSlideChoices.value = Object.entries(slideObj.choices).map(([k, v]) => {
+            const item = v as { text: string; color?: string };
+            return { key: k, text: item.text, color: item.color };
+          });
         } else {
           currentSlideChoices.value = [];
         }
+
+        // Also reflect DB values into the editor model (`slides`) so color pickers show saved colors
+        try {
+          const slideObj2 = slideObj;
+          if (slideObj2) {
+            const idx = (currentIndex.value || 0);
+            const editorChoices = slideObj2.choices ? Object.entries(slideObj2.choices).map(([k, v]) => ({ id: k, text: (v as any).text || '', color: (v as any).color })) : [];
+            while (slides.length <= idx) slides.push({ title: '', choices: [{ text: '', color: '#F3F4F6' }] });
+            slides[idx].title = slideObj2.title || '';
+            slides[idx].choices = editorChoices;
+          }
+        } catch (e) { /* ignore */ }
       });
 
   // 集計（aggregates）のリスナー
