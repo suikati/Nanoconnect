@@ -98,7 +98,7 @@ const currentSlideChoices = ref<Choice[]>([]);
 const comments = ref<UIComment[]>([]);
 let unsubComments: (() => void) | null = null;
 const myAnonId = ref<string | null>(null);
-// listener cleanup handles
+// リスナーのクリーンアップ用ハンドル
 let unsubSlideIndex: (() => void) | null = null;
 let unsubAggregates: (() => void) | null = null;
 let unsubSlideContent: (() => void) | null = null;
@@ -145,17 +145,17 @@ const setIdx = async (idx: number) => {
 onMounted(() => {
   ensureR();
   try { myAnonId.value = (r as any).getAnonId(); } catch (e) { myAnonId.value = null; }
-  // listen to aggregates when room exists
-  // (presenter can later add a listener similar to index/audience)
+  // ルームがあるときに集計を監視する
+  // （後で presenter 用にも index/audience と同様のリスナーを追加可能）
 });
 
-// re-use logic similar to audience: when roomCode set, subscribe to slideIndex and slides
+// audience と似たロジックを再利用：roomCode が設定されたら slideIndex とスライドを購読する
 watch(roomCode, async (val: string | null) => {
-  // cleanup previous
+  // 以前のリスナーをクリーンアップ
   try {
     ensureR();
   } catch (e) {
-    // nothing
+  // なし（エラーハンドリング）
   }
   if (!val) return;
 
@@ -163,14 +163,14 @@ watch(roomCode, async (val: string | null) => {
   const db = (nuxt.$firebaseDb as any) || null;
   if (!db) return;
 
-  // slideIndex listener (cleanup previous)
+  // slideIndex のリスナー（前のリスナーをクリーンアップ）
   if (unsubSlideIndex) { unsubSlideIndex(); unsubSlideIndex = null; }
   unsubSlideIndex = createDbListener(db, `rooms/${val}/slideIndex`, (snap: any) => {
     if (!snap) return;
     const idx = snap.val();
     currentIndex.value = typeof idx === 'number' ? idx : 0;
 
-    // slide content listener
+  // スライド内容のリスナー
     if (unsubSlideContent) { try { unsubSlideContent(); } catch (e) { /* ignore */ } unsubSlideContent = null; }
       unsubSlideContent = createDbListener(db, `rooms/${val}/slides/slide_${(currentIndex.value || 0) + 1}`, (s: any) => {
         const slideObj = s && s.val ? s.val() as Slide : null;
@@ -181,14 +181,14 @@ watch(roomCode, async (val: string | null) => {
         }
       });
 
-    // aggregates listener
+  // 集計（aggregates）のリスナー
     if (unsubAggregates) { try { (unsubAggregates as any)(); } catch (e) { /* ignore */ } unsubAggregates = null; }
     unsubAggregates = createDbListener(db, `rooms/${val}/aggregates/slide_${(currentIndex.value || 0) + 1}`, (snap: any) => {
       const a = snap && snap.val ? snap.val() : null;
       aggregates.value = a || { counts: {}, total: 0 };
     });
 
-    // comments listener
+  // コメント一覧のリスナー
     if (unsubComments) { try { (unsubComments as any)(); } catch (e) { /* ignore */ } unsubComments = null; }
     unsubComments = createDbListener(db, `rooms/${val}/comments`, (snap: any) => {
       const arr: UIComment[] = [];
@@ -199,7 +199,7 @@ watch(roomCode, async (val: string | null) => {
     });
   });
 
-  // aggregates will be registered per-slide inside slideIndex handler (below)
+  // 集計は slideIndex ハンドラ内でスライドごとに登録される
 
   onUnmounted(() => {
   try { if (unsubSlideIndex) (unsubSlideIndex as any)(); } catch (e) { /* ignore */ }

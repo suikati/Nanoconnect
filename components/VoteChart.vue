@@ -29,7 +29,7 @@ const renderChart = async () => {
   if (!ctx) return;
   const d = buildData();
   const color = '#3b82f6';
-  // If a chart already exists, update it instead of creating a new one
+  // 既にチャートが存在する場合は新規作成せず更新する
   if (chart) {
     try {
       chart.data.labels = d.labels as any;
@@ -38,7 +38,7 @@ const renderChart = async () => {
       chart.update();
       return;
     } catch (e) {
-      // if update fails, destroy and recreate
+  // 更新に失敗したら破棄して再作成する
       try { chart.destroy(); } catch (err) { /* ignore */ }
       chart = null;
     }
@@ -63,15 +63,15 @@ onMounted(() => {
   renderChart();
 });
 
-// update when counts change
+// counts が変わったときに更新
 watch(() => props.counts, () => {
-  // central render/update logic
+  // レンダー／更新を一元化する
   void renderChart();
 }, { deep: true });
 
-// update when choices (labels) change
+// choices（ラベル）が変わったときの更新
 watch(() => props.choices, () => {
-  // central render/update logic
+  // レンダー／更新を一元化する
   void renderChart();
 }, { deep: true, immediate: true });
 

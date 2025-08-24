@@ -75,7 +75,7 @@ import VoteChart from '~/components/VoteChart.vue';
 import createDbListener from '~/composables/useDbListener';
 import type { Aggregate, Comment as CommentType, Choice, Slide } from '~/types/models';
 
-// Minimal API surface for the composable used here
+// ここで使う composable の簡易 API 形
 type RoomApi = {
   joinRoom: (code: string) => Promise<{ anonId: string }>;
   submitVoteSafe: (code: string, slideId: string, choiceKey: string) => Promise<boolean>;
@@ -126,7 +126,7 @@ const onJoin = async () => {
 };
 
 onMounted(() => {
-  // initialize client-only composable
+  // クライアント専用の composable を初期化
   ensureR();
 });
 
@@ -134,13 +134,13 @@ const startListeners = (code: string) => {
   const nuxt = useNuxtApp();
   const db = nuxt.$firebaseDb;
 
-  // slideIndex listener (cleanup previous)
+  // slideIndex のリスナー（前のリスナーをクリーンアップ）
   if (unsubSlide) { try { unsubSlide(); } catch (e) { /* ignore */ } }
   unsubSlide = createDbListener(db, `rooms/${code}/slideIndex`, async (snap: any) => {
     const idx = snap.exists() ? snap.val() : 0;
     slideNumber.value = idx + 1;
 
-    // slide content listener
+  // スライド内容のリスナー
     if (unsubSlideContent) { try { unsubSlideContent(); } catch (e) { /* ignore */ } unsubSlideContent = null; }
     unsubSlideContent = createDbListener(db, `rooms/${code}/slides/slide_${idx + 1}`, (s: any) => {
       slide.value = s.exists() ? s.val() as Slide : null;
@@ -154,7 +154,7 @@ const startListeners = (code: string) => {
       }
     });
 
-    // aggregates listener
+  // 集計（aggregates）のリスナー
     if (unsubAgg) { try { unsubAgg(); } catch (e) { /* ignore */ } }
     unsubAgg = createDbListener(db, `rooms/${code}/aggregates/slide_${idx + 1}`, (snapAgg: any) => {
       const val = snapAgg.exists() ? snapAgg.val() : { counts: {} };
@@ -164,7 +164,7 @@ const startListeners = (code: string) => {
       aggregates.value = { counts: agg, total: val.total || 0 };
     });
 
-    // my vote listener
+  // 自分の投票状態を監視するリスナー
     if (unsubVotes) { try { unsubVotes(); } catch (e) { /* ignore */ } }
     if (anonId.value) {
       unsubVotes = createDbListener(db, `rooms/${code}/votes/slide_${idx + 1}/${anonId.value}`, (s: any) => {
@@ -181,7 +181,7 @@ const startListeners = (code: string) => {
       voted.value = false;
     }
 
-    // comments listener
+  // コメント一覧のリスナー
     if (unsubComments) { try { unsubComments(); } catch (e) { /* ignore */ } }
     unsubComments = createDbListener(db, `rooms/${code}/comments`, (snap: any) => {
       const arr: UIComment[] = [];

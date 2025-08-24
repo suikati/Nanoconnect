@@ -16,7 +16,7 @@ type UseRoomApi = {
 };
 
 const useRoom = (): UseRoomApi => {
-  // ensure functions are called on client; getDb will throw if firebase isn't available
+  // クライアントでのみ関数を呼ぶことを保証する。firebase が利用できない場合は getDb が例外を投げる
 
   const nuxt = useNuxtApp();
   const getDb = (): Database => {
@@ -91,30 +91,30 @@ const useRoom = (): UseRoomApi => {
   await set(dbRef(getDb(), votePath), { choiceId, votedAt: new Date().toISOString() });
   };
 
-  // safer vote that adjusts aggregates when changing vote
+  // 投票を変更したときに集計を調整する安全な投票処理
   const submitVoteSafe = async (roomCode: string, slideId: string, choiceId: string): Promise<boolean> => {
     const anonId = getAnonId();
   const voteRef = dbRef(getDb(), `rooms/${roomCode}/votes/${slideId}/${anonId}`);
 
-    // read previous vote
+  // 以前の投票を読み取る
     const prevSnap = await get(voteRef);
     const prevChoice = prevSnap.exists() ? (prevSnap.val().choiceId as string | null) : null;
     if (prevChoice === choiceId) {
-      // no change
+      // 変更なし
       return false;
     }
 
-    // write new vote
+  // 新しい投票を書き込む
     try {
       await set(voteRef, { choiceId, votedAt: new Date().toISOString() });
     } catch (e) {
-      // write failed
+      // 書き込み失敗
       // eslint-disable-next-line no-console
       console.error('submitVoteSafe: failed to write vote', e);
       throw e;
     }
 
-    // adjust aggregates in one transaction
+  // 集計をトランザクションで一括調整
   const aggRef = dbRef(getDb(), `rooms/${roomCode}/aggregates/${slideId}`);
     try {
       await runTransaction(aggRef, (current: any) => {
@@ -128,11 +128,11 @@ const useRoom = (): UseRoomApi => {
         current.total = (current.total || 0) + 1;
         return current;
       });
-      // eslint-disable-next-line no-console
+  // eslint-disable-next-line no-console
       console.log('submitVoteSafe: aggregates transaction succeeded', { roomCode, slideId, choiceId, prevChoice });
     } catch (e) {
-      // transaction failed: log and rethrow so caller can handle
-      // eslint-disable-next-line no-console
+  // トランザクション失敗：ログを出し呼び出し元で処理できるよう再スロー
+  // eslint-disable-next-line no-console
       console.error('submitVoteSafe: transaction failed', e);
       throw e;
     }
@@ -149,18 +149,18 @@ const useRoom = (): UseRoomApi => {
   const likeComment = async (roomCode: string, commentId: string): Promise<void> => {
     const anonId = getAnonId();
   const commentRef = dbRef(getDb(), `rooms/${roomCode}/comments/${commentId}`);
-    // run transaction on the whole comment node to check userLikes and deleted flag
+    // コメントノード全体をトランザクションで扱い、userLikes と deleted フラグを確認する
     await runTransaction(commentRef, (current: any) => {
-      if (!current) return current; // comment missing
-      if (current.deleted) return current; // don't like deleted comments
+      if (!current) return current; // コメントが存在しない場合
+      if (current.deleted) return current; // 削除済みコメントにはいいねを付けない
       current.userLikes = current.userLikes || {};
       const already = !!current.userLikes[anonId];
       if (already) {
-        // toggle off
+        // オフにする（いいねを取り消す）
         delete current.userLikes[anonId];
         current.likes = Math.max((current.likes || 1) - 1, 0);
       } else {
-        // toggle on
+        // オンにする（いいねを付ける）
         current.userLikes[anonId] = true;
         current.likes = (current.likes || 0) + 1;
       }
@@ -171,11 +171,11 @@ const useRoom = (): UseRoomApi => {
   const deleteComment = async (roomCode: string, commentId: string): Promise<void> => {
     const anonId = getAnonId();
   const commentRef = dbRef(getDb(), `rooms/${roomCode}/comments/${commentId}`);
-    // soft-delete via transaction: mark deleted flag and remove text
+    // ソフトデリート（トランザクション）：deleted フラグを立てテキストを削除
     await runTransaction(commentRef, (current: any) => {
       if (!current) return current;
-      // allow deletion only by same anonId (client-side check) — rules should enforce server-side
-      // mark deleted and record who deleted
+      // 同一 anonId のみ削除を許可（クライアント側チェック）。実際はセキュリティルールでサーバ側で制御すべき
+      // 削除フラグや削除者を記録する
       current.deleted = true;
       current.deletedAt = new Date().toISOString();
       current.deletedBy = anonId;
