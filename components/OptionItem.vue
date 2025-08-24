@@ -12,8 +12,14 @@
 
 <script setup lang="ts">
 import { reactive } from 'vue';
-const props = defineProps<{ option: { id?: string; text: string; color?: string }, index?: number }>();
-const emit = defineEmits<{ update: (opt: any, id?: string) => void; remove: (id: string) => void; 'move-up': () => void; 'move-down': () => void }>();
+import type { Choice } from '~/types/models';
+const props = defineProps<{ option: Partial<Choice> & { id?: string }; index?: number }>();
+const emit = defineEmits<{
+  update: (opt: { id?: string; text: string; color?: string }) => void;
+  remove: (id: string) => void;
+  'move-up': () => void;
+  'move-down': () => void;
+}>();
 
 const local = reactive({ text: props.option.text || '', color: props.option.color || '#F3F4F6' });
 

@@ -14,8 +14,9 @@
 <script setup lang="ts">
 import { reactive, toRaw, watch, toRef } from 'vue';
 import OptionItem from '~/components/OptionItem.vue';
-const props = defineProps<{ modelValue?: Array<{ text: string; color?: string; id?: string }> }>();
-const emit = defineEmits<{ 'update:modelValue': (v: any) => void }>();
+import type { Choice } from '~/types/models';
+const props = defineProps<{ modelValue?: Array<Partial<Choice> & { id?: string }> }>();
+const emit = defineEmits<{ 'update:modelValue': (v: Array<{ id: string; text: string; color?: string }>) => void }>();
 
 type Opt = { id: string; text: string; color?: string };
 // simple palette used for auto-assignment when adding or when incoming items lack color
