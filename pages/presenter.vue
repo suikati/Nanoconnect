@@ -91,36 +91,44 @@ let unsubSlideIndex: (() => void) | null = null;
 let unsubAggregates: (() => void) | null = null;
 let unsubSlideContent: (() => void) | null = null;
 
-function addSlide() { slides.push({ title: '', choicesText: '' }); }
-function removeSlide(i: number) { slides.splice(i, 1); }
-
-async function onCreateRoom() {
-  try {
+const ensureR = () => {
   if (!r) r = useRoom();
-  const code = await r.createRoom();
+  return r;
+};
+
+const addSlide = () => { slides.push({ title: '', choicesText: '' }); };
+const removeSlide = (i: number) => { slides.splice(i, 1); };
+
+const onCreateRoom = async () => {
+  try {
+    ensureR();
+    console.debug('onCreateRoom: calling createRoom');
+    const code = await (r as any).createRoom();
     roomCode.value = code;
     log.value = `created ${code}`;
   } catch (e: any) { log.value = `create error: ${e.message}`; }
-}
+};
 
-async function onSaveSlides() {
+const onSaveSlides = async () => {
   if (!roomCode.value) { log.value = 'no room'; return; }
   const payload = slides.map((s: { title: string; choicesText: string }) => ({ title: s.title || 'untitled', choices: s.choicesText.split(',').map((c: string) => c.trim()).filter(Boolean) }));
   try {
-  if (!r) r = useRoom();
-  await r.saveSlides(roomCode.value, payload);
-    log.value = 'saved slides';
+  ensureR();
+  console.debug('onSaveSlides: saving slides', payload);
+  await (r as any).saveSlides(roomCode.value, payload);
+  log.value = 'saved slides';
   } catch (e: any) { log.value = `save error: ${e.message}`; }
-}
+};
 
-async function setIdx(idx: number) {
+const setIdx = async (idx: number) => {
   if (!roomCode.value) return;
   try {
-    if (!r) r = useRoom();
-    await r.setSlideIndex(roomCode.value, idx);
+  ensureR();
+  console.debug('setIdx:', idx);
+  await (r as any).setSlideIndex(roomCode.value, idx);
     currentIndex.value = idx;
   } catch (e: any) { log.value = `set index error: ${e.message}`; }
-}
+};
 
 onMounted(() => {
   if (!r) r = useRoom();
@@ -198,22 +206,24 @@ watch(roomCode, async (val: string | null) => {
   });
 });
 
-function prevSlide() { setIdx(Math.max(0, currentIndex.value - 1)); }
-function nextSlide() { setIdx(currentIndex.value + 1); }
+const prevSlide = () => { console.debug('prevSlide click'); setIdx(Math.max(0, currentIndex.value - 1)); };
+const nextSlide = () => { console.debug('nextSlide click'); setIdx(currentIndex.value + 1); };
 
-async function onLikeComment(commentId: string) {
+const onLikeComment = async (commentId: string) => {
   if (!roomCode.value) return;
   try {
-    if (!r) r = useRoom();
-    await r.likeComment(roomCode.value, commentId);
+  ensureR();
+  console.debug('onLikeComment', commentId);
+  await (r as any).likeComment(roomCode.value, commentId);
   } catch (e: any) { log.value = `like error: ${e.message}`; }
-}
+};
 
-async function onDeleteComment(commentId: string) {
+const onDeleteComment = async (commentId: string) => {
   if (!roomCode.value) return;
   try {
-    if (!r) r = useRoom();
-    await r.deleteComment(roomCode.value, commentId);
+  ensureR();
+  console.debug('onDeleteComment', commentId);
+  await (r as any).deleteComment(roomCode.value, commentId);
   } catch (e: any) { log.value = `delete error: ${e.message}`; }
-}
+};
 </script>
