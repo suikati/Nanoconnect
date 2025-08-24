@@ -3,7 +3,6 @@
     <div class="w-full max-w-2xl bg-white/80 backdrop-blur-md rounded-2xl shadow-lg p-8">
       <header class="flex items-center justify-between mb-6">
         <h1 class="text-2xl font-extrabold text-indigo-600">リアルタイムアンケートアプリ with ナノすけ&リンカ</h1>
-        <p class="text-sm text-gray-500">リアルタイム投票デモ</p>
       </header>
 
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
