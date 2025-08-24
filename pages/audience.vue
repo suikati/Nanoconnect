@@ -1,71 +1,54 @@
 <template>
-  <div class="min-h-screen bg-gradient-to-br from-white to-yellow-50 p-6">
-    <div class="max-w-3xl mx-auto">
-      <div class="bg-white rounded-2xl shadow-md p-6">
-        <div class="flex items-center justify-between mb-4">
-          <h1 class="text-2xl font-bold text-pink-600">Audience</h1>
-          <div class="flex items-center gap-2">
-            <input v-model="codeInput" placeholder="Room code" class="border rounded-lg px-3 py-2 w-40" />
-            <button @click="onJoin" class="bg-pink-500 text-white px-4 py-2 rounded-lg hover:bg-pink-600">Join</button>
-          </div>
-        </div>
-
-        <div v-if="joined" class="mb-4 text-sm text-gray-600">joined as <strong class="text-indigo-600">{{ anonId }}</strong></div>
-
-        <section v-if="joined && slide" class="mb-6">
-          <div class="flex items-center justify-between mb-3">
-            <h3 class="text-lg font-semibold text-indigo-700">Slide {{ slideNumber }}: {{ slide.title }}</h3>
-            <div class="text-sm text-gray-500">Total: {{ aggregates?.total ?? 0 }}</div>
+  <AppShell>
+    <div class="max-w-5xl mx-auto grid lg:grid-cols-5 gap-8">
+      <!-- Left: Join & Voting -->
+      <div class="lg:col-span-3 space-y-6">
+        <UiCard>
+          <template #header>
+            <div class="flex items-center gap-2">
+              <span class="text-pink-600 font-bold text-lg">Audience</span>
+            </div>
+          </template>
+          <div class="flex flex-wrap items-center gap-3 mb-4">
+            <input v-model="codeInput" placeholder="Room code" class="border rounded-lg px-3 py-2 w-40 focus-ring" />
+            <UiButton variant="secondary" @click="onJoin">Join</UiButton>
+            <div v-if="joined" class="text-xs text-gray-500">as <strong class="text-indigo-600">{{ anonId }}</strong></div>
           </div>
 
-          <div v-if="aggregates" class="mb-4">
-            <VoteChart :counts="aggregates.counts || {}" :choices="choicesArray" />
+          <div v-if="joined && slide" class="space-y-5">
+            <div class="flex items-center justify-between">
+              <h2 class="text-base font-semibold text-indigo-600">Slide {{ slideNumber }}: {{ slide.title }}</h2>
+              <span class="text-xs bg-indigo-50 text-indigo-600 px-2 py-1 rounded-full">Total {{ aggregates?.total ?? 0 }}</span>
+            </div>
+            <div v-if="aggregates" class="bg-white rounded-xl border border-indigo-100 p-4">
+              <VoteChart :counts="aggregates.counts || {}" :choices="choicesArray" />
+            </div>
+            <ul class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <li v-for="(c, idx) in choicesArray" :key="idx">
+                <VoteOption :choice="c" :count="counts[c.key] ?? 0" :selected="myVote===c.key" :disabled="voted || voting" @vote="onVote" />
+              </li>
+            </ul>
+            <div v-if="voted" class="text-xs text-green-600">Voted: <strong>{{ myVote }}</strong></div>
           </div>
+        </UiCard>
+      </div>
 
-          <ul class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <li v-for="(c, idx) in choicesArray" :key="idx">
-              <button @click="onVote(c.key)" :disabled="voted || voting" class="w-full text-left bg-indigo-50 hover:bg-indigo-100 border border-indigo-100 rounded-lg px-4 py-3 flex items-center justify-between">
-                <span class="font-medium text-indigo-700">{{ c.text }}</span>
-                <span class="text-indigo-500">{{ counts[c.key] ?? 0 }}</span>
-              </button>
-            </li>
+      <!-- Right: Comments -->
+      <div class="lg:col-span-2 space-y-6">
+        <UiCard title="Comments" titleClass="text-pink-600">
+          <div v-if="!joined" class="text-xs text-gray-400">参加するとコメントできます。</div>
+          <div v-else class="flex gap-3 mb-4">
+            <input v-model="commentText" placeholder="コメントを書く..." class="flex-1 border rounded-lg px-3 py-2 focus-ring" />
+            <UiButton variant="primary" :disabled="!commentText" @click="onPostComment">Post</UiButton>
+          </div>
+          <ul class="space-y-3 max-h-[420px] overflow-y-auto pr-1">
+            <CommentItem v-for="c in comments" :key="c.id" :comment="c" :currentAnonId="anonId" @like="onLikeComment" @delete="onDeleteComment" />
           </ul>
-
-          <div v-if="voted" class="mt-3 text-sm text-green-600">You voted: <strong>{{ myVote }}</strong></div>
-        </section>
-
-        <section v-if="joined" class="mt-4">
-          <h3 class="text-lg font-semibold text-pink-600 mb-3">Comments</h3>
-          <div class="flex gap-3 mb-4">
-            <input v-model="commentText" placeholder="Write a comment..." class="flex-1 border rounded-lg px-3 py-2" />
-            <button @click="onPostComment" :disabled="!commentText" class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700">Post</button>
-          </div>
-
-          <ul class="space-y-3">
-            <li v-for="c in comments" :key="c.id" class="p-3 bg-gray-50 rounded-lg border">
-              <div class="flex items-center justify-between">
-                <small class="text-xs text-gray-500">{{ new Date(c.createdAt).toLocaleTimeString() }}</small>
-                <div class="text-sm text-gray-400">{{ c.anonId ? '' : '' }}</div>
-              </div>
-              <div class="mt-2">
-                <em v-if="c.deleted" class="text-gray-400">(削除済み)</em>
-                <span v-else class="text-gray-800">{{ c.text }}</span>
-              </div>
-              <div class="mt-3 flex items-center gap-3">
-                <button @click="onLikeComment(c.id)" :disabled="c.deleted" class="text-sm px-3 py-1 rounded-full border hover:bg-indigo-50">
-                  <span class="mr-2">{{ (c.userLikes && c.userLikes[anonId]) ? '💙' : '👍' }}</span>
-                  <span class="text-sm text-gray-700">{{ c.likes || 0 }}</span>
-                </button>
-                <button v-if="!c.deleted && c.anonId === anonId" @click="onDeleteComment(c.id)" class="text-sm text-red-500 hover:underline">Delete</button>
-              </div>
-            </li>
-          </ul>
-        </section>
-
-        <pre class="mt-6 text-xs text-gray-400">{{ log.join('\n') }}</pre>
+        </UiCard>
+        <pre v-if="isDev" class="text-[10px] text-gray-400 whitespace-pre-wrap">{{ log.join('\n') }}</pre>
       </div>
     </div>
-  </div>
+  </AppShell>
 </template>
 
 <script setup lang="ts">
@@ -73,6 +56,11 @@ import { ref, reactive, onUnmounted, onMounted } from 'vue';
 import useRoom from '~/composables/useRoom';
 import VoteChart from '~/components/VoteChart.vue';
 import createDbListener from '~/composables/useDbListener';
+import AppShell from '~/components/ui/AppShell.vue';
+import UiButton from '~/components/ui/UiButton.vue';
+import UiCard from '~/components/ui/UiCard.vue';
+import VoteOption from '~/components/VoteOption.vue';
+import CommentItem from '~/components/CommentItem.vue';
 import type { Aggregate, Comment as CommentType, Choice, Slide } from '~/types/models';
 
 // ここで使う composable の簡易 API 形
@@ -104,6 +92,7 @@ const log = ref<string[]>([]);
 const aggregates = ref<Aggregate | null>(null);
 const commentText = ref('');
 const comments = ref<UIComment[]>([]);
+const isDev = false; // simplified: devログ非表示
 let unsubSlide: (() => void) | null = null;
 let unsubSlideContent: (() => void) | null = null;
 let unsubAgg: (() => void) | null = null;

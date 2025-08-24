@@ -1,70 +1,54 @@
 <template>
-  <div class="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-yellow-50 p-6">
-    <div class="max-w-4xl mx-auto">
-      <div class="bg-white rounded-2xl shadow-lg p-6">
-        <div class="flex items-center justify-between mb-4">
-          <h1 class="text-2xl font-extrabold text-indigo-600">Presenter</h1>
-          <div>
-            <button @click="onCreateRoom" class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700">Create Room</button>
-            <span v-if="roomCode" class="ml-3 text-sm text-gray-600">Room: <strong class="text-indigo-700">{{ roomCode }}</strong></span>
+  <AppShell>
+    <div class="max-w-6xl mx-auto grid xl:grid-cols-5 gap-8">
+      <!-- Left: Slide builder -->
+      <div class="xl:col-span-3 space-y-6">
+        <UiCard>
+          <template #header>
+            <div class="flex items-center gap-3">
+              <span class="text-indigo-600 font-extrabold">Presenter</span>
+              <UiButton size="sm" variant="primary" @click="onCreateRoom">Create Room</UiButton>
+              <span v-if="roomCode" class="text-xs bg-indigo-50 text-indigo-600 px-2 py-1 rounded-full">Room: {{ roomCode }}</span>
+            </div>
+          </template>
+          <h3 class="text-sm font-semibold text-gray-500 mb-3">Slides (max 5)</h3>
+          <div v-for="(s, i) in slides" :key="i" class="mb-4 space-y-2 p-3 rounded-xl border border-gray-100 bg-gray-50/60">
+            <div class="flex items-center gap-2">
+              <input v-model="s.title" placeholder="Title" class="flex-1 border rounded-lg px-3 py-2 focus-ring text-sm" />
+              <UiButton size="sm" variant="ghost" @click="removeSlide(i)">Remove</UiButton>
+            </div>
+            <input v-model="s.choicesText" placeholder="Choices (comma separated)" class="w-full border rounded-lg px-3 py-2 focus-ring text-sm" />
           </div>
-        </div>
-
-        <section class="mb-6">
-          <h3 class="text-lg font-semibold text-gray-700 mb-3">Slides (max 5)</h3>
-          <div v-for="(s, i) in slides" :key="i" class="mb-3 grid grid-cols-1 sm:grid-cols-3 gap-2 items-center">
-            <input v-model="s.title" placeholder="Slide title" class="col-span-2 border rounded-lg px-3 py-2" />
-            <input v-model="s.choicesText" placeholder="Choices (comma separated)" class="col-span-2 sm:col-span-3 border rounded-lg px-3 py-2 mt-2 sm:mt-0" />
-            <button @click="removeSlide(i)" class="text-sm text-red-500 hover:underline">Remove</button>
+          <div class="flex flex-wrap items-center gap-3">
+            <UiButton variant="secondary" size="sm" @click="addSlide" :disabled="slides.length >= 5">Add Slide</UiButton>
+            <UiButton variant="primary" size="sm" @click="onSaveSlides" :disabled="!roomCode">Save Slides</UiButton>
           </div>
-          <div class="flex items-center gap-3">
-            <button @click="addSlide" :disabled="slides.length >= 5" class="bg-pink-500 text-white px-3 py-2 rounded-lg hover:bg-pink-600">Add Slide</button>
-            <button @click="onSaveSlides" :disabled="!roomCode" class="bg-indigo-500 text-white px-3 py-2 rounded-lg hover:bg-indigo-600">Save Slides</button>
-          </div>
-        </section>
-
-        <section v-if="roomCode" class="mb-6">
-          <h3 class="text-lg font-semibold text-gray-700">Slide Control</h3>
-          <div class="mt-2 flex items-center gap-3">
-            <div class="text-sm text-gray-600">Current index: <strong class="text-indigo-600">{{ currentIndex }}</strong></div>
+        </UiCard>
+        <UiCard v-if="roomCode" title="Slide Control" titleClass="text-gray-700">
+          <div class="flex items-center gap-4 flex-wrap">
+            <span class="text-sm text-gray-600">Current: <strong class="text-indigo-600">{{ currentIndex }}</strong></span>
             <div class="ml-auto flex items-center gap-2">
-              <button @click="prevSlide" class="px-3 py-2 rounded-lg bg-gray-100 hover:bg-gray-200">Prev</button>
-              <button @click="nextSlide" class="px-3 py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700">Next</button>
+              <UiButton size="sm" variant="ghost" @click="prevSlide">Prev</UiButton>
+              <UiButton size="sm" variant="primary" @click="nextSlide">Next</UiButton>
             </div>
           </div>
-        </section>
+        </UiCard>
+      </div>
 
-        <section v-if="aggregates && currentSlideChoices.length" class="mb-6">
-          <h3 class="text-lg font-semibold text-indigo-700 mb-3">Live Results</h3>
+      <!-- Right: Live Result & Comments -->
+      <div class="xl:col-span-2 space-y-6">
+        <UiCard v-if="aggregates && currentSlideChoices.length" title="Live Results" titleClass="text-indigo-700">
           <VoteChart :counts="aggregates.counts" :choices="currentSlideChoices" />
-        </section>
-
-        <section v-if="roomCode">
-          <h3 class="text-lg font-semibold text-pink-600 mb-3">Comments</h3>
-          <ul class="space-y-3">
-            <li v-for="c in comments" :key="c.id" class="p-3 bg-gray-50 rounded-lg border">
-              <div class="flex items-center justify-between">
-                <small class="text-xs text-gray-500">{{ new Date(c.createdAt).toLocaleTimeString() }}</small>
-              </div>
-              <div class="mt-2">
-                <em v-if="c.deleted" class="text-gray-400">(削除済み)</em>
-                <span v-else class="text-gray-800">{{ c.text }}</span>
-              </div>
-              <div class="mt-3 flex items-center gap-3">
-                <button @click="onLikeComment(c.id)" :disabled="c.deleted" class="text-sm px-3 py-1 rounded-full border hover:bg-indigo-50">
-                  <span class="mr-2">{{ (c.userLikes && c.userLikes[myAnonId]) ? '💙' : '👍' }}</span>
-                  <span class="text-sm text-gray-700">{{ c.likes || 0 }}</span>
-                </button>
-                <button v-if="!c.deleted && c.anonId === myAnonId" @click="onDeleteComment(c.id)" class="text-sm text-red-500 hover:underline">Delete</button>
-              </div>
-            </li>
+        </UiCard>
+        <UiCard v-if="roomCode" title="Comments" titleClass="text-pink-600">
+          <ul class="space-y-3 max-h-[460px] overflow-y-auto pr-1">
+            <CommentItem v-for="c in comments" :key="c.id" :comment="c" :currentAnonId="myAnonId" @like="onLikeComment" @delete="onDeleteComment" />
           </ul>
-        </section>
-
-        <pre class="mt-6 text-xs text-gray-400">{{ log }}</pre>
+        </UiCard>
+        <pre v-if="isDev" class="text-[10px] text-gray-400 whitespace-pre-wrap">{{ log }}</pre>
       </div>
     </div>
-  </div>
+  </AppShell>
 </template>
 
 <script setup lang="ts">
@@ -72,6 +56,10 @@ import { reactive, ref, onMounted, watch, onUnmounted } from 'vue';
 import useRoom from '~/composables/useRoom';
 import VoteChart from '~/components/VoteChart.vue';
 import createDbListener from '~/composables/useDbListener';
+import AppShell from '~/components/ui/AppShell.vue';
+import UiButton from '~/components/ui/UiButton.vue';
+import UiCard from '~/components/ui/UiCard.vue';
+import CommentItem from '~/components/CommentItem.vue';
 import type { Aggregate, Comment as CommentType, Choice, Slide } from '~/types/models';
 
 type RoomApi = {
@@ -98,6 +86,7 @@ const currentSlideChoices = ref<Choice[]>([]);
 const comments = ref<UIComment[]>([]);
 let unsubComments: (() => void) | null = null;
 const myAnonId = ref<string | null>(null);
+const isDev = false; // simplified: devログ非表示
 // リスナーのクリーンアップ用ハンドル
 let unsubSlideIndex: (() => void) | null = null;
 let unsubAggregates: (() => void) | null = null;
