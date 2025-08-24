@@ -74,11 +74,18 @@ function startListeners(code: string) {
   const db = nuxt.$firebaseDb;
   // slideIndex listener
   const slideIndexRef = dbRef(db, `rooms/${code}/slideIndex`);
+  // When slideIndex changes we re-register per-slide listeners (slide content, aggregates, my vote)
   unsubSlide = onValue(slideIndexRef, async (snap: any) => {
     const idx = snap.exists() ? snap.val() : 0;
+    // 1-based slide number in UI
     slideNumber.value = idx + 1;
+
     // fetch slide content
     const slideRef = dbRef(db, `rooms/${code}/slides/slide_${idx + 1}`);
+    // update slide content listener
+    if (unsubSlide) {
+      // slideRef listener for content is contained in this callback; no-op for unsubSlide here
+    }
     onValue(slideRef, (s: any) => {
       slide.value = s.exists() ? s.val() : null;
       if (slide.value && slide.value.choices) {
@@ -87,25 +94,34 @@ function startListeners(code: string) {
         choicesArray.value = [];
       }
     });
-  });
 
-  // aggregates listener for current slide (update counts)
-  const aggRef = dbRef(db, `rooms/${code}/aggregates`);
-  unsubAgg = onValue(aggRef, (snap: any) => {
-    const val = snap.exists() ? snap.val() : {};
-    const sKey = `slide_${slideNumber.value}`;
-    const agg = val[sKey]?.counts || {};
-    // update counts reactive
-    Object.keys(counts).forEach(k => delete counts[k]);
-    Object.entries(agg).forEach(([k, v]) => { counts[k] = v as number; });
-  });
+    // re-register aggregates listener for this slide
+    if (unsubAgg) { try { unsubAgg(); } catch (e) { /* ignore */ } }
+    const aggRef = dbRef(db, `rooms/${code}/aggregates/slide_${idx + 1}`);
+    unsubAgg = onValue(aggRef, (snapAgg: any) => {
+      const val = snapAgg.exists() ? snapAgg.val() : { counts: {} };
+      const agg = val.counts || {};
+      // update counts reactive
+      Object.keys(counts).forEach(k => delete counts[k]);
+      Object.entries(agg).forEach(([k, v]) => { counts[k] = v as number; });
+      // also expose aggregates object for chart
+      aggregates.value = { counts: agg, total: val.total || 0 };
+    });
 
-  // my vote listener (optional)
-  const myVoteRef = dbRef(db, `rooms/${code}/votes/slide_${slideNumber.value}/${anonId.value}`);
-  unsubVotes = onValue(myVoteRef, (s: any) => {
-    if (s.exists()) {
-      myVote.value = s.val().choiceId;
-      voted.value = true;
+    // re-register my vote listener for this slide
+    if (unsubVotes) { try { unsubVotes(); } catch (e) { /* ignore */ } }
+    // make sure anonId exists (joinRoom should have set it)
+    if (anonId.value) {
+      const myVoteRef = dbRef(db, `rooms/${code}/votes/slide_${idx + 1}/${anonId.value}`);
+      unsubVotes = onValue(myVoteRef, (s: any) => {
+        if (s.exists()) {
+          myVote.value = s.val().choiceId;
+          voted.value = true;
+        } else {
+          myVote.value = null;
+          voted.value = false;
+        }
+      });
     } else {
       myVote.value = null;
       voted.value = false;
