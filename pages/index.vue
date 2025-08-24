@@ -21,8 +21,6 @@
           </div>
         </NuxtLink>
       </div>
-
-      <p class="mt-6 text-sm text-gray-600">開発用: presenter と audience ページへ移動してください。</p>
     </div>
   </div>
 </template>
