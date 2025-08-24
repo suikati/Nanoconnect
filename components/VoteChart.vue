@@ -6,7 +6,7 @@
 
 <script setup lang="ts">
 import { onMounted, onBeforeUnmount, ref, watch, nextTick } from 'vue';
-import { Chart, BarController, BarElement, CategoryScale, LinearScale, Tooltip, Legend, ChartType } from 'chart.js';
+import { Chart, BarController, BarElement, CategoryScale, LinearScale, Tooltip, Legend } from 'chart.js';
 import type { Choice } from '~/types/models';
 
 Chart.register(BarController, BarElement, CategoryScale, LinearScale, Tooltip, Legend);
