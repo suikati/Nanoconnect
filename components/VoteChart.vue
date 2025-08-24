@@ -31,10 +31,18 @@ const renderChart = async () => {
   const d = buildData();
   // グラデーションを作るユーティリティ（updateパスでも使うため早めに定義）
   const gradientFor = (ctx: CanvasRenderingContext2D, area: any, from: string, to: string) => {
-    const g = ctx.createLinearGradient(0, area.top, 0, area.bottom);
-    g.addColorStop(0, from);
-    g.addColorStop(1, to);
-    return g;
+    // area may be empty when canvas not yet measured; if so, return a solid color fallback
+    try {
+      if (!area || !area.height || !area.top && area.top !== 0) {
+        return from;
+      }
+      const g = ctx.createLinearGradient(0, area.top, 0, area.bottom);
+      g.addColorStop(0, from);
+      g.addColorStop(1, to);
+      return g;
+    } catch (e) {
+      return from;
+    }
   };
   const palette = ['#6366F1', '#EC4899', '#06B6D4', '#F59E0B', '#10B981', '#F97316'];
   const color = palette[0];

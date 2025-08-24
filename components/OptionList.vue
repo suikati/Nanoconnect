@@ -19,14 +19,20 @@ const props = defineProps<{ modelValue?: Array<{ text: string; color?: string; i
 const emit = defineEmits<{ 'update:modelValue': (v: any) => void }>();
 
 type Opt = { id: string; text: string; color?: string };
-// Keep incoming color as-is (undefined allowed) so presenter normalization can auto-assign when needed.
-const initial: Opt[] = (props.modelValue || []).map((o: any, i: number) => ({ id: o.id || `opt_${i}_${Date.now()}`, text: o.text || '', color: o.color }));
+// simple palette used for auto-assignment when adding or when incoming items lack color
+const palette = ['#4F46E5', '#EC4899', '#F97316', '#10B981', '#06B6D4', '#F59E0B'];
+
+// When loading existing modelValue, assign missing colors immediately so the editor shows them.
+const initial: Opt[] = (props.modelValue || []).map((o: any, i: number) => ({
+  id: o.id || `opt_${i}_${Date.now()}`,
+  text: o.text || '',
+  color: typeof o.color !== 'undefined' && o.color !== null && String(o.color).trim().length ? o.color : palette[i % palette.length]
+}));
 const options = reactive(initial as Opt[]);
 
 const addOption = () => {
-  // new options get a light placeholder color so the color picker shows a value, but
-  // we intentionally use a neutral placeholder which presenter normalization treats as unset.
-  options.push({ id: `opt_${options.length}_${Date.now()}`, text: '', color: '#F3F4F6' });
+  const color = palette[options.length % palette.length];
+  options.push({ id: `opt_${options.length}_${Date.now()}`, text: '', color });
   emit('update:modelValue', toRaw(options));
 };
 
