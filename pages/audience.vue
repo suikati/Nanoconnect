@@ -87,40 +87,30 @@ function startListeners(code: string) {
         choicesArray.value = [];
       }
     });
-    // Rebind aggregates/myVote listeners for the new slide
-    // cleanup previous listeners first
-    try {
-      if (unsubAgg) { unsubAgg(); unsubAgg = null; }
-    } catch (e) { /* ignore */ }
-    try {
-      if (unsubVotes) { unsubVotes(); unsubVotes = null; }
-    } catch (e) { /* ignore */ }
-
-    // aggregates for this slide
-    const aggRefSlide = dbRef(db, `rooms/${code}/aggregates/slide_${idx + 1}`);
-    unsubAgg = onValue(aggRefSlide, (snapAgg: any) => {
-      const aggVal = snapAgg.exists() ? snapAgg.val() : { counts: {} };
-      aggregates.value = aggVal;
-      // update counts reactive
-      const aggCounts = aggVal.counts || {};
-      Object.keys(counts).forEach(k => delete counts[k]);
-      Object.entries(aggCounts).forEach(([k, v]) => { counts[k] = v as number; });
-    });
-
-    // my vote for this slide
-    const myVoteRefSlide = dbRef(db, `rooms/${code}/votes/slide_${idx + 1}/${anonId.value}`);
-    unsubVotes = onValue(myVoteRefSlide, (s: any) => {
-      if (s.exists()) {
-        myVote.value = s.val().choiceId;
-        voted.value = true;
-      } else {
-        myVote.value = null;
-        voted.value = false;
-      }
-    });
   });
 
-  // (aggregates/myVote listeners are registered per-slide inside slideIndex listener)
+  // aggregates listener for current slide (update counts)
+  const aggRef = dbRef(db, `rooms/${code}/aggregates`);
+  unsubAgg = onValue(aggRef, (snap: any) => {
+    const val = snap.exists() ? snap.val() : {};
+    const sKey = `slide_${slideNumber.value}`;
+    const agg = val[sKey]?.counts || {};
+    // update counts reactive
+    Object.keys(counts).forEach(k => delete counts[k]);
+    Object.entries(agg).forEach(([k, v]) => { counts[k] = v as number; });
+  });
+
+  // my vote listener (optional)
+  const myVoteRef = dbRef(db, `rooms/${code}/votes/slide_${slideNumber.value}/${anonId.value}`);
+  unsubVotes = onValue(myVoteRef, (s: any) => {
+    if (s.exists()) {
+      myVote.value = s.val().choiceId;
+      voted.value = true;
+    } else {
+      myVote.value = null;
+      voted.value = false;
+    }
+  });
 }
 
 async function onVote(choiceKey: string) {
