@@ -122,6 +122,8 @@
   },
   "include": [
     "./types/nitro-nuxt.d.ts",
+    "../node_modules/.pnpm/@nuxtjs+tailwindcss@6.14.0/node_modules/runtime/server",
+    "../node_modules/.pnpm/@nuxtjs+tailwindcss@6.14.0/node_modules/dist/runtime/server",
     "../node_modules/.pnpm/@nuxt+telemetry@2.6.6/node_modules/runtime/server",
     "../node_modules/.pnpm/@nuxt+telemetry@2.6.6/node_modules/dist/runtime/server",
     "./types/nitro.d.ts",
@@ -131,6 +133,7 @@
   "exclude": [
     "../node_modules",
     "../node_modules/.pnpm/nuxt@3.18.1_@vue+compiler-sfc@3.5.18_typescript@5.9.2_vite@7.1.2/node_modules/nuxt/node_modules",
+    "../node_modules/.pnpm/@nuxtjs+tailwindcss@6.14.0/node_modules/@nuxtjs/tailwindcss/node_modules",
     "../node_modules/.pnpm/@nuxt+telemetry@2.6.6/node_modules/@nuxt/telemetry/node_modules",
     "../dist"
   ]
