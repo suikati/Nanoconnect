@@ -2,11 +2,7 @@
   <div class="option-list space-y-3">
     <ul class="space-y-2">
       <li v-for="(o, idx) in options" :key="o.id" class="flex items-center gap-3">
-        <OptionItem :option="o" :index="idx" @update="onUpdate" @remove="onRemove" />
-        <div class="flex flex-col gap-1 ml-2">
-          <button class="text-xs bg-gray-100 rounded px-2 py-1" :disabled="idx===0" @click.prevent="moveUp(idx)">↑</button>
-          <button class="text-xs bg-gray-100 rounded px-2 py-1" :disabled="idx===options.length-1" @click.prevent="moveDown(idx)">↓</button>
-        </div>
+        <OptionItem :option="o" :index="idx" @update="onUpdate" @remove="onRemove" @move-up="moveUp(idx)" @move-down="moveDown(idx)" />
       </li>
     </ul>
     <div class="pt-2">

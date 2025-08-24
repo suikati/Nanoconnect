@@ -1,9 +1,12 @@
 <template>
-  <div class="option-item flex items-center gap-3 p-3 rounded-xl bg-white border">
-    <span class="drag-handle cursor-grab px-2">☰</span>
+  <div class="option-item flex-1 flex items-center gap-3 p-3 rounded-xl bg-white border">
     <input v-model="local.text" class="flex-1 border rounded px-3 py-2 text-sm" placeholder="Option text" />
-    <input type="color" v-model="local.color" class="w-10 h-8 p-0 border-0 rounded" />
-    <button class="px-3 py-1 text-xs text-red-500" @click.prevent="emitRemove">×</button>
+    <div class="flex items-center gap-2">
+      <button class="text-xs bg-gray-100 rounded px-2 py-1" @click.prevent="$emit('move-up')">↑</button>
+      <button class="text-xs bg-gray-100 rounded px-2 py-1" @click.prevent="$emit('move-down')">↓</button>
+      <input type="color" v-model="local.color" class="w-8 h-8 p-0 border-0 rounded" />
+      <button class="px-3 py-1 text-xs text-red-500" @click.prevent="emitRemove">×</button>
+    </div>
   </div>
 </template>
 
