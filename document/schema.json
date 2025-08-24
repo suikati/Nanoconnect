@@ -1,0 +1,51 @@
+{
+  "rooms": {
+    "room_code_1": {
+      "presenterId": "user_id_1",
+      "currentSlideId": "slide_id_1"
+    }
+  },
+  "slides": {
+    "slide_id_1": {
+      "roomId": "room_code_1",
+      "title": "好きな色は何ですか？",
+      "slideNumber": 1
+    }
+  },
+  "options": {
+    "option_id_1": {
+      "slideId": "slide_id_1",
+      "text": "赤"
+    },
+    "option_id_2": {
+      "slideId": "slide_id_1",
+      "text": "青"
+    }
+  },
+  "votes": {
+    "slide_id_1": {
+      "option_id_1": {
+        "count": 15,
+        "users": {
+          "user_id_A": true,
+          "user_id_B": true
+        }
+      },
+      "option_id_2": {
+        "count": 10,
+        "users": {
+          "user_id_C": true
+        }
+      }
+    }
+  },
+  "comments": {
+    "room_code_1": {
+      "comment_id_1": {
+        "userId": "user_id_D",
+        "content": "このアンケート面白い！",
+        "likes": 5
+      }
+    }
+  }
+}

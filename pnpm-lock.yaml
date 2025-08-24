@@ -11,6 +11,9 @@ dependencies:
   firebase:
     specifier: ^12.1.0
     version: 12.1.0
+  nanoid:
+    specifier: ^5.1.5
+    version: 5.1.5
   nuxt:
     specifier: ^3.18.1
     version: 3.18.1(@vue/compiler-sfc@3.5.18)(typescript@5.9.2)(vite@7.1.2)
