@@ -19,10 +19,13 @@ const props = defineProps<{ modelValue?: Array<{ text: string; color?: string; i
 const emit = defineEmits<{ 'update:modelValue': (v: any) => void }>();
 
 type Opt = { id: string; text: string; color?: string };
-const initial: Opt[] = (props.modelValue || []).map((o: any, i: number) => ({ id: o.id || `opt_${i}_${Date.now()}`, text: o.text || '', color: o.color || '#F3F4F6' }));
+// Keep incoming color as-is (undefined allowed) so presenter normalization can auto-assign when needed.
+const initial: Opt[] = (props.modelValue || []).map((o: any, i: number) => ({ id: o.id || `opt_${i}_${Date.now()}`, text: o.text || '', color: o.color }));
 const options = reactive(initial as Opt[]);
 
 const addOption = () => {
+  // new options get a light placeholder color so the color picker shows a value, but
+  // we intentionally use a neutral placeholder which presenter normalization treats as unset.
   options.push({ id: `opt_${options.length}_${Date.now()}`, text: '', color: '#F3F4F6' });
   emit('update:modelValue', toRaw(options));
 };

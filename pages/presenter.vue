@@ -127,10 +127,15 @@ const onSaveSlides = async () => {
 
   // Normalize slides and auto-assign colors when missing
   const payload = slides.map((s: { title: string; choices: any[] }, si: number) => {
-    const choices = (s.choices || []).map((c: any, ci: number) => ({
-      text: String(c.text || '').trim(),
-      color: c.color || palette[(ci + si) % palette.length],
-    }));
+    const choices = (s.choices || []).map((c: any, ci: number) => {
+      const rawColor = (c && c.color) ? String(c.color) : '';
+      const placeholder = '#f3f4f6';
+      const normalizedColor = rawColor && rawColor.toLowerCase() !== placeholder ? rawColor : palette[(ci + si) % palette.length];
+      return {
+        text: String(c.text || '').trim(),
+        color: normalizedColor,
+      };
+    });
     return { title: s.title || 'untitled', choices };
   });
 
