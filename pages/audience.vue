@@ -10,8 +10,7 @@
             </div>
           </template>
           <div class="flex flex-wrap items-center gap-3 mb-4">
-            <input v-model="codeInput" placeholder="ルームコードを入力" class="border rounded-lg px-3 py-2 w-40 focus-ring" />
-            <UiButton variant="secondary" @pressed="onJoin">参加する</UiButton>
+            <div v-if="!joined" class="text-sm text-gray-500">ルームコードが自動的に適用されます。トップ画面からコードで参加してください。</div>
             <div v-if="joined" class="text-xs text-gray-500">as <strong class="text-indigo-600">{{ anonId }}</strong></div>
           </div>
 
@@ -79,7 +78,6 @@ type UIComment = CommentType & { id: string };
 
 let r: RoomApi | null = null;
 const ensureR = () => { if (!r) r = useRoom() as unknown as RoomApi; return r; };
-const codeInput = ref('');
 const joined = ref(false);
 const anonId = ref('');
 const slide = ref<Slide | null>(null);
@@ -93,6 +91,7 @@ const log = ref<string[]>([]);
 const aggregates = ref<Aggregate | null>(null);
 const commentText = ref('');
 const comments = ref<UIComment[]>([]);
+const currentCode = ref<string | null>(null);
 const isDev = false; // simplified: devログ非表示
 let unsubSlide: (() => void) | null = null;
 let unsubSlideContent: (() => void) | null = null;
@@ -101,15 +100,18 @@ let unsubVotes: (() => void) | null = null;
 let unsubComments: (() => void) | null = null;
 const pushLog = (s: string) => { log.value.unshift(`${new Date().toISOString()} ${s}`); };
 
-const onJoin = async () => {
+// join is now handled via query param on mount; keep helper for backwards compatibility
+const onJoin = async (code?: string) => {
   try {
-    const code = codeInput.value;
+    const roomCode = code || (useNuxtApp().$router.currentRoute.value.query.code as string || '');
+    if (!roomCode) return;
+    currentCode.value = roomCode;
     ensureR();
-    const res = await (r as any).joinRoom(code);
+    const res = await (r as any).joinRoom(roomCode);
     anonId.value = res.anonId;
     joined.value = true;
-    pushLog(`joined ${code} as ${anonId.value}`);
-    startListeners(code);
+    pushLog(`joined ${roomCode} as ${anonId.value}`);
+    startListeners(roomCode);
   } catch (e: any) {
     pushLog('join error: ' + e.message);
   }
@@ -118,6 +120,13 @@ const onJoin = async () => {
 onMounted(() => {
   // クライアント専用の composable を初期化
   ensureR();
+  // auto-join when code supplied as query param
+  const nuxt = useNuxtApp();
+  const route = nuxt.$router.currentRoute;
+  const code = route.value?.query?.code as string | undefined;
+  if (code) {
+    void onJoin(code);
+  }
 });
 
 const startListeners = (code: string) => {
@@ -185,7 +194,7 @@ const startListeners = (code: string) => {
 };
 
 const onVote = async (choiceKey: string) => {
-  const code = codeInput.value;
+  const code = currentCode.value;
   try {
     ensureR();
     voting.value = true;
@@ -210,7 +219,7 @@ onUnmounted(() => {
 });
 
 const onPostComment = async () => {
-  const code = codeInput.value;
+  const code = currentCode.value;
   if (!code) return;
   const text = commentText.value.trim();
   if (!text) return;
@@ -223,7 +232,7 @@ const onPostComment = async () => {
 };
 
 const onLikeComment = async (commentId: string) => {
-  const code = codeInput.value;
+  const code = currentCode.value;
   try {
     ensureR();
     await (r as any).likeComment(code, commentId);
@@ -231,7 +240,7 @@ const onLikeComment = async (commentId: string) => {
 };
 
 const onDeleteComment = async (commentId: string) => {
-  const code = codeInput.value;
+  const code = currentCode.value;
   try {
     ensureR();
     await (r as any).deleteComment(code, commentId);

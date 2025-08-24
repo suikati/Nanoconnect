@@ -13,13 +13,17 @@
             <p class="text-sm text-gray-500">アンケートを作成して、リアルタイムで進行・集計</p>
           </div>
         </NuxtLink>
-        <NuxtLink to="/audience" class="group block">
+        <div class="group block">
           <div class="h-full bg-white rounded-2xl p-6 border border-pink-100 shadow-md hover:shadow-pop transition relative overflow-hidden">
             <span class="absolute inset-0 opacity-0 group-hover:opacity-10 bg-gradient-to-tr from-pink-500 to-indigo-500 transition" />
             <h2 class="text-xl font-bold text-pink-600 mb-1">参加者</h2>
             <p class="text-sm text-gray-500">コード入力で即参加・投票・コメント</p>
+            <div class="mt-4 flex gap-2">
+              <input v-model="codeInput" placeholder="ルームコードを入力" class="flex-1 border rounded-lg px-3 py-2" />
+              <button @click="joinAsAudience" class="bg-pink-500 text-white px-4 py-2 rounded-lg">参加</button>
+            </div>
           </div>
-        </NuxtLink>
+        </div>
       </div>
     </div>
   </AppShell>
@@ -27,4 +31,15 @@
 
 <script setup lang="ts">
 import AppShell from '~/components/ui/AppShell.vue';
+import { ref } from 'vue';
+import { useRouter } from 'vue-router';
+
+const codeInput = ref('');
+const router = useRouter();
+
+const joinAsAudience = () => {
+  const code = (codeInput.value || '').trim();
+  if (!code) return;
+  router.push({ path: '/audience', query: { code } });
+};
 </script>
