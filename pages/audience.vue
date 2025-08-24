@@ -1,48 +1,70 @@
 <template>
-  <div>
-    <h1>Audience</h1>
+  <div class="min-h-screen bg-gradient-to-br from-white to-yellow-50 p-6">
+    <div class="max-w-3xl mx-auto">
+      <div class="bg-white rounded-2xl shadow-md p-6">
+        <div class="flex items-center justify-between mb-4">
+          <h1 class="text-2xl font-bold text-pink-600">Audience</h1>
+          <div class="flex items-center gap-2">
+            <input v-model="codeInput" placeholder="Room code" class="border rounded-lg px-3 py-2 w-40" />
+            <button @click="onJoin" class="bg-pink-500 text-white px-4 py-2 rounded-lg hover:bg-pink-600">Join</button>
+          </div>
+        </div>
 
-    <div>
-      <input v-model="codeInput" placeholder="Room code" />
-      <button @click="onJoin">Join</button>
-      <div v-if="joined">joined as {{ anonId }}</div>
+        <div v-if="joined" class="mb-4 text-sm text-gray-600">joined as <strong class="text-indigo-600">{{ anonId }}</strong></div>
+
+        <section v-if="joined && slide" class="mb-6">
+          <div class="flex items-center justify-between mb-3">
+            <h3 class="text-lg font-semibold text-indigo-700">Slide {{ slideNumber }}: {{ slide.title }}</h3>
+            <div class="text-sm text-gray-500">Total: {{ aggregates?.total ?? 0 }}</div>
+          </div>
+
+          <div v-if="aggregates" class="mb-4">
+            <VoteChart :counts="aggregates.counts || {}" :choices="choicesArray" />
+          </div>
+
+          <ul class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <li v-for="(c, idx) in choicesArray" :key="idx">
+              <button @click="onVote(c.key)" :disabled="voted || voting" class="w-full text-left bg-indigo-50 hover:bg-indigo-100 border border-indigo-100 rounded-lg px-4 py-3 flex items-center justify-between">
+                <span class="font-medium text-indigo-700">{{ c.text }}</span>
+                <span class="text-indigo-500">{{ counts[c.key] ?? 0 }}</span>
+              </button>
+            </li>
+          </ul>
+
+          <div v-if="voted" class="mt-3 text-sm text-green-600">You voted: <strong>{{ myVote }}</strong></div>
+        </section>
+
+        <section v-if="joined" class="mt-4">
+          <h3 class="text-lg font-semibold text-pink-600 mb-3">Comments</h3>
+          <div class="flex gap-3 mb-4">
+            <input v-model="commentText" placeholder="Write a comment..." class="flex-1 border rounded-lg px-3 py-2" />
+            <button @click="onPostComment" :disabled="!commentText" class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700">Post</button>
+          </div>
+
+          <ul class="space-y-3">
+            <li v-for="c in comments" :key="c.id" class="p-3 bg-gray-50 rounded-lg border">
+              <div class="flex items-center justify-between">
+                <small class="text-xs text-gray-500">{{ new Date(c.createdAt).toLocaleTimeString() }}</small>
+                <div class="text-sm text-gray-400">{{ c.anonId ? '' : '' }}</div>
+              </div>
+              <div class="mt-2">
+                <em v-if="c.deleted" class="text-gray-400">(削除済み)</em>
+                <span v-else class="text-gray-800">{{ c.text }}</span>
+              </div>
+              <div class="mt-3 flex items-center gap-3">
+                <button @click="onLikeComment(c.id)" :disabled="c.deleted" class="text-sm px-3 py-1 rounded-full border hover:bg-indigo-50">
+                  <span class="mr-2">{{ (c.userLikes && c.userLikes[anonId]) ? '💙' : '👍' }}</span>
+                  <span class="text-sm text-gray-700">{{ c.likes || 0 }}</span>
+                </button>
+                <button v-if="!c.deleted && c.anonId === anonId" @click="onDeleteComment(c.id)" class="text-sm text-red-500 hover:underline">Delete</button>
+              </div>
+            </li>
+          </ul>
+        </section>
+
+        <pre class="mt-6 text-xs text-gray-400">{{ log.join('\n') }}</pre>
+      </div>
     </div>
-
-    <section v-if="joined && slide">
-      <h3>Slide {{ slideNumber }}: {{ slide.title }}</h3>
-      <div v-if="aggregates">
-        <VoteChart :counts="aggregates.counts || {}" :choices="choicesArray" />
-      </div>
-      <ul>
-        <li v-for="(c, idx) in choicesArray" :key="idx">
-          <button @click="onVote(c.key)" :disabled="voted || voting">{{ c.text }} ({{ counts[c.key] ?? 0 }})</button>
-        </li>
-      </ul>
-      <div v-if="voted">You voted: {{ myVote }}</div>
-    </section>
-
-    <section v-if="joined" style="margin-top:16px;">
-      <h3>Comments</h3>
-      <div style="display:flex; gap:8px; margin-bottom:8px;">
-        <input v-model="commentText" placeholder="Write a comment..." style="flex:1" />
-        <button @click="onPostComment" :disabled="!commentText">Post</button>
-      </div>
-      <ul>
-        <li v-for="c in comments" :key="c.id" style="margin-bottom:8px;">
-          <small>{{ new Date(c.createdAt).toLocaleTimeString() }}</small>
-          <div>
-            <em v-if="c.deleted">(削除済み)</em>
-            <span v-else>{{ c.text }}</span>
-          </div>
-          <div style="display:flex; gap:8px; margin-top:4px;">
-            <button @click="onLikeComment(c.id)" :disabled="c.deleted">{{ (c.userLikes && c.userLikes[anonId]) ? '💙' : '👍' }} {{ c.likes || 0 }}</button>
-            <button v-if="!c.deleted && c.anonId === anonId" @click="onDeleteComment(c.id)">Delete</button>
-          </div>
-        </li>
-      </ul>
-    </section>
-
-    <pre style="margin-top:12px;">{{ log.join('\n') }}</pre>
   </div>
 </template>
 

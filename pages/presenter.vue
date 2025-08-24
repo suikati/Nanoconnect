@@ -1,54 +1,69 @@
 <template>
-  <div>
-    <h1>Presenter</h1>
-    <div>
-      <button @click="onCreateRoom">Create Room</button>
-      <span v-if="roomCode">Room: {{ roomCode }}</span>
-    </div>
-
-    <section style="margin-top:12px;">
-      <h3>Slides (max 5)</h3>
-      <div v-for="(s, i) in slides" :key="i" style="margin-bottom:8px;">
-        <input v-model="s.title" placeholder="Slide title" />
-        <input v-model="s.choicesText" placeholder="Choices (comma separated)" />
-        <button @click="removeSlide(i)">Remove</button>
-      </div>
-      <button @click="addSlide" :disabled="slides.length >= 5">Add Slide</button>
-      <div style="margin-top:8px;">
-        <button @click="onSaveSlides" :disabled="!roomCode">Save Slides</button>
-      </div>
-    </section>
-
-    <section style="margin-top:16px;" v-if="roomCode">
-      <h3>Slide Control</h3>
-      <div>Current index: {{ currentIndex }}</div>
-      <button @click="prevSlide">Prev</button>
-      <button @click="nextSlide">Next</button>
-    </section>
-
-    <section v-if="aggregates && currentSlideChoices.length">
-      <h3>Live Results</h3>
-      <VoteChart :counts="aggregates.counts" :choices="currentSlideChoices" />
-    </section>
-
-    <section v-if="roomCode" style="margin-top:16px;">
-      <h3>Comments</h3>
-      <ul>
-        <li v-for="c in comments" :key="c.id" style="margin-bottom:8px;">
-          <small>{{ new Date(c.createdAt).toLocaleTimeString() }}</small>
+  <div class="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-yellow-50 p-6">
+    <div class="max-w-4xl mx-auto">
+      <div class="bg-white rounded-2xl shadow-lg p-6">
+        <div class="flex items-center justify-between mb-4">
+          <h1 class="text-2xl font-extrabold text-indigo-600">Presenter</h1>
           <div>
-            <em v-if="c.deleted">(削除済み)</em>
-            <span v-else>{{ c.text }}</span>
+            <button @click="onCreateRoom" class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700">Create Room</button>
+            <span v-if="roomCode" class="ml-3 text-sm text-gray-600">Room: <strong class="text-indigo-700">{{ roomCode }}</strong></span>
           </div>
-          <div style="display:flex; gap:8px; margin-top:4px;">
-            <button @click="onLikeComment(c.id)" :disabled="c.deleted">{{ (c.userLikes && c.userLikes[myAnonId]) ? '💙' : '👍' }} {{ c.likes || 0 }}</button>
-            <button v-if="!c.deleted && c.anonId === myAnonId" @click="onDeleteComment(c.id)">Delete</button>
-          </div>
-        </li>
-      </ul>
-    </section>
+        </div>
 
-    <pre style="margin-top:12px;">{{ log }}</pre>
+        <section class="mb-6">
+          <h3 class="text-lg font-semibold text-gray-700 mb-3">Slides (max 5)</h3>
+          <div v-for="(s, i) in slides" :key="i" class="mb-3 grid grid-cols-1 sm:grid-cols-3 gap-2 items-center">
+            <input v-model="s.title" placeholder="Slide title" class="col-span-2 border rounded-lg px-3 py-2" />
+            <input v-model="s.choicesText" placeholder="Choices (comma separated)" class="col-span-2 sm:col-span-3 border rounded-lg px-3 py-2 mt-2 sm:mt-0" />
+            <button @click="removeSlide(i)" class="text-sm text-red-500 hover:underline">Remove</button>
+          </div>
+          <div class="flex items-center gap-3">
+            <button @click="addSlide" :disabled="slides.length >= 5" class="bg-pink-500 text-white px-3 py-2 rounded-lg hover:bg-pink-600">Add Slide</button>
+            <button @click="onSaveSlides" :disabled="!roomCode" class="bg-indigo-500 text-white px-3 py-2 rounded-lg hover:bg-indigo-600">Save Slides</button>
+          </div>
+        </section>
+
+        <section v-if="roomCode" class="mb-6">
+          <h3 class="text-lg font-semibold text-gray-700">Slide Control</h3>
+          <div class="mt-2 flex items-center gap-3">
+            <div class="text-sm text-gray-600">Current index: <strong class="text-indigo-600">{{ currentIndex }}</strong></div>
+            <div class="ml-auto flex items-center gap-2">
+              <button @click="prevSlide" class="px-3 py-2 rounded-lg bg-gray-100 hover:bg-gray-200">Prev</button>
+              <button @click="nextSlide" class="px-3 py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700">Next</button>
+            </div>
+          </div>
+        </section>
+
+        <section v-if="aggregates && currentSlideChoices.length" class="mb-6">
+          <h3 class="text-lg font-semibold text-indigo-700 mb-3">Live Results</h3>
+          <VoteChart :counts="aggregates.counts" :choices="currentSlideChoices" />
+        </section>
+
+        <section v-if="roomCode">
+          <h3 class="text-lg font-semibold text-pink-600 mb-3">Comments</h3>
+          <ul class="space-y-3">
+            <li v-for="c in comments" :key="c.id" class="p-3 bg-gray-50 rounded-lg border">
+              <div class="flex items-center justify-between">
+                <small class="text-xs text-gray-500">{{ new Date(c.createdAt).toLocaleTimeString() }}</small>
+              </div>
+              <div class="mt-2">
+                <em v-if="c.deleted" class="text-gray-400">(削除済み)</em>
+                <span v-else class="text-gray-800">{{ c.text }}</span>
+              </div>
+              <div class="mt-3 flex items-center gap-3">
+                <button @click="onLikeComment(c.id)" :disabled="c.deleted" class="text-sm px-3 py-1 rounded-full border hover:bg-indigo-50">
+                  <span class="mr-2">{{ (c.userLikes && c.userLikes[myAnonId]) ? '💙' : '👍' }}</span>
+                  <span class="text-sm text-gray-700">{{ c.likes || 0 }}</span>
+                </button>
+                <button v-if="!c.deleted && c.anonId === myAnonId" @click="onDeleteComment(c.id)" class="text-sm text-red-500 hover:underline">Delete</button>
+              </div>
+            </li>
+          </ul>
+        </section>
+
+        <pre class="mt-6 text-xs text-gray-400">{{ log }}</pre>
+      </div>
+    </div>
   </div>
 </template>
 
