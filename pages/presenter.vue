@@ -11,7 +11,7 @@
               <span v-if="roomCode" class="text-xs bg-indigo-50 text-indigo-600 px-2 py-1 rounded-full">ルームコード: {{ roomCode }}</span>
             </div>
           </template>
-          <h3 class="text-sm font-semibold text-gray-500 mb-3">アンケート (最大 5つ)</h3>
+          <h3 class="text-sm font-semibold text-gray-500 mb-3">アンケート</h3>
           <div v-for="(s, i) in slides" :key="i" class="mb-4 space-y-2 p-3 rounded-xl border border-gray-100 bg-gray-50/60">
             <div class="flex items-center gap-2">
               <input v-model="s.title" placeholder="Title" class="flex-1 border rounded-lg px-3 py-2 focus-ring text-sm" />
@@ -20,7 +20,7 @@
             <input v-model="s.choicesText" placeholder="Choices (comma separated)" class="w-full border rounded-lg px-3 py-2 focus-ring text-sm" />
           </div>
           <div class="flex flex-wrap items-center gap-3">
-            <UiButton variant="secondary" size="sm" @pressed="addSlide" :disabled="slides.length >= 5">アンケートを追加する</UiButton>
+            <UiButton variant="secondary" size="sm" @pressed="addSlide">アンケートを追加する</UiButton>
             <UiButton variant="primary" size="sm" @pressed="onSaveSlides" :disabled="!roomCode">アンケートを保存する</UiButton>
           </div>
         </UiCard>
@@ -78,6 +78,7 @@ const roomCode = ref('');
 const currentIndex = ref(0);
 const log = ref('');
 
+// TODO: 開発が終わったらplaceholderに変更
 const slides = reactive<Array<{ title: string; choicesText: string }>>([
   { title: '好きな色は？', choicesText: '赤,青,緑' },
 ]);
@@ -184,11 +185,6 @@ watch(roomCode, async (val: string | null) => {
       comments.value = arr;
     });
   });
-
-  // 集計は slideIndex ハンドラ内でスライドごとに登録される
-
-  // (watch内で onUnmounted を登録してしまうと、watch が発火する度に
-  //  new unmount handlers が積み重なるため、ここでは何もしない)
 });
 
 // コンポーネント単位で一度だけクリーンアップを登録
