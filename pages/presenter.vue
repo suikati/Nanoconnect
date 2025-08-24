@@ -114,7 +114,6 @@ const removeSlide = (i: number) => { slides.splice(i, 1); };
 const onCreateRoom = async () => {
   try {
     ensureR();
-    console.debug('onCreateRoom: calling createRoom');
     const code = await (r as any).createRoom();
     roomCode.value = code;
     log.value = `created ${code}`;
@@ -126,7 +125,6 @@ const onSaveSlides = async () => {
   const payload = slides.map((s: { title: string; choicesText: string }) => ({ title: s.title || 'untitled', choices: s.choicesText.split(',').map((c: string) => c.trim()).filter(Boolean) }));
   try {
   ensureR();
-  console.debug('onSaveSlides: saving slides', payload);
   await (r as any).saveSlides(roomCode.value, payload);
   log.value = 'saved slides';
   } catch (e: any) { log.value = `save error: ${e.message}`; }
@@ -136,7 +134,6 @@ const setIdx = async (idx: number) => {
   if (!roomCode.value) return;
   try {
   ensureR();
-  console.debug('setIdx:', idx);
   await (r as any).setSlideIndex(roomCode.value, idx);
     currentIndex.value = idx;
   } catch (e: any) { log.value = `set index error: ${e.message}`; }
@@ -208,14 +205,13 @@ watch(roomCode, async (val: string | null) => {
   });
 });
 
-const prevSlide = () => { console.debug('prevSlide click'); setIdx(Math.max(0, currentIndex.value - 1)); };
-const nextSlide = () => { console.debug('nextSlide click'); setIdx(currentIndex.value + 1); };
+const prevSlide = () => { setIdx(Math.max(0, currentIndex.value - 1)); };
+const nextSlide = () => { setIdx(currentIndex.value + 1); };
 
 const onLikeComment = async (commentId: string) => {
   if (!roomCode.value) return;
   try {
   ensureR();
-  console.debug('onLikeComment', commentId);
   await (r as any).likeComment(roomCode.value, commentId);
   } catch (e: any) { log.value = `like error: ${e.message}`; }
 };
@@ -224,7 +220,6 @@ const onDeleteComment = async (commentId: string) => {
   if (!roomCode.value) return;
   try {
   ensureR();
-  console.debug('onDeleteComment', commentId);
   await (r as any).deleteComment(roomCode.value, commentId);
   } catch (e: any) { log.value = `delete error: ${e.message}`; }
 };
