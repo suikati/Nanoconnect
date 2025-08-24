@@ -12,7 +12,7 @@
       <h3>Slide {{ slideNumber }}: {{ slide.title }}</h3>
       <ul>
         <li v-for="(c, idx) in choicesArray" :key="idx">
-          <button @click="onVote(c.key)" :disabled="voted">{{ c.text }} ({{ counts[c.key] ?? 0 }})</button>
+          <button @click="onVote(c.key)" :disabled="voted || voting">{{ c.text }} ({{ counts[c.key] ?? 0 }})</button>
         </li>
       </ul>
       <div v-if="voted">You voted: {{ myVote }}</div>
@@ -37,6 +37,7 @@ const choicesArray = ref<Array<{ key: string; text: string }>>([]);
 const counts = reactive<Record<string, number>>({});
 const myVote = ref<string | null>(null);
 const voted = ref(false);
+const voting = ref(false);
 const log = ref<string[]>([]);
 let unsubSlide: any = null;
 let unsubAgg: any = null;
@@ -68,12 +69,12 @@ function startListeners(code: string) {
   const db = nuxt.$firebaseDb;
   // slideIndex listener
   const slideIndexRef = dbRef(db, `rooms/${code}/slideIndex`);
-  unsubSlide = onValue(slideIndexRef, async (snap) => {
+  unsubSlide = onValue(slideIndexRef, async (snap: any) => {
     const idx = snap.exists() ? snap.val() : 0;
     slideNumber.value = idx + 1;
     // fetch slide content
     const slideRef = dbRef(db, `rooms/${code}/slides/slide_${idx + 1}`);
-    onValue(slideRef, (s) => {
+    onValue(slideRef, (s: any) => {
       slide.value = s.exists() ? s.val() : null;
       if (slide.value && slide.value.choices) {
         choicesArray.value = Object.entries(slide.value.choices).map(([k, v]: any) => ({ key: k, text: v.text }));
@@ -85,7 +86,7 @@ function startListeners(code: string) {
 
   // aggregates listener for current slide (update counts)
   const aggRef = dbRef(db, `rooms/${code}/aggregates`);
-  unsubAgg = onValue(aggRef, (snap) => {
+  unsubAgg = onValue(aggRef, (snap: any) => {
     const val = snap.exists() ? snap.val() : {};
     const sKey = `slide_${slideNumber.value}`;
     const agg = val[sKey]?.counts || {};
@@ -96,7 +97,7 @@ function startListeners(code: string) {
 
   // my vote listener (optional)
   const myVoteRef = dbRef(db, `rooms/${code}/votes/slide_${slideNumber.value}/${anonId.value}`);
-  unsubVotes = onValue(myVoteRef, (s) => {
+  unsubVotes = onValue(myVoteRef, (s: any) => {
     if (s.exists()) {
       myVote.value = s.val().choiceId;
       voted.value = true;
@@ -110,10 +111,13 @@ function startListeners(code: string) {
 async function onVote(choiceKey: string) {
   const code = codeInput.value;
   try {
-    await r.submitVote(code, `slide_${slideNumber.value}`, choiceKey);
-    pushLog(`voted ${choiceKey}`);
-    voted.value = true;
-    myVote.value = choiceKey;
+  if (!r) r = useRoom();
+  voting.value = true;
+  await r.submitVoteSafe(code, `slide_${slideNumber.value}`, choiceKey);
+  pushLog(`voted ${choiceKey}`);
+  voted.value = true;
+  myVote.value = choiceKey;
+  voting.value = false;
   } catch (e: any) { pushLog('vote error: ' + e.message); }
 }
 

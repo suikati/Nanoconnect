@@ -86,6 +86,37 @@ export default function useRoom() {
     });
   };
 
+  // safer vote that adjusts aggregates when changing vote
+  const submitVoteSafe = async (roomCode: string, slideId: string, choiceId: string) => {
+    const anonId = getAnonId();
+    const voteRef = dbRef(db, `rooms/${roomCode}/votes/${slideId}/${anonId}`);
+
+    // read previous vote
+    const prevSnap = await get(voteRef);
+    const prevChoice = prevSnap.exists() ? (prevSnap.val().choiceId as string | null) : null;
+    if (prevChoice === choiceId) {
+      // no change
+      return;
+    }
+
+    // write new vote
+    await set(voteRef, { choiceId, votedAt: new Date().toISOString() });
+
+    // adjust aggregates in one transaction
+    const aggRef = dbRef(db, `rooms/${roomCode}/aggregates/${slideId}`);
+    await runTransaction(aggRef, (current: any) => {
+      current = current || { counts: {}, total: 0 };
+      current.counts = current.counts || {};
+      if (prevChoice) {
+        current.counts[prevChoice] = Math.max((current.counts[prevChoice] || 0) - 1, 0);
+        current.total = Math.max((current.total || 0) - 1, 0);
+      }
+      current.counts[choiceId] = (current.counts[choiceId] || 0) + 1;
+      current.total = (current.total || 0) + 1;
+      return current;
+    });
+  };
+
   const pushComment = async (roomCode: string, text: string) => {
     const anonId = getAnonId();
     const commentRef = dbRef(db, `rooms/${roomCode}/comments`);
@@ -99,7 +130,8 @@ export default function useRoom() {
     joinRoom,
     saveSlides,
     setSlideIndex,
-    submitVote,
+  submitVote,
+  submitVoteSafe,
     pushComment,
   };
 }
