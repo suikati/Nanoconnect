@@ -11,7 +11,7 @@
           </template>
           <div class="flex flex-wrap items-center gap-3 mb-4">
             <input v-model="codeInput" placeholder="ルームコードを入力" class="border rounded-lg px-3 py-2 w-40 focus-ring" />
-            <UiButton variant="secondary" @pressed="onJoin">Join</UiButton>
+            <UiButton variant="secondary" @pressed="onJoin">参加する</UiButton>
             <div v-if="joined" class="text-xs text-gray-500">as <strong class="text-indigo-600">{{ anonId }}</strong></div>
           </div>
 
