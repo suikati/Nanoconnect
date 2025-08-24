@@ -21,6 +21,20 @@
       <div v-if="voted">You voted: {{ myVote }}</div>
     </section>
 
+    <section v-if="joined" style="margin-top:16px;">
+      <h3>Comments</h3>
+      <div style="display:flex; gap:8px; margin-bottom:8px;">
+        <input v-model="commentText" placeholder="Write a comment..." style="flex:1" />
+        <button @click="onPostComment" :disabled="!commentText">Post</button>
+      </div>
+      <ul>
+        <li v-for="c in comments" :key="c.id">
+          <small>{{ c.anonId }} • {{ new Date(c.createdAt).toLocaleTimeString() }}</small>
+          <div>{{ c.text }}</div>
+        </li>
+      </ul>
+    </section>
+
     <pre style="margin-top:12px;">{{ log.join('\n') }}</pre>
   </div>
 </template>
@@ -44,9 +58,12 @@ const voted = ref(false);
 const voting = ref(false);
 const log = ref<string[]>([]);
 const aggregates = ref<any>(null);
+const commentText = ref('');
+const comments = ref<Array<any>>([]);
 let unsubSlide: any = null;
 let unsubAgg: any = null;
 let unsubVotes: any = null;
+let unsubComments: any = null;
 
 function pushLog(s: string) { log.value.unshift(`${new Date().toISOString()} ${s}`); }
 
@@ -126,6 +143,18 @@ function startListeners(code: string) {
       myVote.value = null;
       voted.value = false;
     }
+
+    // register comments listener for the room (once)
+    if (unsubComments) { try { unsubComments(); } catch (e) { /* ignore */ } }
+    const commentsRef = dbRef(db, `rooms/${code}/comments`);
+    unsubComments = onValue(commentsRef, (snap: any) => {
+      const arr: any[] = [];
+      snap.forEach((child: any) => {
+        const v = child.val();
+        arr.unshift({ id: child.key, ...v });
+      });
+      comments.value = arr;
+    });
   });
 }
 
@@ -150,5 +179,19 @@ onUnmounted(() => {
   if (unsubSlide) unsubSlide();
   if (unsubAgg) unsubAgg();
   if (unsubVotes) unsubVotes();
+  if (unsubComments) unsubComments();
 });
+
+async function onPostComment() {
+  const code = codeInput.value;
+  if (!code) return;
+  const text = commentText.value.trim();
+  if (!text) return;
+  try {
+    if (!r) r = useRoom();
+    await r.pushComment(code, text);
+    pushLog('comment posted');
+    commentText.value = '';
+  } catch (e: any) { pushLog('comment error: ' + e.message); }
+}
 </script>
