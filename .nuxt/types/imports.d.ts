@@ -121,6 +121,7 @@ declare global {
   const useRequestHeaders: typeof import('../../node_modules/.pnpm/nuxt@3.18.1_@vue+compiler-sfc@3.5.18_typescript@5.9.2_vite@7.1.2/node_modules/nuxt/dist/app/composables/ssr')['useRequestHeaders']
   const useRequestURL: typeof import('../../node_modules/.pnpm/nuxt@3.18.1_@vue+compiler-sfc@3.5.18_typescript@5.9.2_vite@7.1.2/node_modules/nuxt/dist/app/composables/url')['useRequestURL']
   const useResponseHeader: typeof import('../../node_modules/.pnpm/nuxt@3.18.1_@vue+compiler-sfc@3.5.18_typescript@5.9.2_vite@7.1.2/node_modules/nuxt/dist/app/composables/ssr')['useResponseHeader']
+  const useRoom: typeof import('../../composables/useRoom')['default']
   const useRoute: typeof import('../../node_modules/.pnpm/nuxt@3.18.1_@vue+compiler-sfc@3.5.18_typescript@5.9.2_vite@7.1.2/node_modules/nuxt/dist/app/composables/router')['useRoute']
   const useRouteAnnouncer: typeof import('../../node_modules/.pnpm/nuxt@3.18.1_@vue+compiler-sfc@3.5.18_typescript@5.9.2_vite@7.1.2/node_modules/nuxt/dist/app/composables/route-announcer')['useRouteAnnouncer']
   const useRouter: typeof import('../../node_modules/.pnpm/nuxt@3.18.1_@vue+compiler-sfc@3.5.18_typescript@5.9.2_vite@7.1.2/node_modules/nuxt/dist/app/composables/router')['useRouter']
@@ -303,6 +304,7 @@ declare module 'vue' {
     readonly useRequestHeaders: UnwrapRef<typeof import('../../node_modules/.pnpm/nuxt@3.18.1_@vue+compiler-sfc@3.5.18_typescript@5.9.2_vite@7.1.2/node_modules/nuxt/dist/app/composables/ssr')['useRequestHeaders']>
     readonly useRequestURL: UnwrapRef<typeof import('../../node_modules/.pnpm/nuxt@3.18.1_@vue+compiler-sfc@3.5.18_typescript@5.9.2_vite@7.1.2/node_modules/nuxt/dist/app/composables/url')['useRequestURL']>
     readonly useResponseHeader: UnwrapRef<typeof import('../../node_modules/.pnpm/nuxt@3.18.1_@vue+compiler-sfc@3.5.18_typescript@5.9.2_vite@7.1.2/node_modules/nuxt/dist/app/composables/ssr')['useResponseHeader']>
+    readonly useRoom: UnwrapRef<typeof import('../../composables/useRoom')['default']>
     readonly useRoute: UnwrapRef<typeof import('../../node_modules/.pnpm/nuxt@3.18.1_@vue+compiler-sfc@3.5.18_typescript@5.9.2_vite@7.1.2/node_modules/nuxt/dist/app/composables/router')['useRoute']>
     readonly useRouteAnnouncer: UnwrapRef<typeof import('../../node_modules/.pnpm/nuxt@3.18.1_@vue+compiler-sfc@3.5.18_typescript@5.9.2_vite@7.1.2/node_modules/nuxt/dist/app/composables/route-announcer')['useRouteAnnouncer']>
     readonly useRouter: UnwrapRef<typeof import('../../node_modules/.pnpm/nuxt@3.18.1_@vue+compiler-sfc@3.5.18_typescript@5.9.2_vite@7.1.2/node_modules/nuxt/dist/app/composables/router')['useRouter']>
