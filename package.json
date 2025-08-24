@@ -5,7 +5,7 @@
   "scripts": {
     "build": "nuxt build",
     "dev": "HOST=0.0.0.0 nuxt dev",
-  "format": "prettier --write \"**/*.{js,ts,vue,json,css,md}\"",
+    "format": "prettier --write \"**/*.{js,ts,vue,json,css,md}\"",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare"
@@ -21,7 +21,7 @@
   },
   "devDependencies": {
     "@nuxtjs/tailwindcss": "^6.14.0",
-  "prettier": "^2.8.8",
+    "prettier": "^2.8.8",
     "@types/node": "^20.14.0"
   }
 }

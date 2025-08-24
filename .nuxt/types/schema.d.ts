@@ -1,25 +1,42 @@
-import { NuxtModule, RuntimeConfig } from '@nuxt/schema'
+import { NuxtModule, RuntimeConfig } from '@nuxt/schema';
 declare module '@nuxt/schema' {
   interface NuxtOptions {
     /**
      * Configuration for `@nuxtjs/tailwindcss`
      */
-    ["tailwindcss"]: typeof import("@nuxtjs/tailwindcss").default extends NuxtModule<infer O> ? O : Record<string, any>
+    ['tailwindcss']: typeof import('@nuxtjs/tailwindcss').default extends NuxtModule<infer O>
+      ? O
+      : Record<string, any>;
     /**
      * Configuration for `@nuxt/telemetry`
      */
-    ["telemetry"]: typeof import("@nuxt/telemetry").default extends NuxtModule<infer O> ? O : Record<string, any>
+    ['telemetry']: typeof import('@nuxt/telemetry').default extends NuxtModule<infer O>
+      ? O
+      : Record<string, any>;
   }
   interface NuxtConfig {
     /**
      * Configuration for `@nuxtjs/tailwindcss`
      */
-    ["tailwindcss"]?: typeof import("@nuxtjs/tailwindcss").default extends NuxtModule<infer O> ? Partial<O> : Record<string, any>
+    ['tailwindcss']?: typeof import('@nuxtjs/tailwindcss').default extends NuxtModule<infer O>
+      ? Partial<O>
+      : Record<string, any>;
     /**
      * Configuration for `@nuxt/telemetry`
      */
-    ["telemetry"]?: typeof import("@nuxt/telemetry").default extends NuxtModule<infer O> ? Partial<O> : Record<string, any>
-    modules?: (undefined | null | false | NuxtModule<any> | string | [NuxtModule | string, Record<string, any>] | ["@nuxtjs/tailwindcss", Exclude<NuxtConfig["tailwindcss"], boolean>] | ["@nuxt/telemetry", Exclude<NuxtConfig["telemetry"], boolean>])[],
+    ['telemetry']?: typeof import('@nuxt/telemetry').default extends NuxtModule<infer O>
+      ? Partial<O>
+      : Record<string, any>;
+    modules?: (
+      | undefined
+      | null
+      | false
+      | NuxtModule<any>
+      | string
+      | [NuxtModule | string, Record<string, any>]
+      | ['@nuxtjs/tailwindcss', Exclude<NuxtConfig['tailwindcss'], boolean>]
+      | ['@nuxt/telemetry', Exclude<NuxtConfig['telemetry'], boolean>]
+    )[];
   }
 }
 declare module 'nuxt/schema' {
@@ -28,63 +45,80 @@ declare module 'nuxt/schema' {
      * Configuration for `@nuxtjs/tailwindcss`
      * @see https://www.npmjs.com/package/@nuxtjs/tailwindcss
      */
-    ["tailwindcss"]: typeof import("@nuxtjs/tailwindcss").default extends NuxtModule<infer O> ? O : Record<string, any>
+    ['tailwindcss']: typeof import('@nuxtjs/tailwindcss').default extends NuxtModule<infer O>
+      ? O
+      : Record<string, any>;
     /**
      * Configuration for `@nuxt/telemetry`
      * @see https://www.npmjs.com/package/@nuxt/telemetry
      */
-    ["telemetry"]: typeof import("@nuxt/telemetry").default extends NuxtModule<infer O> ? O : Record<string, any>
+    ['telemetry']: typeof import('@nuxt/telemetry').default extends NuxtModule<infer O>
+      ? O
+      : Record<string, any>;
   }
   interface NuxtConfig {
     /**
      * Configuration for `@nuxtjs/tailwindcss`
      * @see https://www.npmjs.com/package/@nuxtjs/tailwindcss
      */
-    ["tailwindcss"]?: typeof import("@nuxtjs/tailwindcss").default extends NuxtModule<infer O> ? Partial<O> : Record<string, any>
+    ['tailwindcss']?: typeof import('@nuxtjs/tailwindcss').default extends NuxtModule<infer O>
+      ? Partial<O>
+      : Record<string, any>;
     /**
      * Configuration for `@nuxt/telemetry`
      * @see https://www.npmjs.com/package/@nuxt/telemetry
      */
-    ["telemetry"]?: typeof import("@nuxt/telemetry").default extends NuxtModule<infer O> ? Partial<O> : Record<string, any>
-    modules?: (undefined | null | false | NuxtModule<any> | string | [NuxtModule | string, Record<string, any>] | ["@nuxtjs/tailwindcss", Exclude<NuxtConfig["tailwindcss"], boolean>] | ["@nuxt/telemetry", Exclude<NuxtConfig["telemetry"], boolean>])[],
+    ['telemetry']?: typeof import('@nuxt/telemetry').default extends NuxtModule<infer O>
+      ? Partial<O>
+      : Record<string, any>;
+    modules?: (
+      | undefined
+      | null
+      | false
+      | NuxtModule<any>
+      | string
+      | [NuxtModule | string, Record<string, any>]
+      | ['@nuxtjs/tailwindcss', Exclude<NuxtConfig['tailwindcss'], boolean>]
+      | ['@nuxt/telemetry', Exclude<NuxtConfig['telemetry'], boolean>]
+    )[];
   }
   interface RuntimeConfig {
-   app: {
-      buildId: string,
+    app: {
+      buildId: string;
 
-      baseURL: string,
+      baseURL: string;
 
-      buildAssetsDir: string,
+      buildAssetsDir: string;
 
-      cdnURL: string,
-   },
+      cdnURL: string;
+    };
 
-   nitro: {
-      envPrefix: string,
-   },
+    nitro: {
+      envPrefix: string;
+    };
   }
   interface PublicRuntimeConfig {
-   firebase: {
-      apiKey: string,
+    firebase: {
+      apiKey: string;
 
-      authDomain: string,
+      authDomain: string;
 
-      projectId: string,
+      projectId: string;
 
-      storageBucket: string,
+      storageBucket: string;
 
-      messagingSenderId: string,
+      messagingSenderId: string;
 
-      appId: string,
+      appId: string;
 
-      measurementId: string,
+      measurementId: string;
 
-      databaseURL: string,
-   },
+      databaseURL: string;
+    };
   }
 }
 declare module 'vue' {
-        interface ComponentCustomProperties {
-          $config: RuntimeConfig
-        }
-      }
+  interface ComponentCustomProperties {
+    $config: RuntimeConfig;
+  }
+}

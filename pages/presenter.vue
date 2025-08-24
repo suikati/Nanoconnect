@@ -8,25 +8,43 @@
             <div class="flex items-center gap-3">
               <span class="text-indigo-600 font-extrabold">発表者</span>
               <UiButton size="sm" variant="primary" @pressed="onCreateRoom">ルームを作る</UiButton>
-              <span v-if="roomCode" class="text-xs bg-indigo-50 text-indigo-600 px-2 py-1 rounded-full">ルームコード: {{ roomCode }}</span>
+              <span
+                v-if="roomCode"
+                class="text-xs bg-indigo-50 text-indigo-600 px-2 py-1 rounded-full"
+                >ルームコード: {{ roomCode }}</span
+              >
             </div>
           </template>
           <h3 class="text-sm font-semibold text-gray-500 mb-3">アンケート</h3>
-          <div v-for="(s, i) in slides" :key="s.id" class="mb-4 space-y-2 p-3 rounded-xl border border-gray-100 bg-gray-50/60">
+          <div
+            v-for="(s, i) in slides"
+            :key="s.id"
+            class="mb-4 space-y-2 p-3 rounded-xl border border-gray-100 bg-gray-50/60"
+          >
             <div class="flex items-center gap-2">
-              <input v-model="s.title" placeholder="Title" class="flex-1 border rounded-lg px-3 py-2 focus-ring text-sm" />
+              <input
+                v-model="s.title"
+                placeholder="Title"
+                class="flex-1 border rounded-lg px-3 py-2 focus-ring text-sm"
+              />
               <UiButton size="sm" variant="ghost" @pressed="removeSlide(i)">削除</UiButton>
             </div>
             <OptionList v-model="s.choices" />
           </div>
           <div class="flex flex-wrap items-center gap-3">
-            <UiButton variant="secondary" size="sm" @pressed="addSlide">アンケートを追加する</UiButton>
-            <UiButton variant="primary" size="sm" @pressed="onSaveSlides" :disabled="!roomCode">アンケートを保存する</UiButton>
+            <UiButton variant="secondary" size="sm" @pressed="addSlide"
+              >アンケートを追加する</UiButton
+            >
+            <UiButton variant="primary" size="sm" @pressed="onSaveSlides" :disabled="!roomCode"
+              >アンケートを保存する</UiButton
+            >
           </div>
         </UiCard>
         <UiCard v-if="roomCode" title="Slide Control" titleClass="text-gray-700">
           <div class="flex items-center gap-4 flex-wrap">
-            <span class="text-sm text-gray-600">Current: <strong class="text-indigo-600">{{ currentIndex }}</strong></span>
+            <span class="text-sm text-gray-600"
+              >Current: <strong class="text-indigo-600">{{ currentIndex }}</strong></span
+            >
             <div class="ml-auto flex items-center gap-2">
               <UiButton size="sm" variant="ghost" @pressed="prevSlide">Prev</UiButton>
               <UiButton size="sm" variant="primary" @pressed="nextSlide">Next</UiButton>
@@ -37,12 +55,23 @@
 
       <!-- Right: Live Result & Comments -->
       <div class="xl:col-span-2 space-y-6">
-        <UiCard v-if="aggregates && currentSlideChoices.length" title="Live Results" titleClass="text-indigo-700">
+        <UiCard
+          v-if="aggregates && currentSlideChoices.length"
+          title="Live Results"
+          titleClass="text-indigo-700"
+        >
           <VoteChart :counts="aggregates.counts" :choices="currentSlideChoices" />
         </UiCard>
         <UiCard v-if="roomCode" title="Comments" titleClass="text-pink-600">
           <ul class="space-y-3 max-h-[460px] overflow-y-auto pr-1">
-            <CommentItem v-for="c in comments" :key="c.id" :comment="c" :currentAnonId="myAnonId" @like="onLikeComment" @delete="onDeleteComment" />
+            <CommentItem
+              v-for="c in comments"
+              :key="c.id"
+              :comment="c"
+              :currentAnonId="myAnonId"
+              @like="onLikeComment"
+              @delete="onDeleteComment"
+            />
           </ul>
         </UiCard>
         <pre v-if="isDev" class="text-[10px] text-gray-400 whitespace-pre-wrap">{{ log }}</pre>
@@ -81,8 +110,18 @@ const log = ref('');
 
 // TODO: 開発が終わったらplaceholderに変更
 const palette = ['#4F46E5', '#EC4899', '#F97316', '#10B981', '#06B6D4', '#F59E0B'];
-const slides = reactive<Array<{ id: string; title: string; choices: Array<{ text: string; color?: string }> }>>([
-  { id: `slide_0_${Date.now()}`, title: '好きな色は？', choices: [{ text: '赤', color: '#EF4444' }, { text: '青', color: '#3B82F6' }, { text: '緑', color: '#10B981' }] },
+const slides = reactive<
+  Array<{ id: string; title: string; choices: Array<{ text: string; color?: string }> }>
+>([
+  {
+    id: `slide_0_${Date.now()}`,
+    title: '好きな色は？',
+    choices: [
+      { text: '赤', color: '#EF4444' },
+      { text: '青', color: '#3B82F6' },
+      { text: '緑', color: '#10B981' },
+    ],
+  },
 ]);
 const aggregates = ref<Aggregate | null>(null);
 const currentSlideChoices = ref<Choice[]>([]);
@@ -103,9 +142,15 @@ const ensureR = () => {
 const addSlide = () => {
   // assign a palette color immediately so the color picker shows a value
   const idx = slides.length % palette.length;
-  slides.push({ id: `slide_${slides.length}_${Date.now()}`, title: '', choices: [{ text: '', color: palette[idx] }] });
+  slides.push({
+    id: `slide_${slides.length}_${Date.now()}`,
+    title: '',
+    choices: [{ text: '', color: palette[idx] }],
+  });
 };
-const removeSlide = (i: number) => { slides.splice(i, 1); };
+const removeSlide = (i: number) => {
+  slides.splice(i, 1);
+};
 
 const onCreateRoom = async () => {
   try {
@@ -113,11 +158,16 @@ const onCreateRoom = async () => {
     const code = await (r as any).createRoom();
     roomCode.value = code;
     log.value = `created ${code}`;
-  } catch (e: any) { log.value = `create error: ${e.message}`; }
+  } catch (e: any) {
+    log.value = `create error: ${e.message}`;
+  }
 };
 
 const onSaveSlides = async () => {
-  if (!roomCode.value) { log.value = 'no room'; return; }
+  if (!roomCode.value) {
+    log.value = 'no room';
+    return;
+  }
 
   // UI validation: each slide must have at least 2 non-empty choices
   const palette = ['#4F46E5', '#EC4899', '#F97316', '#10B981', '#06B6D4', '#F59E0B'];
@@ -133,9 +183,12 @@ const onSaveSlides = async () => {
   // Normalize slides and auto-assign colors when missing
   const payload = slides.map((s: { title: string; choices: any[] }, si: number) => {
     const choices = (s.choices || []).map((c: any, ci: number) => {
-      const rawColor = (c && c.color) ? String(c.color) : '';
+      const rawColor = c && c.color ? String(c.color) : '';
       const placeholder = '#f3f4f6';
-      const normalizedColor = rawColor && rawColor.toLowerCase() !== placeholder ? rawColor : palette[(ci + si) % palette.length];
+      const normalizedColor =
+        rawColor && rawColor.toLowerCase() !== placeholder
+          ? rawColor
+          : palette[(ci + si) % palette.length];
       return {
         text: String(c.text || '').trim(),
         color: normalizedColor,
@@ -148,21 +201,29 @@ const onSaveSlides = async () => {
     ensureR();
     await (r as any).saveSlides(roomCode.value, payload);
     log.value = 'saved slides';
-  } catch (e: any) { log.value = `save error: ${e.message}`; }
+  } catch (e: any) {
+    log.value = `save error: ${e.message}`;
+  }
 };
 
 const setIdx = async (idx: number) => {
   if (!roomCode.value) return;
   try {
-  ensureR();
-  await (r as any).setSlideIndex(roomCode.value, idx);
+    ensureR();
+    await (r as any).setSlideIndex(roomCode.value, idx);
     currentIndex.value = idx;
-  } catch (e: any) { log.value = `set index error: ${e.message}`; }
+  } catch (e: any) {
+    log.value = `set index error: ${e.message}`;
+  }
 };
 
 onMounted(() => {
   ensureR();
-  try { myAnonId.value = (r as any).getAnonId(); } catch (e) { myAnonId.value = null; }
+  try {
+    myAnonId.value = (r as any).getAnonId();
+  } catch (e) {
+    myAnonId.value = null;
+  }
   // ルームがあるときに集計を監視する
   // （後で presenter 用にも index/audience と同様のリスナーを追加可能）
 });
@@ -173,7 +234,7 @@ watch(roomCode, async (val: string | null) => {
   try {
     ensureR();
   } catch (e) {
-  // なし（エラーハンドリング）
+    // なし（エラーハンドリング）
   }
   if (!val) return;
 
@@ -182,16 +243,29 @@ watch(roomCode, async (val: string | null) => {
   if (!db) return;
 
   // slideIndex のリスナー（前のリスナーをクリーンアップ）
-  if (unsubSlideIndex) { unsubSlideIndex(); unsubSlideIndex = null; }
+  if (unsubSlideIndex) {
+    unsubSlideIndex();
+    unsubSlideIndex = null;
+  }
   unsubSlideIndex = createDbListener(db, `rooms/${val}/slideIndex`, (snap: any) => {
     if (!snap) return;
     const idx = snap.val();
     currentIndex.value = typeof idx === 'number' ? idx : 0;
 
-  // スライド内容のリスナー
-    if (unsubSlideContent) { try { unsubSlideContent(); } catch (e) { /* ignore */ } unsubSlideContent = null; }
-      unsubSlideContent = createDbListener(db, `rooms/${val}/slides/slide_${(currentIndex.value || 0) + 1}`, (s: any) => {
-        const slideObj = s && s.val ? s.val() as Slide : null;
+    // スライド内容のリスナー
+    if (unsubSlideContent) {
+      try {
+        unsubSlideContent();
+      } catch (e) {
+        /* ignore */
+      }
+      unsubSlideContent = null;
+    }
+    unsubSlideContent = createDbListener(
+      db,
+      `rooms/${val}/slides/slide_${(currentIndex.value || 0) + 1}`,
+      (s: any) => {
+        const slideObj = s && s.val ? (s.val() as Slide) : null;
         if (slideObj && slideObj.choices) {
           currentSlideChoices.value = Object.entries(slideObj.choices).map(([k, v]) => {
             const item = v as { text: string; color?: string };
@@ -204,26 +278,62 @@ watch(roomCode, async (val: string | null) => {
         // Also reflect DB values into the editor model (`slides`) so color pickers show saved colors
         try {
           const slideObj2 = slideObj;
-        if (slideObj2) {
-          const idx = (currentIndex.value || 0);
-          const editorChoices = slideObj2.choices ? Object.entries(slideObj2.choices).map(([k, v]) => ({ id: k, text: (v as any).text || '', color: (v as any).color })) : [];
-          while (slides.length <= idx) slides.push({ id: `slide_${slides.length}_${Date.now()}`, title: '', choices: [{ text: '', color: '#F3F4F6' }] });
-          // preserve existing slide id when updating
-          const existingId = slides[idx].id || `slide_${idx}_${Date.now()}`;
-          slides[idx] = { id: existingId, title: slideObj2.title || '', choices: editorChoices } as any;
+          if (slideObj2) {
+            const idx = currentIndex.value || 0;
+            const editorChoices = slideObj2.choices
+              ? Object.entries(slideObj2.choices).map(([k, v]) => ({
+                  id: k,
+                  text: (v as any).text || '',
+                  color: (v as any).color,
+                }))
+              : [];
+            while (slides.length <= idx)
+              slides.push({
+                id: `slide_${slides.length}_${Date.now()}`,
+                title: '',
+                choices: [{ text: '', color: '#F3F4F6' }],
+              });
+            // preserve existing slide id when updating
+            const existingId = slides[idx].id || `slide_${idx}_${Date.now()}`;
+            slides[idx] = {
+              id: existingId,
+              title: slideObj2.title || '',
+              choices: editorChoices,
+            } as any;
+          }
+        } catch (e) {
+          /* ignore */
         }
-        } catch (e) { /* ignore */ }
-      });
+      },
+    );
 
-  // 集計（aggregates）のリスナー
-    if (unsubAggregates) { try { (unsubAggregates as any)(); } catch (e) { /* ignore */ } unsubAggregates = null; }
-    unsubAggregates = createDbListener(db, `rooms/${val}/aggregates/slide_${(currentIndex.value || 0) + 1}`, (snap: any) => {
-      const a = snap && snap.val ? snap.val() : null;
-      aggregates.value = a || { counts: {}, total: 0 };
-    });
+    // 集計（aggregates）のリスナー
+    if (unsubAggregates) {
+      try {
+        (unsubAggregates as any)();
+      } catch (e) {
+        /* ignore */
+      }
+      unsubAggregates = null;
+    }
+    unsubAggregates = createDbListener(
+      db,
+      `rooms/${val}/aggregates/slide_${(currentIndex.value || 0) + 1}`,
+      (snap: any) => {
+        const a = snap && snap.val ? snap.val() : null;
+        aggregates.value = a || { counts: {}, total: 0 };
+      },
+    );
 
-  // コメント一覧のリスナー
-    if (unsubComments) { try { (unsubComments as any)(); } catch (e) { /* ignore */ } unsubComments = null; }
+    // コメント一覧のリスナー
+    if (unsubComments) {
+      try {
+        (unsubComments as any)();
+      } catch (e) {
+        /* ignore */
+      }
+      unsubComments = null;
+    }
     unsubComments = createDbListener(db, `rooms/${val}/comments`, (snap: any) => {
       const arr: UIComment[] = [];
       snap.forEach((child: any) => {
@@ -236,28 +346,52 @@ watch(roomCode, async (val: string | null) => {
 
 // コンポーネント単位で一度だけクリーンアップを登録
 onUnmounted(() => {
-  try { if (unsubSlideIndex) (unsubSlideIndex as any)(); } catch (e) { /* ignore */ }
-  try { if (unsubSlideContent) (unsubSlideContent as any)(); } catch (e) { /* ignore */ }
-  try { if (unsubAggregates) (unsubAggregates as any)(); } catch (e) { /* ignore */ }
-  try { if (unsubComments) (unsubComments as any)(); } catch (e) { /* ignore */ }
+  try {
+    if (unsubSlideIndex) (unsubSlideIndex as any)();
+  } catch (e) {
+    /* ignore */
+  }
+  try {
+    if (unsubSlideContent) (unsubSlideContent as any)();
+  } catch (e) {
+    /* ignore */
+  }
+  try {
+    if (unsubAggregates) (unsubAggregates as any)();
+  } catch (e) {
+    /* ignore */
+  }
+  try {
+    if (unsubComments) (unsubComments as any)();
+  } catch (e) {
+    /* ignore */
+  }
 });
 
-const prevSlide = () => { setIdx(Math.max(0, currentIndex.value - 1)); };
-const nextSlide = () => { setIdx(currentIndex.value + 1); };
+const prevSlide = () => {
+  setIdx(Math.max(0, currentIndex.value - 1));
+};
+const nextSlide = () => {
+  setIdx(currentIndex.value + 1);
+};
 
 const onLikeComment = async (commentId: string) => {
   if (!roomCode.value) return;
   try {
-  ensureR();
-  await (r as any).likeComment(roomCode.value, commentId);
-  } catch (e: any) { log.value = `like error: ${e.message}`; }
+    ensureR();
+    await (r as any).likeComment(roomCode.value, commentId);
+  } catch (e: any) {
+    log.value = `like error: ${e.message}`;
+  }
 };
 
 const onDeleteComment = async (commentId: string) => {
   if (!roomCode.value) return;
   try {
-  ensureR();
-  await (r as any).deleteComment(roomCode.value, commentId);
-  } catch (e: any) { log.value = `delete error: ${e.message}`; }
+    ensureR();
+    await (r as any).deleteComment(roomCode.value, commentId);
+  } catch (e: any) {
+    log.value = `delete error: ${e.message}`;
+  }
 };
 </script>

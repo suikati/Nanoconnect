@@ -2,11 +2,23 @@
   <div class="option-list space-y-3">
     <ul class="space-y-2">
       <li v-for="(o, idx) in options" :key="o.id" class="flex items-center gap-3">
-        <OptionItem :option="o" :index="idx" @update="onUpdate" @remove="onRemove" @move-up="moveUp(idx)" @move-down="moveDown(idx)" />
+        <OptionItem
+          :option="o"
+          :index="idx"
+          @update="onUpdate"
+          @remove="onRemove"
+          @move-up="moveUp(idx)"
+          @move-down="moveDown(idx)"
+        />
       </li>
     </ul>
     <div class="pt-2">
-      <button class="w-full bg-gray-100 rounded-xl py-3 text-sm text-gray-700" @click.prevent="addOption">+ Add option</button>
+      <button
+        class="w-full bg-gray-100 rounded-xl py-3 text-sm text-gray-700"
+        @click.prevent="addOption"
+      >
+        + Add option
+      </button>
     </div>
   </div>
 </template>
@@ -16,7 +28,9 @@ import { reactive, toRaw, watch, toRef } from 'vue';
 import OptionItem from '~/components/OptionItem.vue';
 import type { Choice } from '~/types/models';
 const props = defineProps<{ modelValue?: Array<Partial<Choice> & { id?: string }> }>();
-const emit = defineEmits<{ 'update:modelValue': (v: Array<{ id: string; text: string; color?: string }>) => void }>();
+const emit = defineEmits<{
+  'update:modelValue': (v: Array<{ id: string; text: string; color?: string }>) => void;
+}>();
 
 type Opt = { id: string; text: string; color?: string };
 // simple palette used for auto-assignment when adding or when incoming items lack color
@@ -30,10 +44,19 @@ const pickNextColor = (used: Set<string>) => {
 
 // When loading existing modelValue, assign missing colors immediately and try to avoid duplicates
 const initial: Opt[] = (() => {
-  const items: Array<{ id: string; text: string; color: string }> = (props.modelValue || []).map((o: any, i: number) => ({ id: o.id || `opt_${i}_${Date.now()}`, text: o.text || '', color: (o.color || '').trim() }));
+  const items: Array<{ id: string; text: string; color: string }> = (props.modelValue || []).map(
+    (o: any, i: number) => ({
+      id: o.id || `opt_${i}_${Date.now()}`,
+      text: o.text || '',
+      color: (o.color || '').trim(),
+    }),
+  );
   const used = new Set<string>();
   return items.map((it: { id: string; text: string; color: string }, idx: number) => {
-    if (it.color) { used.add(it.color); return it; }
+    if (it.color) {
+      used.add(it.color);
+      return it;
+    }
     const c = pickNextColor(used);
     used.add(c);
     return { ...it, color: c };
@@ -43,21 +66,32 @@ const options = reactive(initial as Opt[]);
 
 // Keep local options in sync when parent updates modelValue
 const mv = toRef(props, 'modelValue');
-watch(mv, (nv: any) => {
-  if (!nv) return;
-  const arr = nv as any[];
-  // quick equality check: same length and same ids/text
-  if (arr.length === options.length && arr.every((a, i) => ((a.id || '') === (options[i].id || '') && String(a.text || '') === String(options[i].text || '')))) {
-    return;
-  }
-  // replace array while preserving the same reactive object
-  const newItems = arr.map((o: any, i: number) => {
-    const existing = options[i];
-    const id = o.id || (existing && existing.id) || `opt_${i}_${Date.now()}`;
-    return { id, text: o.text || '', color: o.color || '' };
-  });
-  options.splice(0, options.length, ...newItems);
-}, { deep: true });
+watch(
+  mv,
+  (nv: any) => {
+    if (!nv) return;
+    const arr = nv as any[];
+    // quick equality check: same length and same ids/text
+    if (
+      arr.length === options.length &&
+      arr.every(
+        (a, i) =>
+          (a.id || '') === (options[i].id || '') &&
+          String(a.text || '') === String(options[i].text || ''),
+      )
+    ) {
+      return;
+    }
+    // replace array while preserving the same reactive object
+    const newItems = arr.map((o: any, i: number) => {
+      const existing = options[i];
+      const id = o.id || (existing && existing.id) || `opt_${i}_${Date.now()}`;
+      return { id, text: o.text || '', color: o.color || '' };
+    });
+    options.splice(0, options.length, ...newItems);
+  },
+  { deep: true },
+);
 
 const addOption = () => {
   const used = new Set<string>(options.map((o: Opt) => (o.color || '').toString()).filter(Boolean));
@@ -80,14 +114,30 @@ const moveDown = (idx: number) => {
   emit('update:modelValue', toRaw(options));
 };
 
-const onUpdate = (opt: any) => { const idx = options.findIndex((o: Opt) => o.id === opt.id); if (idx >= 0) { options[idx] = opt; emit('update:modelValue', toRaw(options)); } };
-const onRemove = (id: string) => { const idx = options.findIndex((o: Opt) => o.id === id); if (idx >= 0) { options.splice(idx, 1); emit('update:modelValue', toRaw(options)); } };
+const onUpdate = (opt: any) => {
+  const idx = options.findIndex((o: Opt) => o.id === opt.id);
+  if (idx >= 0) {
+    options[idx] = opt;
+    emit('update:modelValue', toRaw(options));
+  }
+};
+const onRemove = (id: string) => {
+  const idx = options.findIndex((o: Opt) => o.id === id);
+  if (idx >= 0) {
+    options.splice(idx, 1);
+    emit('update:modelValue', toRaw(options));
+  }
+};
 
-const emitUpdate = () => { emit('update:modelValue', toRaw(options)); };
+const emitUpdate = () => {
+  emit('update:modelValue', toRaw(options));
+};
 
 // Note: do not auto-emit from watching `options` to avoid recursive update loops.
 </script>
 
 <style scoped>
-.option-list { display:block; }
+.option-list {
+  display: block;
+}
 </style>

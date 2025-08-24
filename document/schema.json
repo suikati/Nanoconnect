@@ -33,7 +33,12 @@
         }
       },
       "comments": {
-        "comment_001": { "anonId": "anon_003", "text": "このアンケート面白い！", "likes": 5, "createdAt": "2025-08-24T02:10:00Z" }
+        "comment_001": {
+          "anonId": "anon_003",
+          "text": "このアンケート面白い！",
+          "likes": 5,
+          "createdAt": "2025-08-24T02:10:00Z"
+        }
       },
       "aggregates": {
         "slide_1": { "counts": { "choice_0": 1, "choice_1": 1 }, "total": 2 },

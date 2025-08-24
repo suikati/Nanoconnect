@@ -6,13 +6,29 @@
 
 <script setup lang="ts">
 import { onMounted, onBeforeUnmount, ref, watch, nextTick } from 'vue';
-import { Chart, BarController, BarElement, CategoryScale, LinearScale, Tooltip, Legend } from 'chart.js';
+import {
+  Chart,
+  BarController,
+  BarElement,
+  CategoryScale,
+  LinearScale,
+  Tooltip,
+  Legend,
+} from 'chart.js';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
 import type { Choice } from '~/types/models';
 
-Chart.register(BarController, BarElement, CategoryScale, LinearScale, Tooltip, Legend, ChartDataLabels);
+Chart.register(
+  BarController,
+  BarElement,
+  CategoryScale,
+  LinearScale,
+  Tooltip,
+  Legend,
+  ChartDataLabels,
+);
 
-const props = defineProps<{ counts: Record<string, number>, choices: Choice[] }>();
+const props = defineProps<{ counts: Record<string, number>; choices: Choice[] }>();
 const canvas = ref<HTMLCanvasElement | null>(null);
 const container = ref<HTMLDivElement | null>(null);
 let chart: Chart | null = null;
@@ -33,7 +49,7 @@ const renderChart = async () => {
   const gradientFor = (ctx: CanvasRenderingContext2D, area: any, from: string, to: string) => {
     // area may be empty when canvas not yet measured; if so, return a solid color fallback
     try {
-      if (!area || !area.height || !area.top && area.top !== 0) {
+      if (!area || !area.height || (!area.top && area.top !== 0)) {
         return from;
       }
       const g = ctx.createLinearGradient(0, area.top, 0, area.bottom);
@@ -55,21 +71,25 @@ const renderChart = async () => {
       const ctx2 = canvas.value.getContext('2d')!;
       const bgColorsUpdate = d.data.map((_, i) => {
         const choice = props.choices[i] as any;
-        const c1 = (choice && choice.color) ? choice.color : palette[i % palette.length];
+        const c1 = choice && choice.color ? choice.color : palette[i % palette.length];
         return gradientFor(ctx2, canvas.value!.getBoundingClientRect(), c1, '#ffffff');
       });
       chart.data.datasets![0].backgroundColor = bgColorsUpdate as any;
       chart.update();
       return;
     } catch (e) {
-  // 更新に失敗したら破棄して再作成する
-      try { chart.destroy(); } catch (err) { /* ignore */ }
+      // 更新に失敗したら破棄して再作成する
+      try {
+        chart.destroy();
+      } catch (err) {
+        /* ignore */
+      }
       chart = null;
     }
   }
   const bgColors = d.data.map((_, i) => {
     const choice = props.choices[i] as any;
-    const c1 = (choice && choice.color) ? choice.color : palette[i % palette.length];
+    const c1 = choice && choice.color ? choice.color : palette[i % palette.length];
     const c2 = '#ffffff';
     return gradientFor(ctx, canvas.value!.getBoundingClientRect(), c1, c2);
   });
@@ -78,13 +98,15 @@ const renderChart = async () => {
     type: 'bar',
     data: {
       labels: d.labels,
-      datasets: [{
-        label: 'Votes',
-        data: d.data,
-        backgroundColor: bgColors as any,
-        borderRadius: 8,
-        borderSkipped: false,
-      }]
+      datasets: [
+        {
+          label: 'Votes',
+          data: d.data,
+          backgroundColor: bgColors as any,
+          borderRadius: 8,
+          borderSkipped: false,
+        },
+      ],
     },
     options: {
       responsive: true,
@@ -98,8 +120,8 @@ const renderChart = async () => {
               const total = d.data.reduce((a: number, b: number) => a + b, 0) || 1;
               const pct = Math.round((v / total) * 100);
               return `${v} (${pct}%)`;
-            }
-          }
+            },
+          },
         },
         // datalabels: バー内部に白い値ラベルを表示
         datalabels: {
@@ -107,15 +129,15 @@ const renderChart = async () => {
           anchor: 'end',
           align: 'end',
           font: { weight: '600', size: 12 },
-          formatter: (val: number) => val > 0 ? val : ''
-        }
+          formatter: (val: number) => (val > 0 ? val : ''),
+        },
       },
       animation: { duration: 600, easing: 'easeOutCubic' },
       scales: {
         x: { grid: { display: false }, ticks: { maxRotation: 0, autoSkip: false } },
-        y: { beginAtZero: true, ticks: { precision: 0 } }
-      }
-    }
+        y: { beginAtZero: true, ticks: { precision: 0 } },
+      },
+    },
   });
 };
 
@@ -124,16 +146,24 @@ onMounted(() => {
 });
 
 // counts が変わったときに更新
-watch(() => props.counts, () => {
-  // レンダー／更新を一元化する
-  void renderChart();
-}, { deep: true });
+watch(
+  () => props.counts,
+  () => {
+    // レンダー／更新を一元化する
+    void renderChart();
+  },
+  { deep: true },
+);
 
 // choices（ラベル）が変わったときの更新
-watch(() => props.choices, () => {
-  // レンダー／更新を一元化する
-  void renderChart();
-}, { deep: true, immediate: true });
+watch(
+  () => props.choices,
+  () => {
+    // レンダー／更新を一元化する
+    void renderChart();
+  },
+  { deep: true, immediate: true },
+);
 
 onBeforeUnmount(() => {
   if (chart) {
@@ -144,6 +174,14 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped>
-.chart-container { position: relative; width: 100%; height: 260px; }
-canvas { display:block; width:100% !important; height:100% !important; }
+.chart-container {
+  position: relative;
+  width: 100%;
+  height: 260px;
+}
+canvas {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+}
 </style>
