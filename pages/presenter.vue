@@ -6,7 +6,7 @@
         <UiCard>
           <template #header>
             <div class="flex items-center gap-3">
-              <span class="text-indigo-600 font-extrabold">発表者</span>
+              <!-- <span class="text-indigo-600 font-extrabold">発表者</span> -->
               <UiButton size="sm" variant="primary" @pressed="onCreateRoom">ルームを作る</UiButton>
               <div class="flex items-center gap-2">
                 <input v-model="joinCodeInput" placeholder="またはルームコードを入力" class="border rounded px-2 py-1 text-sm" />
