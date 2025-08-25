@@ -346,10 +346,12 @@ async function fetchPlay() {
   if (!code) return;
   playLoading.value = true;
   try {
+    // Build choices payload including vote counts so server can compute percentages
+    const choicesForApi = choicesArray.value.map((c) => ({ id: c.key, text: c.text, votes: counts[c.key] ?? 0 }));
     const resp = await fetch('/api/openai', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ title: slide.value?.title || '', choices: choicesArray.value }),
+      body: JSON.stringify({ title: slide.value?.title || '', choices: choicesForApi }),
     });
     const data = await resp.json();
     playText.value = data?.text || '(生成失敗)';
