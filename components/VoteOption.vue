@@ -1,6 +1,12 @@
 <template>
-  <button :disabled="disabled" @click="onClick" :class="btnClass" :style="btnStyle">
-    <span class="font-medium">{{ choice.text }}</span>
+  <button
+    :disabled="disabled"
+    @click="onClick"
+    :class="[btnClass, 'retro-vote-option']"
+    :data-selected="selected ? 'true' : 'false'"
+    :style="btnStyle"
+  >
+    <span class="font-medium tracking-wide">{{ choice.text }}</span>
     <span class="text-xs font-mono opacity-70">{{ count }}</span>
   </button>
 </template>
@@ -31,7 +37,9 @@ const btnStyle = computed(() => {
       : '#0f172a';
   return { backgroundColor: bg, color };
 });
-const emit = defineEmits<{ vote: (choiceKey: string) => void }>();
+const emit = defineEmits<{
+  (e: 'vote', choiceKey: string): void;
+}>();
 let locked = false;
 const onClick = (e: Event) => {
   try {
