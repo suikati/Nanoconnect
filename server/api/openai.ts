@@ -17,7 +17,16 @@ export function buildCommentPrompt(title: string, selectedText: string) {
   return `あなたはナノすけです。アンケートのタイトル: "${title}" に対して、ユーザーが選んだ選択肢 "${selectedText}" に合わせた親しみやすい短い日本語コメント（1文）を返してください。`;
 }
 export async function handler(event: any) {
+  // Read body (may be parsed object or raw string depending on runtime)
   let body: any = await (globalThis as any).readBody?.(event) ?? event?.body;
+
+  // Debug: log raw event.body and initial body type/value for tracing 400 invalid_request
+  try {
+    console.debug('openai handler raw event.body:', event?.body);
+    console.debug('openai handler initial body (before parse):', body, typeof body);
+  } catch (e) {
+    /* ignore */
+  }
 
   // If body is a JSON string (some runtimes), try to parse it
   if (typeof body === 'string') {
