@@ -2,7 +2,7 @@
 import OpenAI from 'openai';
 
 const MODEL = 'gpt-5-mini-2025-08-07';
-const key = process.env.OPENAI_KEY;
+const key = config.private.openaiApiKey;
 if (!key) {
   console.error('ERROR: OPENAI_KEY environment variable is not set.');
   console.error('Set it and re-run: OPENAI_KEY=your_key pnpm run test-openai -- playbyplay');
@@ -26,7 +26,7 @@ async function runPlaybyplay() {
     { text: '法学', votes: 3 },
   ];
   const total = choices.reduce((s, c) => s + (c.votes || 0), 0) || 0;
-  const lines = choices.map(c => `- ${c.text}: ${Math.round(((c.votes||0)/total)*100)}%`).join('\n');
+  const lines = choices.map(c => `- ${c.text}: ${Math.round(((c.votes || 0) / total) * 100)}%`).join('\n');
   const prompt = `あなたは司会のリンカです。以下のアンケートのタイトルと各選択肢の割合を参照して、短く（2〜3文）日本語で実況を作ってください。主要結果を先に述べ、接戦なら「接戦」と表現してください。\nタイトル: ${title}\n${lines}`;
 
   console.log('--- Prompt ---');
