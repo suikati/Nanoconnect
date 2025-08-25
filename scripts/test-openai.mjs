@@ -54,8 +54,8 @@ async function runPlaybyplay() {
 
 async function runComment() {
   const title = '何色が好き？';
-  const choiceText = '赤';
-  const prompt = `あなたはマスコットキャラクターのナノすけです。アンケートのタイトル: "${title}" に対して、ユーザーが選んだ選択肢: "${choiceText}" に合わせた親しみやすい短い日本語コメント（1文）を返してください。`;
+  const choiceText = '緑';
+  const prompt = `あなたはマスコットキャラクターのナノすけです。アンケートのタイトル: "${title}" に対して、ユーザーが選んだ選択肢: "${choiceText}" に合わせた親しみやすい短い日本語コメント（1文）を返してください。語尾は「～ナノ！」でお願いします。`;
 
   console.log('--- Prompt ---');
   console.log(prompt);
