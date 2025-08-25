@@ -72,11 +72,7 @@
           <PlayByPlay :text="playText" :loading="playLoading" />
           <div class="my-3 border-t pt-3"></div>
 
-          <div class="mb-3 flex items-center gap-2">
-            <UiButton size="sm" variant="secondary" @pressed="fetchComment">コメントを生成</UiButton>
-            <div class="text-xs text-gray-500">選択肢を一つ選んでから押してください（開発用）</div>
-          </div>
-          <LiveComment :text="commentTextLive" :loading="commentLoading" />
+          <!-- Comment generation UI removed for presenter view -->
 
           <ul class="space-y-3 max-h-[460px] overflow-y-auto pr-1 mt-3">
             <CommentItem
@@ -146,8 +142,6 @@ const myAnonId = ref<string | null>(null);
 const isDev = false; // simplified: devログ非表示
 const playText = ref('');
 const playLoading = ref(false);
-const commentTextLive = ref('');
-const commentLoading = ref(false);
 
 async function fetchPlay() {
   if (!roomCode.value) return;
@@ -167,31 +161,6 @@ async function fetchPlay() {
   }
 }
 
-async function fetchComment() {
-  if (!roomCode.value) return;
-  // pick first choice for demo if none selected
-  const choice = currentSlideChoices.value[0];
-  const selectedText = choice?.text ?? '';
-  if (!selectedText) {
-    // avoid sending empty selectedChoice which the server treats as missing
-    commentTextLive.value = '(選択肢が未定義のためコメントを生成できません)';
-    return;
-  }
-  commentLoading.value = true;
-  try {
-    const resp = await fetch('/api/openai', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ title: slides[currentIndex.value]?.title || '', selectedChoice: selectedText }),
-    });
-    const data = await resp.json();
-    commentTextLive.value = data?.text || '(生成失敗)';
-  } catch (e: any) {
-    commentTextLive.value = '(エラー)';
-  } finally {
-    commentLoading.value = false;
-  }
-}
 // リスナーのクリーンアップ用ハンドル
 let unsubSlideIndex: (() => void) | null = null;
 let unsubAggregates: (() => void) | null = null;
