@@ -8,6 +8,10 @@
             <div class="flex items-center gap-3">
               <span class="text-indigo-600 font-extrabold">発表者</span>
               <UiButton size="sm" variant="primary" @pressed="onCreateRoom">ルームを作る</UiButton>
+              <div class="flex items-center gap-2">
+                <input v-model="joinCodeInput" placeholder="ルームコードを入力" class="border rounded px-2 py-1 text-sm" />
+                <UiButton size="sm" variant="ghost" @pressed="onEnterRoom">入室</UiButton>
+              </div>
               <span
                 v-if="roomCode"
                 class="text-xs bg-indigo-50 text-indigo-600 px-2 py-1 rounded-full"
@@ -116,6 +120,7 @@ type UIComment = CommentType & { id: string };
 
 let r: RoomApi | null = null;
 const roomCode = ref('');
+const joinCodeInput = ref('');
 const currentIndex = ref(0);
 const log = ref('');
 
@@ -195,6 +200,22 @@ const onCreateRoom = async () => {
     log.value = `created ${code}`;
   } catch (e: any) {
     log.value = `create error: ${e.message}`;
+  }
+};
+
+const onEnterRoom = async () => {
+  const code = String(joinCodeInput.value || '').trim();
+  if (!code) return;
+  try {
+    ensureR();
+    // try to call joinRoom if available; otherwise just set roomCode to enable controllers
+    if ((r as any).joinRoom) {
+      await (r as any).joinRoom(code);
+    }
+    roomCode.value = code;
+    log.value = `entered ${code}`;
+  } catch (e: any) {
+    log.value = `enter error: ${e.message}`;
   }
 };
 
