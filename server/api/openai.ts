@@ -50,6 +50,28 @@ export async function handler(event: any) {
         fallback = maybeReq.body ?? maybeReq.rawBody ?? maybeReq._body ?? null;
       }
       console.debug('openai handler fallback raw value:', fallback, typeof fallback);
+      // If fallback is not present but maybeReq is a readable stream (IncomingMessage), try to read it
+      if ((!body || typeof body !== 'object') && maybeReq && typeof maybeReq.on === 'function') {
+        try {
+          const chunks: any[] = [];
+          await new Promise<void>((resolve, reject) => {
+            maybeReq.on('data', (c: any) => chunks.push(c));
+            maybeReq.on('end', () => resolve());
+            maybeReq.on('error', (err: any) => reject(err));
+          });
+          try {
+            const buf = Buffer.concat(chunks.map((c: any) => (Buffer.isBuffer(c) ? c : Buffer.from(String(c)))));
+            const rawStr = buf.toString('utf8');
+            console.debug('openai handler read stream raw (truncated):', rawStr ? rawStr.slice(0, 1000) : rawStr);
+            const parsed = JSON.parse(rawStr);
+            if (parsed && typeof parsed === 'object') body = parsed;
+          } catch (e) {
+            /* ignore parse/read errors */
+          }
+        } catch (e) {
+          /* ignore stream read failure */
+        }
+      }
       if (typeof fallback === 'string') {
         try {
           body = JSON.parse(fallback);
