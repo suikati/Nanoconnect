@@ -1,6 +1,6 @@
 import { createHash } from 'crypto';
-import { getOpenAI } from '~/server/utils/openaiClient';
-import type { PlaybyplayRequest, PlaybyplayResponse, CommentRequest, CommentResponse } from '~/types/openai';
+import { getOpenAI } from '../utils/openaiClient';
+import type { PlaybyplayRequest, PlaybyplayResponse, CommentRequest, CommentResponse } from '../../types/openai';
 
 const MODEL = 'gpt-5-mini-2025-08-07';
 
