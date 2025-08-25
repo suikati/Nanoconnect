@@ -1,5 +1,17 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { buildPlaybyplayPrompt, handler } from '../server/api/openai';
+import * as client from '../server/utils/openaiClient';
+
+// Helper to mock OpenAI client
+function mockOpenAI(responseText: string) {
+  return {
+    chat: {
+      completions: {
+        create: async () => ({ choices: [{ message: { content: responseText } }], model: 'mock-model' }),
+      },
+    },
+  } as any;
+}
 
 describe('openai API', () => {
   it('buildPlaybyplayPrompt includes percentages', () => {
@@ -18,5 +30,19 @@ describe('openai API', () => {
     const res = await handler(fakeEvent as any);
     expect(res.text).toBeDefined();
     expect(res.text).toMatch(/まだ投票/);
+  });
+
+  it('comment path calls OpenAI and returns generated text', async () => {
+    // mock getOpenAI
+    const spy = vi.spyOn(client, 'getOpenAI').mockImplementation(() => mockOpenAI('いいねナノ！'));
+    try {
+      // clear global cache
+      (globalThis as any).__OPENAI_CACHE = new Map();
+      const fakeEvent = { body: { title: '何色が好き？', selectedChoice: { text: '赤' } } };
+      const res = await handler(fakeEvent as any);
+      expect(res.text).toBe('いいねナノ！');
+    } finally {
+      spy.mockRestore();
+    }
   });
 });

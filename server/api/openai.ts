@@ -36,8 +36,40 @@ export async function handler(event: any) {
     }
 
     const selectedText = typeof req.selectedChoice === 'string' ? req.selectedChoice : req.selectedChoice.text;
-    const respText = `いいチョイスだナノ！ ${selectedText}`;
-    return { text: respText, meta: { model: 'local-fallback' } };
+    if (!selectedText || String(selectedText).trim() === '') {
+      return { text: 'いいチョイスナノ！', meta: { model: 'none' } } as CommentResponse;
+    }
+
+    // Cache comment responses to reduce cost
+    const commentKeyBase = JSON.stringify({ title: req.title, selectedText });
+    const commentCacheKey = createHash('sha256').update(commentKeyBase).digest('hex');
+    (globalThis as any).__OPENAI_CACHE = (globalThis as any).__OPENAI_CACHE || new Map<string, any>();
+    const cachedComment = (globalThis as any).__OPENAI_CACHE.get(commentCacheKey);
+    if (cachedComment) return cachedComment;
+
+    const client = getOpenAI();
+    const prompt = buildCommentPrompt(req.title, String(selectedText));
+
+    try {
+      const result = await client.chat.completions.create({
+        model: MODEL,
+        messages: [{ role: 'user', content: prompt }],
+        max_tokens: 80,
+        temperature: 0.8,
+      });
+
+      const text = result.choices?.[0]?.message?.content?.trim() ?? 'ナノすけが少し眠いナノ…';
+      const out = { text, meta: { model: result.model } } as CommentResponse;
+
+      (globalThis as any).__OPENAI_CACHE.set(commentCacheKey, out);
+      setTimeout(() => (globalThis as any).__OPENAI_CACHE.delete(commentCacheKey), 60 * 1000);
+
+      return out;
+    } catch (err: any) {
+      console.error('openai comment error', err?.message || err);
+      if (event?.node?.res) event.node.res.statusCode = 500;
+      return { error: 'openai_error', detail: String(err?.message || err) };
+    }
   }
 
   // Playbyplay path
