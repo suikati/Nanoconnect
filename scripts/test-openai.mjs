@@ -1,11 +1,19 @@
 #!/usr/bin/env node
+// Load .env in local environments (noop if dotenv not installed in some environments)
+try {
+  // eslint-disable-next-line no-eval
+  await import('dotenv/config');
+} catch (e) {
+  // dotenv not installed — continue and rely on process.env
+}
 import OpenAI from 'openai';
 
 const MODEL = 'gpt-5-mini-2025-08-07';
-const key = config.private.openaiApiKey;
+// Prefer explicit OPENAI_KEY, fall back to common variants
+const key = process.env.OPENAI_KEY || process.env.OPENAI_API_KEY || process.env.openaiApiKey;
 if (!key) {
-  console.error('ERROR: OPENAI_KEY environment variable is not set.');
-  console.error('Set it and re-run: OPENAI_KEY=your_key pnpm run test-openai -- playbyplay');
+  console.error('ERROR: OpenAI API key not found. Set environment variable OPENAI_KEY.');
+  console.error('Example: OPENAI_KEY=sk-... pnpm run test-openai -- playbyplay');
   process.exit(1);
 }
 
