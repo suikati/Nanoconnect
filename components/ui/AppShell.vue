@@ -1,6 +1,6 @@
 <template>
   <!-- retro クラスで全体をレトロテーマ化 -->
-  <div class="retro retro-scanlines min-h-screen flex flex-col retro-main-bg">
+  <div class="retro min-h-screen flex flex-col retro-main-bg">
     <header class="px-4 sm:px-6 py-4 flex items-center gap-4">
       <NuxtLink to="/" class="pixel-title text-base sm:text-xl" aria-label="ホームに戻る">
         NANO<span class="text-[var(--retro-accent)]">POLL</span>

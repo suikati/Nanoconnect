@@ -62,25 +62,7 @@
 }
 
 /* Scanline overlay */
-.retro-scanlines {
-  position: relative;
-}
-.retro-scanlines::after {
-  content: '';
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  background: repeating-linear-gradient(
-    180deg,
-    rgba(0, 0, 0, 0.12) 0px,
-    rgba(0, 0, 0, 0.12) 2px,
-    rgba(0, 0, 0, 0) 2px,
-    rgba(0, 0, 0, 0) 4px
-  );
-  mix-blend-mode: multiply;
-  animation: scan 10s linear infinite;
-  z-index: 40;
-}
+/* scanline overlay removed per user request */
 
 /* Panel / card */
 .retro .retro-card {
