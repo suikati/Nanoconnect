@@ -4,13 +4,13 @@ import type { PlaybyplayRequest, PlaybyplayResponse, CommentRequest, CommentResp
 
 const MODEL = 'gpt-5-mini-2025-08-07';
 
-export function buildPlaybyplayPrompt(title: string, choices: { id?: string; text: string; votes?: number }[], tone?: string) {
+export function buildPlaybyplayPrompt(title: string, choices: { id?: string; text: string; votes?: number }[]) {
   const total = choices.reduce((s, c) => s + (c.votes || 0), 0) || 0;
   const lines = choices.map((c) => {
     const pct = total > 0 ? Math.round(((c.votes || 0) / total) * 100) : 0;
     return `- ${c.text}: ${pct}%`;
   });
-  return `あなたは司会のリンカです。以下のアンケートのタイトルと各選択肢の割合を参照して、短く（2〜3文）日本語で実況を作ってください。主要結果を先に述べ、接戦なら「接戦」と表現してください。(例)タイトル：「何の果物が好き？」実況：「桃とレモンの接戦です！最後に勝つのは甘党か酸っぱ党か！」tone=${tone || 'neutral'}\nタイトル: ${title}\n${lines.join('\n')}`;
+  return `あなたは司会のリンカです。以下のアンケートのタイトルと各選択肢の割合を参照して、短く（2〜3文）日本語で実況を作ってください。主要結果を先に述べ、接戦なら「接戦」と表現してください。(例)タイトル：「何の果物が好き？」実況：「桃とレモンの接戦です！最後に勝つのは甘党か酸っぱ党か！」\nタイトル: ${title}\n${lines.join('\n')}`;
 }
 
 export function buildCommentPrompt(title: string, selectedText: string) {
@@ -163,7 +163,7 @@ export async function handler(event: any) {
   if (cached) return cached;
 
   const client = getOpenAI();
-  const prompt = buildPlaybyplayPrompt(req.title, req.choices, (req as PlaybyplayRequest).tone);
+  const prompt = buildPlaybyplayPrompt(req.title, req.choices);
 
   try {
     const result = await client.responses.create({

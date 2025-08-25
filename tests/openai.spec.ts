@@ -16,7 +16,7 @@ describe('openai API', () => {
     const prompt = buildPlaybyplayPrompt('好きな色は？', [
       { text: '赤', votes: 3 },
       { text: '青', votes: 1 },
-    ], 'excited');
+    ]);
 
     expect(prompt).toContain('赤');
     expect(prompt).toContain('%');

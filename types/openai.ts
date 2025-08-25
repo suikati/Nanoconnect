@@ -3,7 +3,6 @@ export type Choice = { id?: string; text: string; votes?: number };
 export type PlaybyplayRequest = {
   title: string;
   choices: Choice[];
-  tone?: string;
   roomId?: string;
 };
 
