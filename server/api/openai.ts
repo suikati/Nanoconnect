@@ -41,8 +41,32 @@ export async function handler(event: any) {
 
   // Basic validation
   if (!body || typeof body !== 'object') {
-    if (event?.node?.res) event.node.res.statusCode = 400;
-    return { error: 'invalid_request' };
+    // Try fallbacks for runtimes that expose raw request on different fields
+    try {
+      const maybeReq = event?.node?.req ?? event?.req ?? null;
+      console.debug('openai handler attempting fallback read from event.node.req / event.req', maybeReq ? Object.keys(maybeReq) : null);
+      let fallback: any = null;
+      if (maybeReq) {
+        fallback = maybeReq.body ?? maybeReq.rawBody ?? maybeReq._body ?? null;
+      }
+      console.debug('openai handler fallback raw value:', fallback, typeof fallback);
+      if (typeof fallback === 'string') {
+        try {
+          body = JSON.parse(fallback);
+        } catch (e) {
+          /* ignore */
+        }
+      } else if (fallback && typeof fallback === 'object') {
+        body = fallback;
+      }
+    } catch (e) {
+      /* ignore */
+    }
+
+    if (!body || typeof body !== 'object') {
+      if (event?.node?.res) event.node.res.statusCode = 400;
+      return { error: 'invalid_request' };
+    }
   }
 
   // Distinguish request types by presence of fields
