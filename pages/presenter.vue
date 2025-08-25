@@ -30,7 +30,7 @@
               </div>
             </div>
 
-            <div v-if="slides && slides.length" class="p-3 rounded-lg border bg-gray-50">
+            <div v-if="slides && slides[currentIndex]" class="p-3 rounded-lg border bg-gray-50">
               <div class="flex items-center gap-2 mb-2">
                 <input v-model="slides[currentIndex].title" placeholder="Title" class="flex-1 border rounded-lg px-3 py-2 focus-ring text-sm" />
                 <UiButton size="sm" variant="ghost" @pressed="removeSlide(currentIndex)">削除</UiButton>
@@ -422,6 +422,16 @@ const prevSlide = () => {
 const nextSlide = () => {
   setIdx(currentIndex.value + 1);
 };
+
+// Defensive: if currentIndex points outside slides (e.g., slides were removed), clamp it
+watch(
+  () => slides.length,
+  (len) => {
+    if (currentIndex.value >= len) {
+      currentIndex.value = Math.max(0, len - 1);
+    }
+  },
+);
 
 const onLikeComment = async (commentId: string) => {
   if (!roomCode.value) return;
