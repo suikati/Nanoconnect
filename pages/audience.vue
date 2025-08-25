@@ -364,12 +364,17 @@ async function fetchComment() {
   const code = currentCode.value;
   if (!code) return;
   const choice = choicesArray.value[0];
+  const selectedText = choice?.text ?? '';
+  if (!selectedText) {
+    commentTextLive.value = '(選択肢が未定義のためコメントを生成できません)';
+    return;
+  }
   commentLoading.value = true;
   try {
     const resp = await fetch('/api/openai', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ title: slide.value?.title || '', selectedChoice: choice?.text ?? '' }),
+      body: JSON.stringify({ title: slide.value?.title || '', selectedChoice: selectedText }),
     });
     const data = await resp.json();
     commentTextLive.value = data?.text || '(生成失敗)';

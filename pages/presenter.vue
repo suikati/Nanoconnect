@@ -173,12 +173,18 @@ async function fetchComment() {
   if (!roomCode.value) return;
   // pick first choice for demo if none selected
   const choice = currentSlideChoices.value[0];
+  const selectedText = choice?.text ?? '';
+  if (!selectedText) {
+    // avoid sending empty selectedChoice which the server treats as missing
+    commentTextLive.value = '(選択肢が未定義のためコメントを生成できません)';
+    return;
+  }
   commentLoading.value = true;
   try {
     const resp = await fetch('/api/openai', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ title: slides[currentIndex.value]?.title || '', selectedChoice: choice?.text ?? '' }),
+      body: JSON.stringify({ title: slides[currentIndex.value]?.title || '', selectedChoice: selectedText }),
     });
     const data = await resp.json();
     commentTextLive.value = data?.text || '(生成失敗)';
