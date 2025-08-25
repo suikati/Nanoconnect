@@ -59,6 +59,10 @@ declare module 'nuxt/schema' {
       cdnURL: string,
    },
 
+   private: {
+      openaiApiKey: string,
+   },
+
    nitro: {
       envPrefix: string,
    },

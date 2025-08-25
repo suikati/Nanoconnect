@@ -18,5 +18,8 @@ export default defineNuxtConfig({
         databaseURL: 'https://nanoconnect-7ba2e-default-rtdb.asia-southeast1.firebasedatabase.app',
       },
     },
+    private: {
+      openaiApiKey: process.env.OPENAI_KEY
+    }
   },
 });

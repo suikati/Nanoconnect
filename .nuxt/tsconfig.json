@@ -50,7 +50,7 @@
         "../node_modules/.pnpm/nuxt@3.18.1_@netlify+blobs@_2cc2cf4d299fbab3d608d130ab44d925/node_modules/nuxt"
       ],
       "vite/client": [
-        "../node_modules/.pnpm/vite@7.1.3_@types+node@20.1_5103d91f3a7e177d4a1baa3eec316b5a/node_modules/vite/client"
+        "../node_modules/.pnpm/vite@5.4.19_@types+node@20.19.11_terser@5.43.1/node_modules/vite/client"
       ],
       "~": [
         ".."
@@ -113,7 +113,7 @@
         "./imports"
       ],
       "#app-manifest": [
-        "./manifest/meta/94a33049-8822-4fce-ad0d-9a28e80a4ff6"
+        "./manifest/meta/500928a3-fada-4438-b60f-7b085abbf2a3"
       ],
       "#components": [
         "./components"
