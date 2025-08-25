@@ -1113,7 +1113,22 @@ const plugins = [
   _WCgDaq5ZrAUmFmetxcbFlIaZVFlfpAdOTRCOwmjxpI0
 ];
 
-const assets = {};
+const assets = {
+  "/index.mjs": {
+    "type": "text/javascript; charset=utf-8",
+    "etag": "\"14f1c-bTUEbTvqms4YrbemBJKWSCA66/Y\"",
+    "mtime": "2025-08-25T05:06:21.175Z",
+    "size": 85788,
+    "path": "index.mjs"
+  },
+  "/index.mjs.map": {
+    "type": "application/json",
+    "etag": "\"4fd52-zQQbXu7/6I3235tiLuk+if531I8\"",
+    "mtime": "2025-08-25T05:06:21.175Z",
+    "size": 326994,
+    "path": "index.mjs.map"
+  }
+};
 
 function readAsset (id) {
   const serverDir = dirname$1(fileURLToPath(globalThis._importMeta_.url));
@@ -1876,19 +1891,72 @@ function buildPlaybyplayPrompt(title, choices, tone) {
     const pct = total > 0 ? Math.round((c.votes || 0) / total * 100) : 0;
     return `- ${c.text}: ${pct}%`;
   });
-  return `\u3042\u306A\u305F\u306F\u53F8\u4F1A\u306E\u30EA\u30F3\u30AB\u3067\u3059\u3002\u4EE5\u4E0B\u306E\u30A2\u30F3\u30B1\u30FC\u30C8\u306E\u30BF\u30A4\u30C8\u30EB\u3068\u5404\u9078\u629E\u80A2\u306E\u5272\u5408\u3092\u53C2\u7167\u3057\u3066\u3001\u77ED\u304F\uFF082\u301C3\u6587\uFF09\u65E5\u672C\u8A9E\u3067\u5B9F\u6CC1\u3092\u4F5C\u3063\u3066\u304F\u3060\u3055\u3044\u3002\u4E3B\u8981\u7D50\u679C\u3092\u5148\u306B\u8FF0\u3079\u3001\u63A5\u6226\u306A\u3089\u300C\u63A5\u6226\u300D\u3068\u8868\u73FE\u3057\u3066\u304F\u3060\u3055\u3044\u3002tone=${tone || "neutral"}
+  return `\u3042\u306A\u305F\u306F\u53F8\u4F1A\u306E\u30EA\u30F3\u30AB\u3067\u3059\u3002\u4EE5\u4E0B\u306E\u30A2\u30F3\u30B1\u30FC\u30C8\u306E\u30BF\u30A4\u30C8\u30EB\u3068\u5404\u9078\u629E\u80A2\u306E\u5272\u5408\u3092\u53C2\u7167\u3057\u3066\u3001\u77ED\u304F\uFF082\u301C3\u6587\uFF09\u65E5\u672C\u8A9E\u3067\u5B9F\u6CC1\u3092\u4F5C\u3063\u3066\u304F\u3060\u3055\u3044\u3002\u4E3B\u8981\u7D50\u679C\u3092\u5148\u306B\u8FF0\u3079\u3001\u63A5\u6226\u306A\u3089\u300C\u63A5\u6226\u300D\u3068\u8868\u73FE\u3057\u3066\u304F\u3060\u3055\u3044\u3002(\u4F8B)\u30BF\u30A4\u30C8\u30EB\uFF1A\u300C\u4F55\u306E\u679C\u7269\u304C\u597D\u304D\uFF1F\u300D\u5B9F\u6CC1\uFF1A\u300C\u6843\u3068\u30EC\u30E2\u30F3\u306E\u63A5\u6226\u3067\u3059\uFF01\u6700\u5F8C\u306B\u52DD\u3064\u306E\u306F\u7518\u515A\u304B\u9178\u3063\u3071\u515A\u304B\uFF01\u300Dtone=${tone || "neutral"}
 \u30BF\u30A4\u30C8\u30EB: ${title}
 ${lines.join("\n")}`;
 }
 function buildCommentPrompt(title, selectedText) {
-  return `\u3042\u306A\u305F\u306F\u30CA\u30CE\u3059\u3051\u3067\u3059\u3002\u30A2\u30F3\u30B1\u30FC\u30C8\u306E\u30BF\u30A4\u30C8\u30EB: "${title}" \u306B\u5BFE\u3057\u3066\u3001\u30E6\u30FC\u30B6\u30FC\u304C\u9078\u3093\u3060\u9078\u629E\u80A2 "${selectedText}" \u306B\u5408\u308F\u305B\u305F\u89AA\u3057\u307F\u3084\u3059\u3044\u77ED\u3044\u65E5\u672C\u8A9E\u30B3\u30E1\u30F3\u30C8\uFF081\u6587\uFF09\u3092\u8FD4\u3057\u3066\u304F\u3060\u3055\u3044\u3002`;
+  return `\u3042\u306A\u305F\u306F\u30DE\u30B9\u30B3\u30C3\u30C8\u30AD\u30E3\u30E9\u30AF\u30BF\u30FC\u306E\u30CA\u30CE\u3059\u3051\u3067\u3059\u3002\u30A2\u30F3\u30B1\u30FC\u30C8\u306E\u30BF\u30A4\u30C8\u30EB: "${title}" \u306B\u5BFE\u3057\u3066\u3001\u30E6\u30FC\u30B6\u30FC\u304C\u9078\u3093\u3060\u9078\u629E\u80A2: "${selectedText}" \u306B\u5408\u308F\u305B\u305F\u89AA\u3057\u307F\u3084\u3059\u3044\u77ED\u3044\u65E5\u672C\u8A9E\u30B3\u30E1\u30F3\u30C8\uFF081\u6587\uFF09\u3092\u8FD4\u3057\u3066\u304F\u3060\u3055\u3044\u3002\u8A9E\u5C3E\u306F\u300C\uFF5E\u30CA\u30CE\uFF01\u300D\u3067\u304A\u9858\u3044\u3057\u307E\u3059\u3002`;
 }
 async function handler(event) {
-  var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m;
-  const body = (_b = await ((_a = globalThis.readBody) == null ? void 0 : _a.call(globalThis, event))) != null ? _b : event == null ? void 0 : event.body;
+  var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m, _n, _o, _p, _q, _r, _s, _t;
+  let body = (_b = await ((_a = globalThis.readBody) == null ? void 0 : _a.call(globalThis, event))) != null ? _b : event == null ? void 0 : event.body;
+  try {
+    console.debug("openai handler raw event.body:", event == null ? void 0 : event.body);
+    console.debug("openai handler initial body (before parse):", body, typeof body);
+  } catch (e) {
+  }
+  if (typeof body === "string") {
+    try {
+      body = JSON.parse(body);
+    } catch (err) {
+      const e = err;
+      if ((_c = event == null ? void 0 : event.node) == null ? void 0 : _c.res) event.node.res.statusCode = 400;
+      return { error: "invalid_json", detail: String((e == null ? void 0 : e.message) || e) };
+    }
+  }
   if (!body || typeof body !== "object") {
-    if ((_c = event == null ? void 0 : event.node) == null ? void 0 : _c.res) event.node.res.statusCode = 400;
-    return { error: "invalid_request" };
+    try {
+      const maybeReq = (_f = (_e = (_d = event == null ? void 0 : event.node) == null ? void 0 : _d.req) != null ? _e : event == null ? void 0 : event.req) != null ? _f : null;
+      console.debug("openai handler attempting fallback read from event.node.req / event.req", maybeReq ? Object.keys(maybeReq) : null);
+      let fallback = null;
+      if (maybeReq) {
+        fallback = (_i = (_h = (_g = maybeReq.body) != null ? _g : maybeReq.rawBody) != null ? _h : maybeReq._body) != null ? _i : null;
+      }
+      console.debug("openai handler fallback raw value:", fallback, typeof fallback);
+      if ((!body || typeof body !== "object") && maybeReq && typeof maybeReq.on === "function") {
+        try {
+          const chunks = [];
+          await new Promise((resolve, reject) => {
+            maybeReq.on("data", (c) => chunks.push(c));
+            maybeReq.on("end", () => resolve());
+            maybeReq.on("error", (err) => reject(err));
+          });
+          try {
+            const buf = Buffer.concat(chunks.map((c) => Buffer.isBuffer(c) ? c : Buffer.from(String(c))));
+            const rawStr = buf.toString("utf8");
+            console.debug("openai handler read stream raw (truncated):", rawStr ? rawStr.slice(0, 1e3) : rawStr);
+            const parsed = JSON.parse(rawStr);
+            if (parsed && typeof parsed === "object") body = parsed;
+          } catch (e) {
+          }
+        } catch (e) {
+        }
+      }
+      if (typeof fallback === "string") {
+        try {
+          body = JSON.parse(fallback);
+        } catch (e) {
+        }
+      } else if (fallback && typeof fallback === "object") {
+        body = fallback;
+      }
+    } catch (e) {
+    }
+    if (!body || typeof body !== "object") {
+      if ((_j = event == null ? void 0 : event.node) == null ? void 0 : _j.res) event.node.res.statusCode = 400;
+      return { error: "invalid_request" };
+    }
   }
   const isComment = "selectedChoice" in body;
   if (isComment) {
@@ -1898,7 +1966,7 @@ async function handler(event) {
     } catch (e) {
     }
     if (!req2.title || typeof req2.selectedChoice === "undefined" || req2.selectedChoice === null) {
-      if ((_d = event == null ? void 0 : event.node) == null ? void 0 : _d.res) event.node.res.statusCode = 400;
+      if ((_k = event == null ? void 0 : event.node) == null ? void 0 : _k.res) event.node.res.statusCode = 400;
       return { error: "missing_fields" };
     }
     const selectedText = typeof req2.selectedChoice === "string" ? req2.selectedChoice : req2.selectedChoice.text;
@@ -1919,26 +1987,26 @@ async function handler(event) {
         reasoning: { effort: "minimal" },
         text: { verbosity: "low" }
       });
-      const text = (_g = (_f = result.output_text) != null ? _f : (_e = result.output) == null ? void 0 : _e.map((o) => {
+      const text = (_n = (_m = result.output_text) != null ? _m : (_l = result.output) == null ? void 0 : _l.map((o) => {
         var _a2;
         return (_a2 = o == null ? void 0 : o.content) == null ? void 0 : _a2.map((c) => {
           var _a3;
           return (_a3 = c == null ? void 0 : c.text) != null ? _a3 : "";
         }).join("");
-      }).join("\n")) != null ? _g : "\u30CA\u30CE\u3059\u3051\u304C\u5C11\u3057\u7720\u3044\u30CA\u30CE\u2026";
+      }).join("\n")) != null ? _n : "\u30CA\u30CE\u3059\u3051\u304C\u5C11\u3057\u7720\u3044\u30CA\u30CE\u2026";
       const out = { text, meta: { model: result.model } };
       globalThis.__OPENAI_CACHE.set(commentCacheKey, out);
       setTimeout(() => globalThis.__OPENAI_CACHE.delete(commentCacheKey), 60 * 1e3);
       return out;
     } catch (err) {
       console.error("openai comment error", (err == null ? void 0 : err.message) || err);
-      if ((_h = event == null ? void 0 : event.node) == null ? void 0 : _h.res) event.node.res.statusCode = 500;
+      if ((_o = event == null ? void 0 : event.node) == null ? void 0 : _o.res) event.node.res.statusCode = 500;
       return { error: "openai_error", detail: String((err == null ? void 0 : err.message) || err) };
     }
   }
   const req = body;
   if (!req.title || !Array.isArray(req.choices)) {
-    if ((_i = event == null ? void 0 : event.node) == null ? void 0 : _i.res) event.node.res.statusCode = 400;
+    if ((_p = event == null ? void 0 : event.node) == null ? void 0 : _p.res) event.node.res.statusCode = 400;
     return { error: "missing_fields" };
   }
   const totalVotes = req.choices.reduce((s, c) => s + (c.votes || 0), 0);
@@ -1959,20 +2027,20 @@ async function handler(event) {
       reasoning: { effort: "minimal" },
       text: { verbosity: "low" }
     });
-    const text = (_l = (_k = result.output_text) != null ? _k : (_j = result.output) == null ? void 0 : _j.map((o) => {
+    const text = (_s = (_r = result.output_text) != null ? _r : (_q = result.output) == null ? void 0 : _q.map((o) => {
       var _a2;
       return (_a2 = o == null ? void 0 : o.content) == null ? void 0 : _a2.map((c) => {
         var _a3;
         return (_a3 = c == null ? void 0 : c.text) != null ? _a3 : "";
       }).join("");
-    }).join("\n")) != null ? _l : "";
+    }).join("\n")) != null ? _s : "";
     const out = { text, meta: { model: result.model } };
     globalThis.__OPENAI_CACHE.set(cacheKey, out);
     setTimeout(() => globalThis.__OPENAI_CACHE.delete(cacheKey), 30 * 1e3);
     return out;
   } catch (err) {
     console.error("openai error", (err == null ? void 0 : err.message) || err);
-    if ((_m = event == null ? void 0 : event.node) == null ? void 0 : _m.res) event.node.res.statusCode = 500;
+    if ((_t = event == null ? void 0 : event.node) == null ? void 0 : _t.res) event.node.res.statusCode = 500;
     return { error: "openai_error", detail: String((err == null ? void 0 : err.message) || err) };
   }
 }
