@@ -1,7 +1,7 @@
 <template>
   <AppShell>
     <div class="max-w-6xl mx-auto grid xl:grid-cols-5 gap-8">
-      <!-- Left: Slide builder -->
+      <!-- Left: Compact slide editor + control -->
       <div class="xl:col-span-3 space-y-6">
         <UiCard>
           <template #header>
@@ -9,7 +9,7 @@
               <span class="text-indigo-600 font-extrabold">発表者</span>
               <UiButton size="sm" variant="primary" @pressed="onCreateRoom">ルームを作る</UiButton>
               <div class="flex items-center gap-2">
-                <input v-model="joinCodeInput" placeholder="またはルームコードを入力" class="border rounded px-2 py-1 text-sm" />
+                <input v-model="joinCodeInput" placeholder="ルームコードを入力" class="border rounded px-2 py-1 text-sm" />
                 <UiButton size="sm" variant="ghost" @pressed="onEnterRoom">入室</UiButton>
               </div>
               <span
@@ -19,39 +19,30 @@
               >
             </div>
           </template>
-          <h3 class="text-sm font-semibold text-gray-500 mb-3">アンケート</h3>
-          <div
-            v-for="(s, i) in slides"
-            :key="s.id"
-            class="mb-4 space-y-2 p-3 rounded-xl border border-gray-100 bg-gray-50/60"
-          >
-            <div class="flex items-center gap-2">
-              <input
-                v-model="s.title"
-                placeholder="Title"
-                class="flex-1 border rounded-lg px-3 py-2 focus-ring text-sm"
-              />
-              <UiButton size="sm" variant="ghost" @pressed="removeSlide(i)">削除</UiButton>
+
+          <!-- Compact editor: show current slide only -->
+          <div class="space-y-3">
+            <div class="flex items-center justify-between">
+              <div class="text-sm text-gray-600">Slide {{ (currentIndex || 0) + 1 }} / {{ slides.length }}</div>
+              <div class="flex items-center gap-2">
+                <UiButton size="sm" variant="ghost" @pressed="prevSlide">Prev</UiButton>
+                <UiButton size="sm" variant="ghost" @pressed="nextSlide">Next</UiButton>
+              </div>
             </div>
-            <OptionList v-model="s.choices" />
-          </div>
-          <div class="flex flex-wrap items-center gap-3">
-            <UiButton variant="secondary" size="sm" @pressed="addSlide"
-              >アンケートを追加する</UiButton
-            >
-            <UiButton variant="primary" size="sm" @pressed="onSaveSlides" :disabled="!roomCode"
-              >アンケートを保存する</UiButton
-            >
-          </div>
-        </UiCard>
-        <UiCard v-if="roomCode" title="Slide Control" titleClass="text-gray-700">
-          <div class="flex items-center gap-4 flex-wrap">
-            <span class="text-sm text-gray-600"
-              >Current: <strong class="text-indigo-600">{{ currentIndex }}</strong></span
-            >
-            <div class="ml-auto flex items-center gap-2">
-              <UiButton size="sm" variant="ghost" @pressed="prevSlide">Prev</UiButton>
-              <UiButton size="sm" variant="primary" @pressed="nextSlide">Next</UiButton>
+
+            <div v-if="slides && slides.length" class="p-3 rounded-lg border bg-gray-50">
+              <div class="flex items-center gap-2 mb-2">
+                <input v-model="slides[currentIndex].title" placeholder="Title" class="flex-1 border rounded-lg px-3 py-2 focus-ring text-sm" />
+                <UiButton size="sm" variant="ghost" @pressed="removeSlide(currentIndex)">削除</UiButton>
+              </div>
+              <OptionList v-model="slides[currentIndex].choices" />
+            </div>
+            <div v-else class="text-sm text-gray-500">スライドがありません。追加してください。</div>
+
+            <div class="flex items-center gap-3 mt-2">
+              <UiButton variant="secondary" size="sm" @pressed="addSlide">アンケートを追加</UiButton>
+              <UiButton variant="primary" size="sm" @pressed="onSaveSlides" :disabled="!roomCode">保存</UiButton>
+              <div class="text-xs text-gray-500">現在のスライドだけ編集できます。Prev/Nextで切替。</div>
             </div>
           </div>
         </UiCard>
