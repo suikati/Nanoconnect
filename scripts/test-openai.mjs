@@ -10,7 +10,14 @@ if (!key) {
 }
 
 const client = new OpenAI({ apiKey: key });
-const mode = process.argv[2] || 'playbyplay';
+// Determine mode from CLI args, ignore npm's `--` if present
+const argv = process.argv.slice(2).filter(a => a !== '--');
+const mode = argv[0] || 'playbyplay';
+
+process.on('uncaughtException', (err) => {
+  console.error('Uncaught exception in test-openai:', err?.stack || err);
+  process.exit(1);
+});
 
 async function runPlaybyplay() {
   const title = '何系の学部ですか？';
