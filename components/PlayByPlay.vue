@@ -10,9 +10,10 @@
 </template>
 
 <script setup lang="ts">
-import { defineProps } from 'vue';
+import { defineProps, computed } from 'vue';
 const props = defineProps<{ text?: string; loading?: boolean }>();
-const { text = '', loading = false } = props as any;
+const text = computed(() => (props.text ?? ''));
+const loading = computed(() => (props.loading ?? false));
 </script>
 
 <style scoped>
