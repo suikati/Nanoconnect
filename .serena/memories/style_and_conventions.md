@@ -8,6 +8,8 @@
 - Tests: No test framework found yet; recommend Vitest/Jest if adding tests.
 
 Conventions to follow:
+
 - Keep logic in composables (`composables/`) and UI in `components/`.
 - Use props/emit and composition API; introduce Pinia only if state complexity grows.
 - Keep Firebase calls in composables or plugins, avoid direct DB calls in templates.
+- 関数の定義はアロー関数で統一して。

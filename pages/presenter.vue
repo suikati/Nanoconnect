@@ -63,14 +63,29 @@
           <VoteChart :counts="aggregates.counts" :choices="currentSlideChoices" />
         </UiCard>
         <UiCard v-if="roomCode" title="Comments" titleClass="text-pink-600">
-          <ul class="space-y-3 max-h-[460px] overflow-y-auto pr-1">
+          <div class="flex items-center justify-between mb-3">
+            <div class="text-sm text-gray-600">実況プレビュー</div>
+            <div class="flex items-center gap-2">
+              <UiButton size="sm" variant="secondary" @pressed="fetchPlay">実況更新</UiButton>
+            </div>
+          </div>
+          <PlayByPlay :text="playText" :loading="playLoading" />
+          <div class="my-3 border-t pt-3"></div>
+
+          <div class="mb-3 flex items-center gap-2">
+            <UiButton size="sm" variant="secondary" @pressed="fetchComment">コメントを生成</UiButton>
+            <div class="text-xs text-gray-500">選択肢を一つ選んでから押してください（開発用）</div>
+          </div>
+          <LiveComment :text="commentTextLive" :loading="commentLoading" />
+
+          <ul class="space-y-3 max-h-[460px] overflow-y-auto pr-1 mt-3">
             <CommentItem
               v-for="c in comments"
               :key="c.id"
               :comment="c"
               :currentAnonId="myAnonId"
-              @like="onLikeComment"
-              @delete="onDeleteComment"
+              @like="() => onLikeComment(c.id)"
+              @delete="() => onDeleteComment(c.id)"
             />
           </ul>
         </UiCard>
@@ -90,6 +105,8 @@ import UiButton from '~/components/ui/UiButton.vue';
 import UiCard from '~/components/ui/UiCard.vue';
 import CommentItem from '~/components/CommentItem.vue';
 import OptionList from '~/components/OptionList.vue';
+import PlayByPlay from '~/components/PlayByPlay.vue';
+import LiveComment from '~/components/LiveComment.vue';
 import type { Aggregate, Comment as CommentType, Choice, Slide } from '~/types/models';
 
 type RoomApi = {
@@ -129,6 +146,48 @@ const comments = ref<UIComment[]>([]);
 let unsubComments: (() => void) | null = null;
 const myAnonId = ref<string | null>(null);
 const isDev = false; // simplified: devログ非表示
+const playText = ref('');
+const playLoading = ref(false);
+const commentTextLive = ref('');
+const commentLoading = ref(false);
+
+async function fetchPlay() {
+  if (!roomCode.value) return;
+  playLoading.value = true;
+  try {
+    const resp = await fetch('/api/openai', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title: slides[currentIndex.value]?.title || '', choices: currentSlideChoices.value }),
+    });
+    const data = await resp.json();
+    playText.value = data?.text || '(生成失敗)';
+  } catch (e: any) {
+    playText.value = '(エラー)';
+  } finally {
+    playLoading.value = false;
+  }
+}
+
+async function fetchComment() {
+  if (!roomCode.value) return;
+  // pick first choice for demo if none selected
+  const choice = currentSlideChoices.value[0];
+  commentLoading.value = true;
+  try {
+    const resp = await fetch('/api/openai', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title: slides[currentIndex.value]?.title || '', selectedChoice: choice?.text ?? '' }),
+    });
+    const data = await resp.json();
+    commentTextLive.value = data?.text || '(生成失敗)';
+  } catch (e: any) {
+    commentTextLive.value = '(エラー)';
+  } finally {
+    commentLoading.value = false;
+  }
+}
 // リスナーのクリーンアップ用ハンドル
 let unsubSlideIndex: (() => void) | null = null;
 let unsubAggregates: (() => void) | null = null;

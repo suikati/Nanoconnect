@@ -67,14 +67,31 @@
               >Post</UiButton
             >
           </div>
+
+          <div class="mb-3">
+            <div class="flex items-center justify-between mb-2">
+              <div class="text-sm text-gray-600">実況プレビュー（開発用）</div>
+              <UiButton size="sm" variant="secondary" @pressed="fetchPlay">実況更新</UiButton>
+            </div>
+            <PlayByPlay :text="playText" :loading="playLoading" />
+          </div>
+
+          <div class="mb-3">
+            <div class="flex items-center justify-between mb-2">
+              <div class="text-sm text-gray-600">コメント生成（開発用）</div>
+              <UiButton size="sm" variant="secondary" @pressed="fetchComment">生成</UiButton>
+            </div>
+            <LiveComment :text="commentTextLive" :loading="commentLoading" />
+          </div>
+
           <ul class="space-y-3 max-h-[420px] overflow-y-auto pr-1">
             <CommentItem
               v-for="c in comments"
               :key="c.id"
               :comment="c"
               :currentAnonId="anonId"
-              @like="onLikeComment"
-              @delete="onDeleteComment"
+              @like="() => onLikeComment(c.id)"
+              @delete="() => onDeleteComment(c.id)"
             />
           </ul>
         </UiCard>
@@ -96,6 +113,8 @@ import UiButton from '~/components/ui/UiButton.vue';
 import UiCard from '~/components/ui/UiCard.vue';
 import VoteOption from '~/components/VoteOption.vue';
 import CommentItem from '~/components/CommentItem.vue';
+import LiveComment from '~/components/LiveComment.vue';
+import PlayByPlay from '~/components/PlayByPlay.vue';
 import type { Aggregate, Comment as CommentType, Choice, Slide } from '~/types/models';
 
 // ここで使う composable の簡易 API 形
@@ -131,6 +150,10 @@ const commentText = ref('');
 const comments = ref<UIComment[]>([]);
 const currentCode = ref<string | null>(null);
 const isDev = false; // simplified: devログ非表示
+const playText = ref('');
+const playLoading = ref(false);
+const commentTextLive = ref('');
+const commentLoading = ref(false);
 let unsubSlide: (() => void) | null = null;
 let unsubSlideContent: (() => void) | null = null;
 let unsubAgg: (() => void) | null = null;
@@ -317,6 +340,45 @@ const onPostComment = async () => {
     pushLog('comment error: ' + e.message);
   }
 };
+
+async function fetchPlay() {
+  const code = currentCode.value;
+  if (!code) return;
+  playLoading.value = true;
+  try {
+    const resp = await fetch('/api/openai', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title: slide.value?.title || '', choices: choicesArray.value }),
+    });
+    const data = await resp.json();
+    playText.value = data?.text || '(生成失敗)';
+  } catch (e: any) {
+    playText.value = '(エラー)';
+  } finally {
+    playLoading.value = false;
+  }
+}
+
+async function fetchComment() {
+  const code = currentCode.value;
+  if (!code) return;
+  const choice = choicesArray.value[0];
+  commentLoading.value = true;
+  try {
+    const resp = await fetch('/api/openai', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title: slide.value?.title || '', selectedChoice: choice?.text ?? '' }),
+    });
+    const data = await resp.json();
+    commentTextLive.value = data?.text || '(生成失敗)';
+  } catch (e: any) {
+    commentTextLive.value = '(エラー)';
+  } finally {
+    commentLoading.value = false;
+  }
+}
 
 const onLikeComment = async (commentId: string) => {
   const code = currentCode.value;
