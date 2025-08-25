@@ -8,7 +8,7 @@ try {
 }
 import OpenAI from 'openai';
 
-const MODEL = 'gpt-5-mini-2025-08-07';
+const MODEL = 'gpt-5-nano-2025-08-07';
 // Prefer explicit OPENAI_KEY, fall back to common variants
 const key = process.env.OPENAI_KEY || process.env.OPENAI_API_KEY || process.env.openaiApiKey;
 if (!key) {
@@ -41,11 +41,11 @@ async function runPlaybyplay() {
   console.log(prompt);
   console.log('--- Response ---');
 
-  const res = await client.chat.completions.create({
+  const res = await client.responses.create({
     model: MODEL,
-    messages: [{ role: 'user', content: prompt }],
-    max_tokens: 150,
-    temperature: 0.6,
+    input: [{ role: 'user', content: prompt }],
+    text: { verbosity: "low" },
+    reasoning: { effort: "minimal" }
   });
 
   console.log(res.choices?.[0]?.message?.content ?? '(no content)');
@@ -54,17 +54,17 @@ async function runPlaybyplay() {
 async function runComment() {
   const title = '何色が好き？';
   const choiceText = '赤';
-  const prompt = `あなたはナノすけです。アンケートのタイトル: "${title}" に対して、ユーザーが選んだ選択肢: "${choiceText}" に合わせた親しみやすい短い日本語コメント（1文）を返してください。`;
+  const prompt = `あなたはマスコットキャラクターのナノすけです。アンケートのタイトル: "${title}" に対して、ユーザーが選んだ選択肢: "${choiceText}" に合わせた親しみやすい短い日本語コメント（1文）を返してください。`;
 
   console.log('--- Prompt ---');
   console.log(prompt);
   console.log('--- Response ---');
 
-  const res = await client.chat.completions.create({
+  const res = await client.responses.create({
     model: MODEL,
-    messages: [{ role: 'user', content: prompt }],
-    max_tokens: 80,
-    temperature: 0.8,
+    input: [{ role: 'user', content: prompt }],
+    text: { verbosity: "low" },
+    reasoning: { effort: "low" }
   });
 
   console.log(res.choices?.[0]?.message?.content ?? '(no content)');
