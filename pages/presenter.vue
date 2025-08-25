@@ -172,6 +172,7 @@ const ensureR = () => {
 };
 
 const addSlide = () => {
+  console.debug('presenter: addSlide called');
   // assign a palette color immediately so the color picker shows a value
   const idx = slides.length % palette.length;
   slides.push({
@@ -181,10 +182,12 @@ const addSlide = () => {
   });
 };
 const removeSlide = (i: number) => {
+  console.debug('presenter: removeSlide', i);
   slides.splice(i, 1);
 };
 
 const onCreateRoom = async () => {
+  console.debug('presenter: onCreateRoom called');
   try {
     ensureR();
     const code = await (r as any).createRoom();
@@ -196,6 +199,7 @@ const onCreateRoom = async () => {
 };
 
 const onSaveSlides = async () => {
+  console.debug('presenter: onSaveSlides called');
   if (!roomCode.value) {
     log.value = 'no room';
     return;
