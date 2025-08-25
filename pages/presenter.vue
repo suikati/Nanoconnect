@@ -41,7 +41,7 @@
             <div class="flex items-center gap-3 mt-2">
               <UiButton variant="secondary" size="sm" @pressed="addSlide">アンケートを追加</UiButton>
               <UiButton variant="primary" size="sm" @pressed="onSaveSlides" :disabled="!roomCode">保存</UiButton>
-              <div class="text-xs text-gray-500">現在のスライドだけ編集できます。Prev/Nextで切替。</div>
+              <div class="text-xs text-gray-500">Prev/Nextで切替ができます。</div>
             </div>
             <div class="flex justify-end mt-3">
               <div class="flex items-center gap-2">
