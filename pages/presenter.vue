@@ -25,8 +25,7 @@
             <div class="flex items-center justify-between">
               <div class="text-sm text-gray-600">Slide {{ (currentIndex || 0) + 1 }} / {{ slides.length }}</div>
               <div class="flex items-center gap-2">
-                <UiButton size="sm" variant="ghost" @pressed="prevSlide">Prev</UiButton>
-                <UiButton size="sm" variant="ghost" @pressed="nextSlide">Next</UiButton>
+                <!-- placeholder to keep header aligned -->
               </div>
             </div>
 
@@ -43,6 +42,12 @@
               <UiButton variant="secondary" size="sm" @pressed="addSlide">アンケートを追加</UiButton>
               <UiButton variant="primary" size="sm" @pressed="onSaveSlides" :disabled="!roomCode">保存</UiButton>
               <div class="text-xs text-gray-500">現在のスライドだけ編集できます。Prev/Nextで切替。</div>
+            </div>
+            <div class="flex justify-end mt-3">
+              <div class="flex items-center gap-2">
+                <UiButton size="sm" variant="ghost" @pressed="prevSlide">Prev</UiButton>
+                <UiButton size="sm" variant="ghost" @pressed="nextSlide">Next</UiButton>
+              </div>
             </div>
           </div>
         </UiCard>

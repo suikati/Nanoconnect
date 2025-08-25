@@ -5,10 +5,10 @@
         <OptionItem
           :option="o"
           :index="idx"
-          @update="onUpdate"
-          @remove="onRemove"
-          @move-up="moveUp(idx)"
-          @move-down="moveDown(idx)"
+          @update="onUpdate(idx, $event)"
+          @remove="onRemove(idx)"
+          @move-up="() => moveUp(idx)"
+          @move-down="() => moveDown(idx)"
         />
       </li>
     </ul>
@@ -17,7 +17,7 @@
         class="w-full bg-gray-100 rounded-xl py-3 text-sm text-gray-700"
         @click.prevent="addOption"
       >
-        + Add option
+        選択肢を追加
       </button>
     </div>
   </div>
@@ -29,7 +29,7 @@ import OptionItem from '~/components/OptionItem.vue';
 import type { Choice } from '~/types/models';
 const props = defineProps<{ modelValue?: Array<Partial<Choice> & { id?: string }> }>();
 const emit = defineEmits<{
-  'update:modelValue': (v: Array<{ id: string; text: string; color?: string }>) => void;
+  (e: 'update:modelValue', v: Array<{ id: string; text: string; color?: string }> ): void;
 }>();
 
 type Opt = { id: string; text: string; color?: string };
@@ -114,16 +114,14 @@ const moveDown = (idx: number) => {
   emit('update:modelValue', toRaw(options));
 };
 
-const onUpdate = (opt: any) => {
-  const idx = options.findIndex((o: Opt) => o.id === opt.id);
-  if (idx >= 0) {
+const onUpdate = (idx: number, opt: any) => {
+  if (idx >= 0 && idx < options.length) {
     options[idx] = opt;
     emit('update:modelValue', toRaw(options));
   }
 };
-const onRemove = (id: string) => {
-  const idx = options.findIndex((o: Opt) => o.id === id);
-  if (idx >= 0) {
+const onRemove = (idx: number) => {
+  if (idx >= 0 && idx < options.length) {
     options.splice(idx, 1);
     emit('update:modelValue', toRaw(options));
   }
