@@ -176,10 +176,16 @@ const addSlide = () => {
     title: '',
     choices: [{ text: '', color: palette[idx] }],
   });
+  // switch to the newly added slide
+  currentIndex.value = slides.length - 1;
 };
 const removeSlide = (i: number) => {
   console.debug('presenter: removeSlide', i);
   slides.splice(i, 1);
+  // if currentIndex is out of bounds after removal, clamp it
+  if (currentIndex.value >= slides.length) {
+    currentIndex.value = Math.max(0, slides.length - 1);
+  }
 };
 
 const onCreateRoom = async () => {
@@ -255,11 +261,20 @@ const onSaveSlides = async () => {
 };
 
 const setIdx = async (idx: number) => {
-  if (!roomCode.value) return;
+  // clamp requested index into valid range
+  const len = slides.length;
+  const clamped = len > 0 ? Math.max(0, Math.min(idx, len - 1)) : 0;
+
+  // If no room is active yet, just update local index
+  if (!roomCode.value) {
+    currentIndex.value = clamped;
+    return;
+  }
+
   try {
     ensureR();
-    await (r as any).setSlideIndex(roomCode.value, idx);
-    currentIndex.value = idx;
+    await (r as any).setSlideIndex(roomCode.value, clamped);
+    currentIndex.value = clamped;
   } catch (e: any) {
     log.value = `set index error: ${e.message}`;
   }
