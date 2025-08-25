@@ -17,7 +17,18 @@ export function buildCommentPrompt(title: string, selectedText: string) {
   return `あなたはナノすけです。アンケートのタイトル: "${title}" に対して、ユーザーが選んだ選択肢 "${selectedText}" に合わせた親しみやすい短い日本語コメント（1文）を返してください。`;
 }
 export async function handler(event: any) {
-  const body = await (globalThis as any).readBody?.(event) ?? event?.body;
+  let body: any = await (globalThis as any).readBody?.(event) ?? event?.body;
+
+  // If body is a JSON string (some runtimes), try to parse it
+  if (typeof body === 'string') {
+    try {
+      body = JSON.parse(body);
+    } catch (err) {
+      const e: any = err;
+      if (event?.node?.res) event.node.res.statusCode = 400;
+      return { error: 'invalid_json', detail: String(e?.message || e) };
+    }
+  }
 
   // Basic validation
   if (!body || typeof body !== 'object') {
