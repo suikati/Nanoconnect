@@ -5,10 +5,8 @@ import * as client from '../server/utils/openaiClient';
 // Helper to mock OpenAI client
 function mockOpenAI(responseText: string) {
   return {
-    chat: {
-      completions: {
-        create: async () => ({ choices: [{ message: { content: responseText } }], model: 'mock-model' }),
-      },
+    responses: {
+      create: async () => ({ output_text: responseText, model: 'mock-model' }),
     },
   } as any;
 }

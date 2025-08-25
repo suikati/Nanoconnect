@@ -51,20 +51,20 @@ export async function handler(event: any) {
     const prompt = buildCommentPrompt(req.title, String(selectedText));
 
     try {
-      const result = await client.chat.completions.create({
-        model: MODEL,
-        messages: [{ role: 'user', content: prompt }],
-        max_tokens: 80,
-        temperature: 0.8,
-      });
+        const result = await client.responses.create({
+          model: MODEL,
+          input: prompt,
+          reasoning: { effort: 'minimal' },
+          text: { verbosity: 'low' },
+        });
 
-      const text = result.choices?.[0]?.message?.content?.trim() ?? 'ナノすけが少し眠いナノ…';
-      const out = { text, meta: { model: result.model } } as CommentResponse;
+        const text = result.output_text ?? (result.output?.map((o: any) => (o?.content?.map((c: any) => c?.text ?? '').join(''))).join('\n')) ?? 'ナノすけが少し眠いナノ…';
+        const out = { text, meta: { model: result.model } } as CommentResponse;
 
-      (globalThis as any).__OPENAI_CACHE.set(commentCacheKey, out);
-      setTimeout(() => (globalThis as any).__OPENAI_CACHE.delete(commentCacheKey), 60 * 1000);
+        (globalThis as any).__OPENAI_CACHE.set(commentCacheKey, out);
+        setTimeout(() => (globalThis as any).__OPENAI_CACHE.delete(commentCacheKey), 60 * 1000);
 
-      return out;
+        return out;
     } catch (err: any) {
       console.error('openai comment error', err?.message || err);
       if (event?.node?.res) event.node.res.statusCode = 500;
@@ -97,20 +97,20 @@ export async function handler(event: any) {
   const prompt = buildPlaybyplayPrompt(req.title, req.choices, (req as PlaybyplayRequest).tone);
 
   try {
-    const result = await client.chat.completions.create({
-      model: MODEL,
-      messages: [{ role: 'user', content: prompt }],
-      max_tokens: 150,
-      temperature: 0.6,
-    });
+      const result = await client.responses.create({
+        model: MODEL,
+        input: prompt,
+        reasoning: { effort: 'minimal' },
+        text: { verbosity: 'low' },
+      });
 
-    const text = result.choices?.[0]?.message?.content?.trim() ?? '';
-    const out = { text, meta: { model: result.model } } as PlaybyplayResponse;
+      const text = result.output_text ?? (result.output?.map((o: any) => (o?.content?.map((c: any) => c?.text ?? '').join(''))).join('\n')) ?? '';
+      const out = { text, meta: { model: result.model } } as PlaybyplayResponse;
 
-    (globalThis as any).__OPENAI_CACHE.set(cacheKey, out);
-    setTimeout(() => (globalThis as any).__OPENAI_CACHE.delete(cacheKey), 30 * 1000);
+      (globalThis as any).__OPENAI_CACHE.set(cacheKey, out);
+      setTimeout(() => (globalThis as any).__OPENAI_CACHE.delete(cacheKey), 30 * 1000);
 
-    return out;
+      return out;
   } catch (err: any) {
     console.error('openai error', err?.message || err);
     if (event?.node?.res) event.node.res.statusCode = 500;

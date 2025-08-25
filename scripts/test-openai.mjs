@@ -8,7 +8,7 @@ try {
 }
 import OpenAI from 'openai';
 
-const MODEL = 'gpt-5-nano-2025-08-07';
+const MODEL = 'gpt-5-mini-2025-08-07';
 // Prefer explicit OPENAI_KEY, fall back to common variants
 const key = process.env.OPENAI_KEY || process.env.OPENAI_API_KEY || process.env.openaiApiKey;
 if (!key) {
@@ -43,12 +43,13 @@ async function runPlaybyplay() {
 
   const res = await client.responses.create({
     model: MODEL,
-    input: [{ role: 'user', content: prompt }],
-    text: { verbosity: "low" },
-    reasoning: { effort: "minimal" }
+    input: prompt,
+    text: { verbosity: 'low' },
+    reasoning: { effort: 'minimal' },
   });
 
-  console.log(res.choices?.[0]?.message?.content ?? '(no content)');
+  const out = res.output_text ?? (res.output?.map(o => (o?.content?.map(c => c?.text ?? '').join(''))).join('\n')) ?? '(no content)';
+  console.log(out);
 }
 
 async function runComment() {
@@ -62,12 +63,13 @@ async function runComment() {
 
   const res = await client.responses.create({
     model: MODEL,
-    input: [{ role: 'user', content: prompt }],
-    text: { verbosity: "low" },
-    reasoning: { effort: "low" }
+    input: prompt,
+    text: { verbosity: 'low' },
+    reasoning: { effort: 'minimal' },
   });
 
-  console.log(res.choices?.[0]?.message?.content ?? '(no content)');
+  const out = res.output_text ?? (res.output?.map(o => (o?.content?.map(c => c?.text ?? '').join(''))).join('\n')) ?? '(no content)';
+  console.log(out);
 }
 
 async function main() {
