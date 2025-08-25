@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { buildPlaybyplayPrompt, handler } from '~/server/api/openai';
+import { buildPlaybyplayPrompt, handler } from '../server/api/openai';
 
 describe('openai API', () => {
   it('buildPlaybyplayPrompt includes percentages', () => {
