@@ -31,22 +31,29 @@
 
             <div v-if="slides && slides[currentIndex]" class="p-3 rounded-lg border bg-gray-50">
               <div class="flex items-center gap-2 mb-2">
-                <input v-model="slides[currentIndex].title" placeholder="Title" class="flex-1 border rounded-lg px-3 py-2 focus-ring text-sm" />
+                <input ref="titleInput" v-model="slides[currentIndex].title" placeholder="Title" class="flex-1 border rounded-lg px-3 py-2 focus-ring text-sm" />
                 <UiButton size="sm" variant="ghost" @pressed="removeSlide(currentIndex)">削除</UiButton>
               </div>
               <OptionList v-model="slides[currentIndex].choices" />
             </div>
             <div v-else class="text-sm text-gray-500">スライドがありません。追加してください。</div>
 
-            <div class="flex items-center gap-3 mt-2">
-              <UiButton variant="secondary" size="sm" @pressed="addSlide">アンケートを追加</UiButton>
-              <UiButton variant="primary" size="sm" @pressed="onSaveSlides" :disabled="!roomCode">保存</UiButton>
-              <div class="text-xs text-gray-500">Prev/Nextで切替ができます。</div>
-            </div>
-            <div class="flex justify-end mt-3">
+            <div class="flex items-center gap-3 mt-2 justify-between">
+              <div class="flex items-center gap-3">
+                <UiButton variant="secondary" size="sm" @pressed="addSlide">アンケートを追加</UiButton>
+                <UiButton variant="primary" size="sm" @pressed="onSaveSlides" :disabled="!roomCode">保存</UiButton>
+              </div>
               <div class="flex items-center gap-2">
-                <UiButton size="sm" variant="ghost" @pressed="prevSlide">Prev</UiButton>
-                <UiButton size="sm" variant="ghost" @pressed="nextSlide">Next</UiButton>
+                <UiButton size="sm" variant="ghost" @pressed="prevSlide" aria-label="prev">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                  </svg>
+                </UiButton>
+                <UiButton size="sm" variant="ghost" @pressed="nextSlide" aria-label="next">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                  </svg>
+                </UiButton>
               </div>
             </div>
           </div>
@@ -92,7 +99,7 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, ref, onMounted, watch, onUnmounted } from 'vue';
+import { reactive, ref, onMounted, watch, onUnmounted, nextTick } from 'vue';
 import useRoom from '~/composables/useRoom';
 import VoteChart from '~/components/VoteChart.vue';
 import createDbListener from '~/composables/useDbListener';
@@ -143,6 +150,7 @@ const myAnonId = ref<string | null>(null);
 const isDev = false; // simplified: devログ非表示
 const playText = ref('');
 const playLoading = ref(false);
+const titleInput = ref<HTMLInputElement | null>(null);
 
 async function fetchPlay() {
   if (!roomCode.value) return;
@@ -183,6 +191,14 @@ const addSlide = () => {
   });
   // switch to the newly added slide
   currentIndex.value = slides.length - 1;
+  // focus the title input on next tick if available
+  nextTick(() => {
+    try {
+      titleInput.value?.focus();
+    } catch (e) {
+      /* ignore */
+    }
+  });
 };
 const removeSlide = (i: number) => {
   console.debug('presenter: removeSlide', i);
