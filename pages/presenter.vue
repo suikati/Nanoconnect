@@ -106,7 +106,6 @@ import UiCard from '~/components/ui/UiCard.vue';
 import CommentItem from '~/components/CommentItem.vue';
 import OptionList from '~/components/OptionList.vue';
 import PlayByPlay from '~/components/PlayByPlay.vue';
-import LiveComment from '~/components/LiveComment.vue';
 import type { Aggregate, Comment as CommentType, Choice, Slide } from '~/types/models';
 
 type RoomApi = {
@@ -117,7 +116,6 @@ type RoomApi = {
   likeComment?: (code: string, commentId: string) => Promise<void>;
   deleteComment?: (code: string, commentId: string) => Promise<void>;
 };
-
 type UIComment = CommentType & { id: string };
 
 let r: RoomApi | null = null;

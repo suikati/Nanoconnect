@@ -39,6 +39,14 @@
                 />
               </li>
             </ul>
+            <!-- LiveComment placed under choices for audience, unified with voting UI -->
+            <div class="mt-3">
+              <div class="flex items-center gap-2 mb-2">
+                <UiButton size="sm" variant="secondary" @pressed="fetchComment">コメント生成</UiButton>
+                <div class="text-xs text-gray-500">選択肢の下でコメントを生成します（開発用）</div>
+              </div>
+              <LiveComment :text="commentTextLive" :loading="commentLoading" />
+            </div>
             <div v-if="voted" class="text-xs text-green-600">
               Voted: <strong>{{ myVote }}</strong>
             </div>
@@ -76,13 +84,7 @@
             <PlayByPlay :text="playText" :loading="playLoading" />
           </div>
 
-          <div class="mb-3">
-            <div class="flex items-center justify-between mb-2">
-              <div class="text-sm text-gray-600">コメント生成（開発用）</div>
-              <UiButton size="sm" variant="secondary" @pressed="fetchComment">生成</UiButton>
-            </div>
-            <LiveComment :text="commentTextLive" :loading="commentLoading" />
-          </div>
+          <!-- LiveComment moved to be shown under choices in the left column -->
 
           <ul class="space-y-3 max-h-[420px] overflow-y-auto pr-1">
             <CommentItem
