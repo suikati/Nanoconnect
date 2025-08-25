@@ -363,12 +363,21 @@ async function fetchPlay() {
 async function fetchComment() {
   const code = currentCode.value;
   if (!code) return;
-  const choice = choicesArray.value[0];
-  const selectedText = choice?.text ?? '';
+  // Prefer the user's selected vote (myVote) if present, otherwise fall back to first choice
+  let selectedText = '';
+  if (myVote.value) {
+    const found = choicesArray.value.find((c) => c.key === myVote.value);
+    selectedText = found?.text ?? '';
+  }
+  if (!selectedText) {
+    const choice = choicesArray.value[0];
+    selectedText = choice?.text ?? '';
+  }
   if (!selectedText) {
     commentTextLive.value = '(選択肢が未定義のためコメントを生成できません)';
     return;
   }
+  try { console.debug('fetchComment selectedText', selectedText); } catch (e) {}
   commentLoading.value = true;
   try {
     const resp = await fetch('/api/openai', {

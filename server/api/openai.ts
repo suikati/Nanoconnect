@@ -30,7 +30,10 @@ export async function handler(event: any) {
 
   if (isComment) {
     const req = body as CommentRequest;
-    if (!req.title || !req.selectedChoice) {
+    // Log request body briefly for debugging (no secrets)
+    try { console.debug('openai comment request', { title: req.title, selectedChoice: req.selectedChoice ? (typeof req.selectedChoice === 'string' ? req.selectedChoice.slice(0,100) : '[object]') : req.selectedChoice }); } catch (e) { /* ignore */ }
+    // Treat only undefined/null as missing; accept empty string and handle below
+    if (!req.title || typeof req.selectedChoice === 'undefined' || req.selectedChoice === null) {
       if (event?.node?.res) event.node.res.statusCode = 400;
       return { error: 'missing_fields' } as CommentResponse;
     }
