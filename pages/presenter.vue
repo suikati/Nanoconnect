@@ -3,29 +3,6 @@
   <div class="max-w-6xl mx-auto grid xl:grid-cols-5 gap-8">
       <!-- Left: Compact slide editor + control -->
       <div class="xl:col-span-3 space-y-6">
-        <!-- Slide Sorter -->
-        <UiCard variant="glass" padding="sm" title="スライド一覧" titleClass="text-primary-600 font-display" interactive>
-          <div class="flex items-center justify-between mb-2 text-[11px] sm:text-xs">
-            <div class="flex items-center gap-2">
-              <span class="text-gray-600">順序編集</span>
-              <span v-if="reorderDirty" class="text-rose-600 font-semibold">未保存</span>
-            </div>
-            <UiButton size="sm" variant="secondary" @pressed="addSlide">追加</UiButton>
-          </div>
-          <SlideSorter
-            :slides="slides"
-            :current-slide-id="slides[currentIndex]?.id"
-            @select="(i:number) => setIdx(i)"
-            @move="onMoveSlide"
-            @remove="removeSlide"
-          />
-          <div class="mt-3 flex gap-2 justify-end">
-            <UiButton size="sm" variant="primary" :disabled="!roomCode || savingSlides || !reorderDirty" @pressed="onSaveSlides">
-              <span v-if="!savingSlides">順序を保存</span>
-              <span v-else>保存中...</span>
-            </UiButton>
-          </div>
-        </UiCard>
         <UiCard variant="glass" interactive padding="md">
           <template #header>
             <div class="flex items-center gap-3">
@@ -44,7 +21,32 @@
           </template>
 
           <!-- Compact editor: show current slide only -->
-          <div class="space-y-3">
+          <div class="space-y-6">
+            <!-- Slide sorter + global actions -->
+            <div class="space-y-2">
+              <div class="flex items-center justify-between text-[11px] sm:text-xs">
+                <div class="flex items-center gap-2">
+                  <span class="text-gray-600">スライド一覧 / 並び替え</span>
+                  <span v-if="reorderDirty" class="text-rose-600 font-semibold">未保存</span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <UiButton size="sm" variant="secondary" @pressed="addSlide">スライド追加</UiButton>
+                  <UiButton size="sm" variant="primary" :disabled="!roomCode || savingSlides || slides.length===0" @pressed="onSaveSlides">
+                    <span v-if="!savingSlides">保存</span>
+                    <span v-else>保存中...</span>
+                  </UiButton>
+                </div>
+              </div>
+              <SlideSorter
+                :slides="slides"
+                :current-slide-id="slides[currentIndex]?.id"
+                @select="(i:number) => setIdx(i)"
+                @move="onMoveSlide"
+                @remove="removeSlide"
+              />
+            </div>
+            <!-- Current slide editor -->
+            <div class="space-y-3">
             <div class="flex items-center justify-between text-xs sm:text-sm">
               <div class="text-gray-600 font-medium">Slide {{ (currentIndex || 0) + 1 }} / {{ slides.length }}</div>
               <div class="flex items-center gap-2">
@@ -55,29 +57,23 @@
             <div v-if="slides && slides[currentIndex]" class="p-4 rounded-xl border bg-white/70 backdrop-blur-sm shadow-sm space-y-3">
               <div class="flex items-center gap-2 mb-1">
                 <input ref="titleInput" v-model="slides[currentIndex].title" placeholder="タイトル" class="flex-1 border border-primary-200 focus:border-primary-400 focus:ring-2 focus:ring-primary-300/60 rounded-lg px-3 py-2 text-xs sm:text-sm bg-white/80" />
-                <UiButton size="sm" variant="ghost" @pressed="removeSlide(currentIndex)">削除</UiButton>
               </div>
               <OptionList v-model="slides[currentIndex].choices" />
             </div>
             <div v-else class="text-xs sm:text-sm text-gray-500">スライドがありません。追加してください。</div>
 
-            <div class="flex items-center gap-3 mt-2 justify-between">
-              <div class="flex items-center gap-3">
-                <UiButton variant="secondary" size="sm" @pressed="addSlide">アンケートを追加</UiButton>
-                <UiButton variant="primary" size="sm" @pressed="onSaveSlides" :disabled="!roomCode">保存</UiButton>
-              </div>
-              <div class="flex items-center gap-2">
-                <UiButton size="sm" variant="ghost" @pressed="prevSlide" aria-label="prev">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-                  </svg>
-                </UiButton>
-                <UiButton size="sm" variant="ghost" @pressed="nextSlide" aria-label="next">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                  </svg>
-                </UiButton>
-              </div>
+            <div class="flex items-center gap-2 mt-2 justify-end">
+              <UiButton size="sm" variant="ghost" @pressed="prevSlide" aria-label="prev" :disabled="currentIndex<=0">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                </svg>
+              </UiButton>
+              <UiButton size="sm" variant="ghost" @pressed="nextSlide" aria-label="next" :disabled="currentIndex>=slides.length-1">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                </svg>
+              </UiButton>
+            </div>
             </div>
           </div>
         </UiCard>
