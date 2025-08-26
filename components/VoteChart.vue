@@ -92,7 +92,10 @@ function updateLeaderMessage() {
 let rafId: number | null = null;
 const schedule = () => {
   if (rafId != null) return;
-  rafId = requestAnimationFrame(() => {
+  const raf = (typeof window !== 'undefined' && window.requestAnimationFrame)
+    ? window.requestAnimationFrame.bind(window)
+    : (cb: FrameRequestCallback) => setTimeout(() => cb(typeof performance !== 'undefined' && performance.now ? performance.now() : Date.now()), 0) as unknown as number;
+  rafId = raf(() => {
     rafId = null;
     void renderNow();
   });
