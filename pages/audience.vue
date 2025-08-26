@@ -106,6 +106,7 @@
 </template>
 
 <script setup lang="ts">
+definePageMeta({ ssr: false });
 import { ref, reactive, onUnmounted, onMounted } from 'vue';
 import useLiveCommentGenerator from '~/composables/useLiveCommentGenerator';
 import { ref as dbRef, runTransaction, update } from 'firebase/database';

@@ -120,9 +120,10 @@
 </template>
 
 <script setup lang="ts">
+// Disable SSR to avoid Chart.js / window dependent code causing 500 on server render
+definePageMeta({ ssr: false });
 import { reactive, ref, onMounted, watch, onUnmounted, nextTick } from 'vue';
 import useRoom from '~/composables/useRoom';
-import VoteChart from '~/components/VoteChart.vue';
 import createDbListener from '~/composables/useDbListener';
 import AppShell from '~/components/ui/AppShell.vue';
 import UiButton from '~/components/ui/UiButton.vue';
