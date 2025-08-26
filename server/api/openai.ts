@@ -10,7 +10,7 @@ export function buildPlaybyplayPrompt(title: string, choices: { id?: string; tex
     const pct = total > 0 ? Math.round(((c.votes || 0) / total) * 100) : 0;
     return `- ${c.text}: ${pct}%`;
   });
-  return `あなたは司会のリンカです。以下のアンケートのタイトルと各選択肢の割合を参照して、短く（2〜3文）日本語で実況を作ってください。主要結果を先に述べ、接戦なら「接戦」と表現してください。(例)タイトル：「何の果物が好き？」実況(出力)：「桃とレモンの接戦です！最後に勝つのは甘党か酸っぱ党か！」\nタイトル: ${title}\n${lines.join('\n')}`;
+  return `あなたは司会のリンカです。以下のアンケートのタイトルと各選択肢の割合を参照して、短く（2〜3文）日本語で実況を作って盛り上げてください。主要結果を先に述べ、接戦なら「接戦」と表現してください。(例)タイトル：「何の果物が好き？」実況(出力)：「桃とレモンの接戦です！最後に勝つのは甘党か酸っぱ党か！」\nタイトル: ${title}\n${lines.join('\n')}`;
 }
 
 export function buildCommentPrompt(title: string, selectedText: string) {
