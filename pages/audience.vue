@@ -5,8 +5,9 @@
       <div class="lg:col-span-3 space-y-6">
         <UiCard variant="glass" interactive padding="md">
           <template #header>
-            <div class="flex items-center gap-2">
+            <div class="flex items-center gap-3 flex-wrap">
               <span class="text-secondary-600 font-display font-bold text-base sm:text-lg">参加者</span>
+              <span v-if="currentCode" class="text-[10px] sm:text-xs bg-secondary-50 text-secondary-600 px-2 py-1 rounded-full font-mono tracking-wide">{{ currentCode }}</span>
             </div>
           </template>
           <div class="flex flex-wrap items-center gap-3 mb-4 text-xs sm:text-sm">
@@ -19,9 +20,14 @@
           </div>
 
           <div v-if="joined && slide" class="space-y-5">
-            <div class="flex items-center justify-between gap-3 text-xs sm:text-sm">
-              <h2 class="font-semibold text-primary-600 tracking-tight">Slide {{ slideNumber }}: {{ slide.title }}</h2>
-              <span class="text-[10px] sm:text-xs bg-primary-50 text-primary-600 px-2 py-1 rounded-full font-mono tracking-wide">Total {{ aggregates?.total ?? 0 }}</span>
+            <div class="flex items-start justify-between gap-4 text-xs sm:text-sm">
+              <div class="flex flex-col flex-1 min-w-0">
+                <div class="flex items-baseline gap-2 flex-wrap">
+                  <span class="px-2 py-0.5 rounded-full bg-primary-50 text-primary-600 font-semibold text-[10px] sm:text-[11px] tracking-wide">Slide {{ slideNumber }}</span>
+                  <h2 class="font-semibold text-primary-700 tracking-tight text-sm sm:text-base leading-snug truncate flex-1">{{ slide.title || '無題スライド' }}</h2>
+                </div>
+              </div>
+              <span class="text-[10px] sm:text-xs bg-primary-50 text-primary-600 px-2 py-1 rounded-full font-mono tracking-wide whitespace-nowrap">Total {{ aggregates?.total ?? 0 }}</span>
             </div>
             <!-- inline chart removed; main chart appears on right column -->
             <ul class="grid grid-cols-1 sm:grid-cols-2 gap-3">

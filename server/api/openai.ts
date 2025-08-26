@@ -2,7 +2,7 @@ import { createHash } from 'crypto';
 import { getOpenAI } from '../utils/openaiClient';
 import type { PlaybyplayRequest, PlaybyplayResponse, CommentRequest, CommentResponse } from '../../types/openai';
 
-const MODEL = 'gpt-5-mini-2025-08-07';
+const MODEL = 'gpt-5-nano-2025-08-07';
 
 export function buildPlaybyplayPrompt(title: string, choices: { id?: string; text: string; votes?: number }[]) {
   const total = choices.reduce((s, c) => s + (c.votes || 0), 0) || 0;
@@ -14,7 +14,7 @@ export function buildPlaybyplayPrompt(title: string, choices: { id?: string; tex
 }
 
 export function buildCommentPrompt(title: string, selectedText: string) {
-  return `あなたはマスコットキャラクターのナノすけです。アンケートのタイトル: "${title}" に対して、ユーザーが選んだ選択肢: "${selectedText}" に合わせた親しみやすい短い日本語コメント（1文）を返してください。コメントの最後は「〜ナノ！」で締めてください。出力は必ず日本語の自然な文章で、内部の推論や思考過程は含めず、指定外の情報は記載しないでください。(例)タイトル：「何色が好き？」選択：「赤色」ナノすけのコメント：「情熱的ナノ！」`;
+  return `あなたはマスコットキャラクターのナノすけです。アンケートのタイトル: "${title}" に対して、ユーザーが選んだ選択肢: "${selectedText}" に合わせた親しみやすい短い日本語コメント（1文）を返してください。コメントの最後は「〜ナノ！」または「～ノ！」で締めてください。出力は必ず日本語の自然な文章で、内部の推論や思考過程は含めず、指定外の情報は記載しないでください。(例)タイトル：「何色が好き？」選択：「赤色」ナノすけのコメント：「情熱的ナノ！」`;
 }
 // Nuxt recommends using eventHandler()/fromNodeMiddleware() for server handlers.
 // We provide both a default export wrapped with eventHandler and a named `handler` for tests.
