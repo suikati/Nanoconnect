@@ -321,6 +321,12 @@ watch(
   { deep: true, immediate: true },
 );
 
+// chartType 変更時にも再構築（タイプ切替）
+watch(
+  () => props.chartType,
+  () => { void renderChart(); },
+);
+
 function refreshColors() {
   if (!chart) return;
   const d = buildData();

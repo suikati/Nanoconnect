@@ -109,7 +109,6 @@
             />
           </ul>
         </UiCard>
-  <pre class="text-[10px] text-gray-400 whitespace-pre-wrap bg-white/40 rounded p-2 max-h-40 overflow-auto">{{ log }}</pre>
       </div>
     </div>
   </AppShell>
