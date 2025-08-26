@@ -6,7 +6,7 @@
         <UiCard variant="glass" interactive padding="md">
           <template #header>
             <div class="flex items-center gap-3 flex-wrap">
-              <span class="text-secondary-600 font-display font-bold text-base sm:text-lg">参加者</span>
+              <span class="text-secondary-600 font-display font-bold text-base sm:text-lg">Slide</span>
               <span v-if="currentCode" class="text-[10px] sm:text-xs bg-secondary-50 text-secondary-600 px-2 py-1 rounded-full font-mono tracking-wide">{{ currentCode }}</span>
             </div>
           </template>
