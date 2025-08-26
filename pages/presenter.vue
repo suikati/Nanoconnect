@@ -1,93 +1,32 @@
 <template>
   <AppShell>
   <div class="max-w-6xl mx-auto grid xl:grid-cols-5 gap-8">
-      <!-- Left: Compact slide editor + control -->
+      <!-- Left column -->
       <div class="xl:col-span-3 space-y-6">
-        <UiCard variant="glass" interactive padding="md">
-          <template #header>
-            <div class="flex items-center justify-between gap-3 w-full">
-              <h2 class="text-primary-600 font-display font-bold text-sm sm:text-base">アンケート作成</h2>
-              <span v-if="roomCode" class="text-[10px] sm:text-xs bg-primary-50 text-primary-600 px-2 py-1 rounded-full font-mono tracking-wide">{{ roomCode }}</span>
-            </div>
-          </template>
-
-          <!-- Compact editor: show current slide only -->
-          <div class="space-y-6">
-            <!-- Slide sorter + global actions -->
-            <div class="space-y-2">
-              <div class="flex items-center justify-between text-[11px] sm:text-xs">
-                <div class="flex items-center gap-2">
-                  <span class="text-gray-600">スライド一覧 / 並び替え</span>
-                  <span v-if="reorderDirty" class="text-rose-600 font-semibold">未保存</span>
-                </div>
-                <div class="flex items-center gap-2">
-                  <UiButton size="sm" variant="secondary" @pressed="addSlide">スライド追加</UiButton>
-                  <UiButton size="sm" variant="primary" :disabled="!roomCode || savingSlides || slides.length===0" @pressed="onSaveSlides">
-                    <span v-if="!savingSlides">保存</span>
-                    <span v-else>保存中...</span>
-                  </UiButton>
-                </div>
-              </div>
-              <SlideSorter
-                :slides="slides"
-                :current-slide-id="slides[currentIndex]?.id"
-                @select="(i:number) => setIdx(i)"
-                @move="onMoveSlide"
-                @remove="removeSlide"
-              />
-            </div>
-            <!-- Current slide editor -->
-            <div class="space-y-3">
-            <div class="flex items-center justify-between text-xs sm:text-sm">
-              <div class="text-gray-600 font-medium">Slide {{ (currentIndex || 0) + 1 }} / {{ slides.length }}</div>
-              <div class="flex items-center gap-2">
-                <!-- placeholder to keep header aligned -->
-              </div>
-            </div>
-
-            <div v-if="slides && slides[currentIndex]" class="p-4 rounded-xl border bg-white/70 backdrop-blur-sm shadow-sm space-y-3">
-              <div class="flex items-center gap-2 mb-1">
-                <input ref="titleInput" v-model="slides[currentIndex].title" @input="reorderDirty = true" placeholder="タイトル" class="flex-1 border border-primary-200 focus:border-primary-400 focus:ring-2 focus:ring-primary-300/60 rounded-lg px-3 py-2 text-xs sm:text-sm bg-white/80" />
-              </div>
-              <!-- Chart type toggle (radiogroup accessible) -->
-              <div class="flex items-center gap-2 text-[10px] sm:text-xs" role="radiogroup" aria-label="グラフタイプ">
-                <span class="text-gray-500 sr-only">グラフタイプ</span>
-                <button
-                  v-for="t in ['bar','pie']"
-                  :key="t"
-                  type="button"
-                  role="radio"
-                  :aria-checked="(slides[currentIndex].chartType || 'bar') === t"
-                  :tabindex="(slides[currentIndex].chartType || 'bar') === t ? 0 : -1"
-                  class="px-2 py-1 rounded-md border text-[10px] sm:text-xs font-medium transition focus:outline-none focus:ring-2 focus:ring-primary-400"
-                  :class="(slides[currentIndex].chartType || 'bar') === t ? 'bg-primary-600 text-white border-primary-600 shadow-sm' : 'bg-white/70 hover:bg-primary-50 text-gray-600 border-primary-200'"
-                  @click="setChartType(t as any)"
-                  @keydown.enter.prevent="setChartType(t as any)"
-                  @keydown.space.prevent="setChartType(t as any)"
-                >
-                  <span v-if="t==='bar'">棒</span>
-                  <span v-else>円</span>
-                </button>
-              </div>
-              <OptionList :key="slides[currentIndex].id" v-model="slides[currentIndex].choices" @update:modelValue="onChoicesUpdate" />
-            </div>
-            <div v-else class="text-xs sm:text-sm text-gray-500">スライドがありません。追加してください。</div>
-
-            <div class="flex items-center gap-2 mt-2 justify-end">
-              <UiButton size="sm" variant="ghost" @pressed="prevSlide" aria-label="prev" :disabled="currentIndex<=0">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-                </svg>
-              </UiButton>
-              <UiButton size="sm" variant="ghost" @pressed="nextSlide" aria-label="next" :disabled="currentIndex>=slides.length-1">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                </svg>
-              </UiButton>
-            </div>
-            </div>
-          </div>
-        </UiCard>
+        <SlideControls
+          :slides="slides"
+          :current-index="currentIndex"
+          :reorder-dirty="reorderDirty"
+          :room-code="roomCode"
+          :saving-slides="savingSlides"
+          @add="addSlide"
+          @save="onSaveSlides"
+          @select="setIdx"
+          @move="onMoveSlide"
+          @remove="removeSlide"
+        >
+          <SlideEditor
+            :slide="slides[currentIndex] || null"
+            :index="currentIndex"
+            :total="slides.length"
+            @update:title="(v) => { if(slides[currentIndex]) slides[currentIndex].title = v; }"
+            @update:choices="(v:any[]) => { if(slides[currentIndex]) slides[currentIndex].choices = v as any; }"
+            @update:chartType="(t) => setChartType(t)"
+            @prev="prevSlide"
+            @next="nextSlide"
+            @dirty="reorderDirty = true"
+          />
+        </SlideControls>
       </div>
 
       <!-- Right: Unified Live panel & Comments -->
@@ -129,9 +68,9 @@ import AppShell from '~/components/ui/AppShell.vue';
 import UiButton from '~/components/ui/UiButton.vue';
 import UiCard from '~/components/ui/UiCard.vue';
 import CommentItem from '~/components/CommentItem.vue';
-import OptionList from '~/components/OptionList.vue';
 import LiveResultsPanel from '~/components/LiveResultsPanel.vue';
-import SlideSorter from '~/components/SlideSorter.vue';
+import SlideControls from '~/components/SlideControls.vue';
+import SlideEditor from '~/components/SlideEditor.vue';
 import type { Aggregate, Comment as CommentType, Choice, Slide } from '~/types/models';
 
 type RoomApi = {
