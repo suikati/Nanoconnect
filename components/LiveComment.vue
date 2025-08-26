@@ -20,6 +20,5 @@ const loading = computed(() => (props.loading ?? false));
 </script>
 
 <style scoped>
-.avatar { width:4rem; height:4rem; border-radius:1.1rem; box-shadow:0 4px 14px -3px rgba(0,0,0,.28),0 0 0 4px rgba(255,255,255,.9); object-fit:cover; background:#fff; }
-.status-dot { position:absolute; right:4px; bottom:4px; width:12px; height:12px; background:linear-gradient(90deg,#6366f1,#ec4899); border-radius:50%; box-shadow:0 0 0 2px #fff; }
+.avatar { width:4.5rem; height:4.5rem; }
 </style>

@@ -53,7 +53,7 @@ const topPercents = computed(() => {
 </script>
 
 <style scoped>
-.avatar { width:4rem; height:4rem; border-radius:1.1rem; box-shadow:0 4px 14px -2px rgba(99,102,241,0.35),0 0 0 4px rgba(255,255,255,0.95); object-fit:cover; background:#fff; }
+.avatar { width:6.7rem; height:6.7rem; border-radius:4rem; box-shadow:0 4px 14px -2px rgba(99,102,241,0.35),0 0 0 4px rgba(255,255,255,0.95); object-fit:cover; background:#ddd; }
 .chart-wrapper { position:relative; }
 .play-box { position:relative; }
 .summary { line-height:1.2; }
