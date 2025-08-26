@@ -9,7 +9,7 @@
     :aria-disabled="disabled ? 'true' : 'false'"
   >
     <div class="flex items-center gap-2 flex-1 min-w-0">
-      <!-- Check icon when selected -->
+  <!-- 選択時のチェックアイコン -->
       <span v-if="selected" class="flex items-center justify-center w-5 h-5 rounded-full bg-white/20 border border-white/40 shadow-sm">
         <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.2" class="w-3.5 h-3.5 text-white">
           <path stroke-linecap="round" stroke-linejoin="round" d="M4 10.5 8 14l8-8" />
@@ -33,7 +33,7 @@ const props = defineProps<{
 const btnClass = computed(() => {
   const base = 'group w-full text-left px-4 py-3 rounded-full box-border border flex items-center gap-3 justify-between focus-ring relative select-none transition-all duration-150 font-medium text-white';
 
-  // Base background (will be overridden by custom color if provided)
+  // ベース背景（カスタム色があれば後で上書き）
   let appearance = 'bg-primary-400 hover:brightness-105';
 
   if (props.selected) {
@@ -42,7 +42,7 @@ const btnClass = computed(() => {
     appearance += ' border-white/40 shadow-md';
   }
 
-  // Disabled state: only slightly dim non-selected; keep selected vivid
+  // 無効状態: 未選択のみ減光・選択済は強調維持
   let disabledPart = '';
   if (props.disabled) {
     disabledPart = props.selected ? ' cursor-default' : ' opacity-85 brightness-95 cursor-not-allowed';
@@ -53,7 +53,7 @@ const btnClass = computed(() => {
   return [base, appearance, disabledPart].join(' ');
 });
 
-// If custom color provided, use it as background and keep white text for contrast.
+// カスタム色あり: 背景に適用し白文字でコントラスト確保
 const styleOverride = computed(() => {
   const anyChoice: any = props.choice;
   if (anyChoice && anyChoice.color) {
@@ -65,7 +65,7 @@ const styleOverride = computed(() => {
   return {} as any;
 });
 const emit = defineEmits<{ (e: 'vote', choiceKey: string): void }>();
-let locked = false;
+let locked = false; // 連打防止ロック
 const onClick = (e: Event) => {
   try {
     e.stopImmediatePropagation();

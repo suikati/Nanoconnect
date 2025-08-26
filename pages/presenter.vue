@@ -1,7 +1,7 @@
 <template>
   <AppShell>
   <div class="max-w-6xl mx-auto grid xl:grid-cols-5 gap-8">
-      <!-- Left column -->
+  <!-- 左カラム: 編集 / 並び替え -->
       <div class="xl:col-span-3 space-y-6">
         <SlideControls
           :slides="slides"
@@ -29,7 +29,7 @@
         </SlideControls>
       </div>
 
-      <!-- Right: Unified Live panel & Comments -->
+  <!-- 右カラム: Live 結果 + コメント -->
   <div class="xl:col-span-2 space-y-6">
         <LivePanelWrapper
           v-if="localLiveChoices.length"
@@ -59,7 +59,7 @@
 </template>
 
 <script setup lang="ts">
-// Disable SSR to avoid Chart.js / window dependent code causing 500 on server render
+// SSR 無効化: Chart.js / window 依存によるサーバエラー回避
 definePageMeta({ ssr: false });
 import { reactive, ref, onMounted, watch, onUnmounted, nextTick } from 'vue';
 import useRoom from '~/composables/useRoom';
@@ -68,7 +68,7 @@ import AppShell from '~/components/ui/AppShell.vue';
 import UiButton from '~/components/ui/UiButton.vue';
 import UiCard from '~/components/ui/UiCard.vue';
 import CommentItem from '~/components/CommentItem.vue';
-import LiveResultsPanel from '~/components/LiveResultsPanel.vue'; // still used inside wrapper; keep for tree-shaking
+import LiveResultsPanel from '~/components/LiveResultsPanel.vue'; // ラッパ内部利用のため明示インポート（ツリーシェイク抑止）
 import LivePanelWrapper from '~/components/LivePanelWrapper.vue';
 import SlideControls from '~/components/SlideControls.vue';
 import SlideEditor from '~/components/SlideEditor.vue';
@@ -91,7 +91,7 @@ const roomCode = ref('');
 const currentIndex = ref(0);
 const log = ref('');
 
-// TODO: 開発が終わったらplaceholderに変更
+// TODO: 開発終了後 placeholder へ差し替え検討
 const palette = ['#4F46E5', '#EC4899', '#F97316', '#10B981', '#06B6D4', '#F59E0B'];
 const slides = reactive<
   Array<{ id: string; title: string; chartType?: 'bar' | 'pie'; choices: Array<{ id?: string; text: string; color?: string }> }>
@@ -162,7 +162,7 @@ const addSlide = () => {
 const removeSlide = (i: number) => {
   console.debug('presenter: removeSlide', i);
   slides.splice(i, 1);
-  // if currentIndex is out of bounds after removal, clamp it
+  // 削除後に currentIndex が範囲外なら末尾へ丸め
   if (currentIndex.value >= slides.length) {
     currentIndex.value = Math.max(0, slides.length - 1);
   }
@@ -178,11 +178,11 @@ const onMoveSlide = ({ from, to }: { from: number; to: number }) => {
   const newIdx = slides.findIndex((s) => s.id === keepId);
   if (newIdx >= 0) currentIndex.value = newIdx;
   reorderDirty.value = true;
-  // しばらくしたら同期再開（リスナーからの上書きを抑制）
+  // 一時的にリスナー反映を抑制してから再開
   setTimeout(() => (suppressSlideSync.value = false), 250);
 };
 
-// ルーム作成/入室 UI は index.vue へ移動。presenter は code クエリで自動参加。
+// ルーム作成/入室 UI は index.vue へ移行済。presenter は URL クエリ code で自動参加
 
 const onSaveSlides = async () => {
   console.debug('presenter: onSaveSlides called');
@@ -195,7 +195,7 @@ const onSaveSlides = async () => {
   }
   savingSlides.value = true;
 
-  // UI validation: each slide must have at least 2 non-empty choices
+  // バリデーション: 各スライド最低2つの非空選択肢
   const palette = ['#4F46E5', '#EC4899', '#F97316', '#10B981', '#06B6D4', '#F59E0B'];
   for (const s of slides) {
     const nonEmpty = (s.choices || []).filter((c: any) => c && String(c.text).trim().length > 0);
@@ -207,7 +207,7 @@ const onSaveSlides = async () => {
     }
   }
 
-  // Normalize slides and auto-assign colors when missing
+  // 正規化: 色欠如へ自動割当 / 空白トリム
   const payload = slides.map((s: { title: string; chartType?: 'bar' | 'pie'; choices: any[] }, si: number) => {
     const choices = (s.choices || []).map((c: any, ci: number) => {
       const rawColor = c && c.color ? String(c.color) : '';
@@ -228,7 +228,7 @@ const onSaveSlides = async () => {
   log.value += '\n[debug] saveSlides 呼び出し';
   await (r as any).saveSlides(roomCode.value, payload);
   log.value += '\n[debug] saveSlides 成功';
-    // current スライドの新しい index を再計算し共有 slideIndex を更新
+  // 保存後: 現在スライド id の新 index を再計算し共有 slideIndex へ反映
     if (keepId) {
       const idx = slides.findIndex((s) => s.id === keepId);
       if (idx >= 0) {
@@ -246,11 +246,11 @@ const onSaveSlides = async () => {
 };
 
 const setIdx = async (idx: number) => {
-  // clamp requested index into valid range
+  // 要求 index を範囲内へ丸め
   const len = slides.length;
   const clamped = len > 0 ? Math.max(0, Math.min(idx, len - 1)) : 0;
 
-  // If no room is active yet, just update local index
+  // room 未確定時はローカルのみ更新
   if (!roomCode.value) {
     currentIndex.value = clamped;
     return;
@@ -272,17 +272,16 @@ onMounted(() => {
   } catch (e) {
     myAnonId.value = null;
   }
-  // クエリパラメータからルームコードを取得し自動参加
+  // クエリ code 取得し自動入室
   try {
     const nuxt = useNuxtApp();
     const qCode = (nuxt.$router.currentRoute.value.query.code as string) || '';
     if (qCode) roomCode.value = qCode;
   } catch (e) { /* ignore */ }
-  // ルームがあるときに集計を監視する
-  // （後で presenter 用にも index/audience と同様のリスナーを追加可能）
+  // ルーム存在時のみ集計監視
 });
 
-// audience と似たロジックを再利用：roomCode が設定されたら slideIndex とスライドを購読する
+// audience と同様: roomCode 設定後に slideIndex + スライド購読開始
 watch(roomCode, async (val: string | null) => {
   // 以前のリスナーをクリーンアップ
   try {
@@ -306,7 +305,7 @@ watch(roomCode, async (val: string | null) => {
     const idx = snap.val();
     currentIndex.value = typeof idx === 'number' ? idx : 0;
 
-    // スライド内容のリスナー
+  // スライド内容リスナー
     if (unsubSlideContent) {
       try {
         unsubSlideContent();
@@ -330,7 +329,7 @@ watch(roomCode, async (val: string | null) => {
           currentSlideChoices.value = [];
         }
 
-        // Also reflect DB values into the editor model (`slides`) so color pickers show saved colors
+  // DB 内容を editor モデルにも反映（カラー等 UI 再同期）
         try {
           const slideObj2 = slideObj;
           if (slideObj2) {
@@ -363,7 +362,7 @@ watch(roomCode, async (val: string | null) => {
       },
     );
 
-    // 集計（aggregates）のリスナー
+  // 集計リスナー
     if (unsubAggregates) {
       try {
         (unsubAggregates as any)();
@@ -387,7 +386,7 @@ watch(roomCode, async (val: string | null) => {
       },
     );
 
-    // コメント一覧のリスナー
+  // コメントリスナー
     if (unsubComments) {
       try {
         (unsubComments as any)();
@@ -406,7 +405,7 @@ watch(roomCode, async (val: string | null) => {
   });
 });
 
-// コンポーネント単位で一度だけクリーンアップを登録
+// コンポーネント破棄時クリーンアップ
 onUnmounted(() => {
   try {
     if (unsubSlideIndex) (unsubSlideIndex as any)();
@@ -437,7 +436,7 @@ const nextSlide = () => {
   setIdx(currentIndex.value + 1);
 };
 
-// Defensive: if currentIndex points outside slides (e.g., slides were removed), clamp it
+// 防御: currentIndex が範囲外（削除等）の場合丸め
 watch(
   () => slides.length,
   (len) => {
@@ -477,7 +476,7 @@ const activeChartType = computed(() => {
   return (s && s.chartType) || 'bar';
 });
 
-// 保存前は DB から choices が来ないのでエディタ内のローカルスライドを Live 表示にフォールバック
+// 未保存時: DB choices 不在 → ローカル値を Live 表示へフォールバック
 const localLiveChoices = computed(() => {
   if (currentSlideChoices.value.length > 0) return currentSlideChoices.value; // DB 反映済み
   const s = slides[currentIndex.value];

@@ -1,7 +1,7 @@
 <template>
   <AppShell>
   <div class="max-w-5xl mx-auto grid lg:grid-cols-5 gap-8">
-      <!-- Main (Slide + Voting + Live) -->
+  <!-- メイン領域 (スライド + 投票 + Live) -->
       <div class="lg:col-span-5 xl:col-span-3 space-y-6">
         <UiCard variant="glass" interactive padding="md">
           <template #header>
@@ -29,7 +29,7 @@
               </div>
               <span class="text-[10px] sm:text-xs bg-primary-50 text-primary-600 px-2 py-1 rounded-full font-mono tracking-wide whitespace-nowrap">Total {{ aggregates?.total ?? 0 }}</span>
             </div>
-            <!-- Voting options -->
+            <!-- 投票オプション一覧 -->
             <ul class="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <li v-for="(c, idx) in choicesArray" :key="idx">
                 <VoteOption
@@ -41,7 +41,7 @@
                 />
               </li>
             </ul>
-            <!-- LiveComment: 投票後自動生成 -->
+            <!-- LiveComment: 投票後自動生成 → 下部に表示 -->
             <div class="mt-3">
               <LiveComment :text="commentTextLive" :loading="commentLoading" />
             </div>
@@ -51,7 +51,7 @@
 
           </div>
         </UiCard>
-        <!-- Independent Live Panel Card -->
+  <!-- 独立 Live パネルカード -->
         <UiCard
           v-if="joined && slide && choicesArray.length"
           variant="glass"
@@ -86,7 +86,7 @@
             />
             <UiButton variant="primary" :disabled="!commentText" @pressed="onPostComment">Post</UiButton>
           </div>
-          <!-- LiveComment moved under voting; Live panel moved below slide -->
+          <!-- LiveComment は投票ブロック直下 / Live パネルはスライド下へ配置 -->
 
           <ul class="space-y-3 max-h-[420px] overflow-y-auto pr-1">
             <CommentItem
@@ -173,7 +173,7 @@ const pushLog = (s: string) => {
   log.value.unshift(`${new Date().toISOString()} ${s}`);
 };
 
-// join is now handled via query param on mount; keep helper for backwards compatibility
+// 参加: マウント時のクエリ param で自動処理（後方互換ヘルパ維持）
 const onJoin = async (code?: string) => {
   try {
     const roomCode = code || (useNuxtApp().$router.currentRoute.value.query.code as string) || '';
@@ -193,7 +193,7 @@ const onJoin = async (code?: string) => {
 onMounted(() => {
   // クライアント専用の composable を初期化
   ensureR();
-  // auto-join when code supplied as query param
+  // クエリに code があれば自動参加
   const nuxt = useNuxtApp();
   const route = nuxt.$router.currentRoute;
   const code = route.value?.query?.code as string | undefined;
@@ -206,7 +206,7 @@ const startListeners = (code: string) => {
   const nuxt = useNuxtApp();
   const _db = nuxt.$firebaseDb;
 
-  // slideIndex のリスナー（前のリスナーをクリーンアップ）
+  // slideIndex リスナー（先行リスナー解除）
   if (unsubSlide) {
     try {
       unsubSlide();
@@ -218,7 +218,7 @@ const startListeners = (code: string) => {
     const idx = snap.exists() ? snap.val() : 0;
     slideNumber.value = idx + 1;
 
-    // スライド内容のリスナー
+  // スライド内容リスナー
     if (unsubSlideContent) {
       try {
         unsubSlideContent();
@@ -239,7 +239,7 @@ const startListeners = (code: string) => {
       }
     });
 
-    // 集計（aggregates）のリスナー
+  // 集計リスナー
     if (unsubAgg) {
       try {
         unsubAgg();
@@ -262,7 +262,7 @@ const startListeners = (code: string) => {
       } catch(e) { /* ignore migration failure */ }
     });
 
-    // 自分の投票状態を監視するリスナー
+  // 自分の票リスナー
     if (unsubVotes) {
       try {
         unsubVotes();
@@ -289,7 +289,7 @@ const startListeners = (code: string) => {
       voted.value = false;
     }
 
-    // コメント一覧のリスナー
+  // コメントリスナー
     if (unsubComments) {
       try {
         unsubComments();
@@ -306,7 +306,7 @@ const startListeners = (code: string) => {
       comments.value = arr;
     });
 
-    // LiveComment のリスナー
+  // LiveComment リスナー
     if (unsubLiveComment) {
       try { unsubLiveComment(); } catch (e) { /* ignore */ }
       unsubLiveComment = null;
@@ -341,8 +341,7 @@ const onVote = async (choiceKey: string) => {
       pushLog(`voted ${choiceKey}`);
       voted.value = true;
       myVote.value = choiceKey;
-  // 自動 LiveComment 生成試行
-  // trigger live comment generation via composable
+  // 自動 LiveComment 生成試行（composable 呼び出し）
   try {
     if (liveGen && slideNumber.value > 0) {
       const c = choicesArray.value.find(c => c.key === choiceKey);
@@ -392,7 +391,7 @@ async function fetchPlay() {
   if (!code) return;
   playLoading.value = true;
   try {
-    // Build choices payload including vote counts so server can compute percentages
+  // サーバ側割合計算用に votes 含むペイロード構築
     const choicesForApi = choicesArray.value.map((c) => ({ id: c.key, text: c.text, votes: counts[c.key] ?? 0 }));
     const resp = await fetch('/api/openai', {
       method: 'POST',

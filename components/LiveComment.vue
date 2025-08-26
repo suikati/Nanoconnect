@@ -1,7 +1,7 @@
 <template>
   <div class="flex items-start gap-3 anim-fade-in">
     <div class="relative">
-      <img
+  <img
         src="/assets/images/nanosuke.png"
         alt="nanosuke"
         class="avatar"
@@ -26,7 +26,7 @@ const loading = computed(() => (props.loading ?? false));
 
 const currentAnim = ref<string>('');
 const enterAnim = ref<string>('purupuru');
-const basePool = ['bounce','float'];
+const basePool = ['bounce','float']; // 自動モードのアイドル候補
 
 function pickIdle() {
   if (props.animationType === 'auto') {
@@ -36,7 +36,7 @@ function pickIdle() {
 }
 
 onMounted(() => {
-  // play enter animation first, then start idle loop
+  // 初回: 入場アニメ完了後にアイドルアニメ開始
   setTimeout(() => {
     enterAnim.value = '';
     currentAnim.value = pickIdle();
@@ -46,7 +46,7 @@ onMounted(() => {
 watch(() => text.value, (n, o) => {
   if (!props.popOnUpdate) return;
   if (n && n !== o) {
-    // play squish once
+  // 更新時: 一度だけ squish アニメ再生
     currentAnim.value = 'squish';
     setTimeout(() => {
       // revert to idle
@@ -67,14 +67,14 @@ const avatarAnimClass = computed(() => {
   return map[currentAnim.value] || '';
 });
 
-// Click animation handling (random purupuru / poyooon)
+// クリック時アニメ (purupuru / poyooon ランダム)
 const clickAnim = ref<string>('');
 const clickVariants: Array<{ name: string; dur: number }> = [
   { name: 'poyooon', dur: 900 },
   { name: 'purupuru', dur: 800 },
 ];
 function onAvatarClick() {
-  // If initial enter purupuru is still running, avoid choosing purupuru to ensure visible change
+  // 初期 purupuru 中は重複回避のため除外
   const pool = enterAnim.value === 'purupuru' ? clickVariants.filter(v => v.name !== 'purupuru') : clickVariants;
   const picked = pool[Math.floor(Math.random() * pool.length)];
   // reset to retrigger even if same class

@@ -15,7 +15,7 @@
         aria-grabbed="false"
         aria-dropeffect="move"
       >
-        <OptionItem
+  <OptionItem
           :option="o"
           :index="idx"
           @update="onUpdate(idx, $event)"
@@ -40,7 +40,7 @@ const emit = defineEmits<{
 }>();
 
 type Opt = { id: string; text: string; color?: string };
-// simple palette used for auto-assignment when adding or when incoming items lack color
+// 自動付与用の簡易カラーパレット（不足時は巡回）
 const palette = ['#4F46E5', '#EC4899', '#F97316', '#10B981', '#06B6D4', '#F59E0B'];
 
 const pickNextColor = (used: Set<string>) => {
@@ -49,7 +49,7 @@ const pickNextColor = (used: Set<string>) => {
   return palette[used.size % palette.length];
 };
 
-// When loading existing modelValue, assign missing colors immediately and try to avoid duplicates
+// 初期ロード時: 色欠如を補完し重複を極力回避
 const initial: Opt[] = (() => {
   const items: Array<{ id: string; text: string; color: string }> = (props.modelValue || []).map(
     (o: any, i: number) => ({
@@ -71,14 +71,14 @@ const initial: Opt[] = (() => {
 })();
 const options = reactive(initial as Opt[]);
 
-// Keep local options in sync when parent updates modelValue
+// 親の modelValue 変更をローカルへ同期（反応性配列を差し替え）
 const mv = toRef(props, 'modelValue');
 watch(
   mv,
   (nv: any) => {
     if (!nv) return;
     const arr = nv as any[];
-    // quick equality check: same length and same ids/text
+  // 簡易等価判定: 長さ+各 id/text 一致なら何もしない
     if (
       arr.length === options.length &&
       arr.every(
@@ -89,7 +89,7 @@ watch(
     ) {
       return;
     }
-    // replace array while preserving the same reactive object
+  // リアクティブ参照保持したまま全差し替え
     const newItems = arr.map((o: any, i: number) => {
       const existing = options[i];
   const id = o.id || (existing && existing.id) || `ch_${Math.random().toString(36).slice(2,10)}`;
@@ -107,7 +107,7 @@ const addOption = () => {
   emit('update:modelValue', toRaw(options));
 };
 
-// Up/Down ボタンは廃止（ドラッグのみ）
+// 上下ボタンは仕様変更で廃止（ドラッグのみ運用）
 
 const onUpdate = (idx: number, opt: any) => {
   if (idx >= 0 && idx < options.length) {
@@ -126,7 +126,7 @@ const emitUpdate = () => {
   emit('update:modelValue', toRaw(options));
 };
 
-// Drag & Drop
+// Drag & Drop 並び替え実装
 let dragIndex: number | null = null;
 function onDragStart(i: number, ev: DragEvent) {
   dragIndex = i;
@@ -135,7 +135,7 @@ function onDragStart(i: number, ev: DragEvent) {
   try { ev.dataTransfer!.effectAllowed = 'move'; } catch (e) { /* ignore */ }
 }
 function onDragEnter(i: number) {
-  // show placeholder effect by reordering preview? keep simple highlight only
+  // プレースホルダ表示を検討したが現状は簡易ハイライトのみ
 }
 function onDrop(i: number, ev: DragEvent) {
   let from = dragIndex;
@@ -153,7 +153,7 @@ function onDragEnd(ev: DragEvent) {
   (ev.target as HTMLElement)?.classList.remove('drag-origin');
 }
 
-// Note: do not auto-emit from watching `options` to avoid recursive update loops.
+// 注意: options を watch して自動 emit すると親側で再バインド→再同期ループになるため明示呼出のみ
 </script>
 
 <style scoped>

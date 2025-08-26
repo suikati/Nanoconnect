@@ -8,13 +8,13 @@
       @blur="clearActive"
     >
       <canvas ref="canvas" />
-      <!-- Empty placeholder -->
+  <!-- 空状態プレースホルダ (全て 0 票) -->
       <div
         v-if="allZero"
         class="absolute inset-0 flex items-center justify-center text-sm text-gray-500/70 pointer-events-none select-none"
       >まだ投票がありません</div>
     </div>
-    <!-- aria live leader message -->
+  <!-- アクセシビリティ: 現在首位の選択肢をスクリーンリーダへ通知 -->
     <div class="sr-only" role="status" aria-live="polite">{{ leaderMessage }}</div>
   </div>
 </template>
@@ -56,19 +56,21 @@ const wrapper = ref<HTMLDivElement | null>(null);
 let chart: Chart | null = null;
 let stripePattern: CanvasPattern | null = null;
 
-// Active (hover/focus) bar index
+// アクティブ（ホバー / キー操作フォーカス）中のバーインデックス
 const activeIndex = ref<number | null>(null);
 
-// Leader message (ARIA)
+// ARIA 用先頭メッセージ（同率首位にも対応）
 const leaderMessage = ref('');
 
 const buildData = () => buildChartData(props.choices, props.counts);
 
+// 全選択肢が 0 票か判定（空表示切替）
 const allZero = computed(() => {
   const d = buildData();
   return d.data.every(v => v === 0);
 });
 
+// 首位表示メッセージを再計算
 function updateLeaderMessage() {
   const d = buildData();
   const total = d.data.reduce((a, b) => a + b, 0);
@@ -89,6 +91,7 @@ function updateLeaderMessage() {
   }
 }
 
+// rAF による再レンダリングバッチング (連続変更時の過剰 update を抑制)
 let rafId: number | null = null;
 const schedule = () => {
   if (rafId != null) return;
@@ -103,6 +106,7 @@ const schedule = () => {
 
 const renderChart = () => { schedule(); };
 
+// Chart.js 再描画（必要に応じ破棄→再生成 / データ差分更新）
 const renderNow = async () => {
   await nextTick();
   if (!canvas.value || !container.value) {
@@ -114,7 +118,7 @@ const renderNow = async () => {
   updateLeaderMessage();
   const palette = ['#6366F1', '#EC4899', '#06B6D4', '#F59E0B', '#10B981', '#F97316'];
   const color = palette[0];
-  // Prepare stripe pattern for zero values once
+  // 0 票用ストライプパターンを一度だけ生成
   if (!stripePattern) {
     const pCanvas = document.createElement('canvas');
     pCanvas.width = 8; pCanvas.height = 8;
@@ -138,7 +142,7 @@ const renderNow = async () => {
   // maxIndexes no longer needed for highlight
 
   const bgColors = computeBgColors(d.data, props.choices as any, palette, activeIndex.value, stripePattern);
-  // 既にチャートが存在する場合は新規作成せず更新する
+  // 既存インスタンスがあればタイプ変更やラベル数差分を考慮し再利用/再生成
   if (chart) {
     const desiredType = isPie ? 'pie' : 'bar';
     if ((chart.config as any).type !== desiredType) {
@@ -148,7 +152,7 @@ const renderNow = async () => {
   }
   if (chart) {
     try {
-      // ラベル数が変わった/タイプ変更済みで再生成されていない場合は破棄
+  // ラベル数変更で内部配列再割当が頻発するケース → 安全に破棄
       if ((chart.data.labels?.length || 0) !== d.labels.length) {
         chart.destroy();
         chart = null;
@@ -168,7 +172,7 @@ const renderNow = async () => {
   }
   const bgColors2 = computeBgColors(d.data, props.choices as any, palette, activeIndex.value, stripePattern);
 
-  // isPie already computed above
+  // isPie 判定済
   try {
     chart = new Chart(ctx, {
     type: isPie ? 'pie' : 'bar',
@@ -202,7 +206,7 @@ const renderNow = async () => {
             },
           },
         },
-        // datalabels: バー内部に白い値ラベルを表示
+  // datalabels: バー/パイ内部の値ラベル表示設定
          datalabels: isPie
            ? {
                color: '#ffffff',
@@ -295,6 +299,7 @@ watch(() => props.choices, () => renderChart(), { deep: true, immediate: true })
 // chartType 変更時にも再構築（タイプ切替）
 watch(() => props.chartType, () => renderChart());
 
+// アクティブバー変更時の高速色更新（データ不変で chart.update('none')）
 function refreshColors() {
   if (!chart) return;
   const d = buildData();
@@ -313,6 +318,7 @@ function refreshColors() {
   chart.update('none');
 }
 
+// キーボード矢印操作でバー間フォーカス移動 (循環)
 function onKeyNav(e: KeyboardEvent) {
   if (!chart) return;
   const d = buildData();
@@ -332,6 +338,7 @@ function onKeyNav(e: KeyboardEvent) {
   }
 }
 
+// フォーカス喪失時にアクティブ解除
 function clearActive() {
   if (activeIndex.value !== null) {
     activeIndex.value = null;

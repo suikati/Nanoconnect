@@ -1,13 +1,13 @@
 import { ref as dbRef, onValue } from 'firebase/database';
 import type { Database } from 'firebase/database';
 
-// Registry to count active listeners per (db,path) for runtime diagnostics
+// (db,path) ごとのアクティブリスナー数を記録し重複登録を可視化するレジストリ
 const registry: WeakMap<Database, Map<string, number>> = new WeakMap();
 
-// Simple helper to register a realtime listener and return an unsubscribe
+// Realtime Database リスナーを登録し解除関数を返すユーティリティ
 export const createDbListener = (db: Database, path: string, cb: (snap: any) => void) => {
   const ref = dbRef(db, path);
-  // ensure map exists
+  // マップ初期化
   let map = registry.get(db);
   if (!map) {
     map = new Map();
@@ -16,11 +16,9 @@ export const createDbListener = (db: Database, path: string, cb: (snap: any) => 
   const prev = map.get(path) || 0;
   map.set(path, prev + 1);
   if (prev + 1 > 1) {
-    // warn in console to help locate duplicate registration at runtime
+    // 重複登録警告（リークや二重購読検出用）
     // eslint-disable-next-line no-console
-    console.warn(
-      `[useDbListener] multiple listeners registered for path=${path} count=${prev + 1}`,
-    );
+    console.warn(`[useDbListener] パス重複登録 path=${path} count=${prev + 1}`);
   }
 
   const off = onValue(ref, cb);
@@ -33,7 +31,7 @@ export const createDbListener = (db: Database, path: string, cb: (snap: any) => 
       /* ignore */
     }
     unsubbed = true;
-    // decrement registry
+  // 登録カウント減算 / 0 ならクリーンアップ
     try {
       const m = registry.get(db);
       if (m) {

@@ -1,7 +1,7 @@
 <template>
   <div class="space-y-2" data-test="slide-sorter">
     <ul class="flex flex-col gap-1">
-      <li
+  <li
         v-for="(s,i) in slides"
         :key="s.id"
         class="group flex items-center gap-2 px-2 py-1 rounded border text-xs sm:text-sm bg-white/70 backdrop-blur hover:bg-white shadow-sm cursor-pointer select-none"
@@ -13,13 +13,13 @@
         @click="emit('select', i)"
       >
         <span class="font-mono w-6 text-gray-400">{{ i+1 }}</span>
-        <button
+  <button
           type="button"
             class="p-1 rounded hover:bg-gray-100 text-gray-500 disabled:opacity-30"
             :disabled="i===0"
             @click.stop="emit('move', { from: i, to: i-1 })"
         >▲</button>
-        <button
+  <button
           type="button"
             class="p-1 rounded hover:bg-gray-100 text-gray-500 disabled:opacity-30"
             :disabled="i===slides.length-1"
@@ -44,7 +44,7 @@ const emit = defineEmits<{
 }>();
 
 let dragIndex: number | null = null;
-const dragHint = ref('ドラッグまたは▲▼で並び替え');
+const dragHint = ref('ドラッグまたは▲▼で並び替え'); // 初期ヒント（将来動的変更可）
 
 function onDragStart(i: number, ev: DragEvent) {
   dragIndex = i;

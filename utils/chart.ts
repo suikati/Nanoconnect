@@ -1,14 +1,13 @@
 import type { Choice } from '~/types/models';
 import { mixWithWhite } from './colors';
 
-// Build data arrays
+// グラフ用ラベル配列と値配列を生成
 export function buildChartData(choices: Choice[], counts: Record<string, number>) {
   const labels = choices.map(c => c.text);
   const data = choices.map(c => counts[c.key] ?? 0);
   return { labels, data };
 }
-
-// Compute background colors (includes zero stripe pattern externally)
+// 背景色計算: 値0はストライプ (pattern), アクティブ以外は減光
 export function computeBgColors(data: number[], choices: Choice[], palette: string[], activeIndex: number | null, stripe: CanvasPattern | null) {
   return data.map((v, i) => {
     if (v === 0) return stripe || '#e5e7eb';

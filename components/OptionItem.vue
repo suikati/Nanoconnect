@@ -1,6 +1,6 @@
 <template>
   <div class="option-item group flex-1 flex items-center gap-3 p-3 rounded-xl bg-white/80 backdrop-blur border border-primary-100 shadow-sm relative">
-    <!-- Drag handle -->
+  <!-- ドラッグハンドル -->
     <div class="drag-handle select-none text-primary-400/70 group-hover:text-primary-500 flex flex-col justify-center items-center cursor-grab active:cursor-grabbing" title="ドラッグで並び替え" aria-label="並び替えハンドル">
       <svg class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
         <circle cx="5" cy="5" r="1.5" />
@@ -11,7 +11,7 @@
         <circle cx="10" cy="15" r="1.5" />
       </svg>
     </div>
-    <input
+  <input
       v-model="local.text"
       @input="emitLocalUpdate"
       class="flex-1 border border-primary-200 focus:border-primary-400 focus:ring-2 focus:ring-primary-300/60 rounded-lg px-3 py-2 text-xs sm:text-sm bg-white/70"
@@ -34,10 +34,11 @@ const emit = defineEmits<{
   (e: 'remove', id: string): void;
 }>();
 
+// ローカル編集用状態（親に即座に反映しつつ未確定値保持）
 const local = reactive({ text: props.option.text || '', color: props.option.color || '#F3F4F6' });
 
 const emitLocalUpdate = () => {
-  const placeholder = '#f3f4f6';
+  const placeholder = '#f3f4f6'; // 空色判定用（生成時の初期色）
   const origHasColor = typeof props.option.color !== 'undefined' && props.option.color !== null;
   const lc = (local.color || '').toLowerCase();
   const emitColor = !origHasColor && lc === placeholder ? undefined : local.color;
@@ -45,7 +46,7 @@ const emitLocalUpdate = () => {
 };
 
 const emitRemove = () => {
-  if (props.option.id) emit('remove', props.option.id);
+  if (props.option.id) emit('remove', props.option.id); // id の無い行は生成直後想定で安全上スキップ
 };
 </script>
 

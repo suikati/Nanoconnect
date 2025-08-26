@@ -16,14 +16,14 @@ type UseRoomApi = {
   deleteComment: (roomCode: string, commentId: string) => Promise<void>;
 };
 
-// UI / DB shapes
+// UI 側 / DB 側の型定義（最小限）
 type UiChoice = { id?: string; text: string; color?: string };
 type UiSlide = { title: string; choices: UiChoice[]; chartType?: 'bar' | 'pie' };
 
 type DbChoice = { text: string; index: number; color?: string };
 type DbSlide = { title: string; slideNumber: number; chartType?: 'bar' | 'pie'; choices: Record<string, DbChoice> };
 
-// Generate / normalize a stable id for a choice (uuid-lite)
+// 選択肢に付与する安定 ID 生成（軽量ランダム）
 const genChoiceId = () => 'ch_' + Math.random().toString(36).slice(2, 10);
 
 const toDbSlides = (slides: UiSlide[]): Record<string, DbSlide> => {
@@ -49,7 +49,7 @@ const toDbSlides = (slides: UiSlide[]): Record<string, DbSlide> => {
 };
 
 const useRoom = (): UseRoomApi => {
-  // クライアントでのみ関数を呼ぶことを保証する。firebase が利用できない場合は getDb が例外を投げる
+  // Firebase DB 取得 (Nuxt プラグインで注入)。未初期化時は例外
 
   const nuxt = useNuxtApp();
   const getDb = (): Database => {
@@ -79,7 +79,7 @@ const useRoom = (): UseRoomApi => {
       }
       return id;
     } catch (e) {
-      // localStorage が使えない環境ならフォールバックで新規IDを返す（短期セッション扱い）
+  // localStorage 不可環境: 毎回新規 ID（短期セッション扱い）
       return generateAnonId();
     }
   };
@@ -120,7 +120,7 @@ const useRoom = (): UseRoomApi => {
   await set(dbRef(getDb(), votePath), { choiceId, votedAt: new Date().toISOString() });
   };
 
-  // 投票を変更したときに集計を調整する安全な投票処理
+  // 投票を安全に更新しつつ集計 (aggregates) を整合的に調整するメイン処理
   const submitVoteSafe = async (
     roomCode: string,
     slideId: string,
@@ -129,25 +129,25 @@ const useRoom = (): UseRoomApi => {
     const anonId = getAnonId();
   const voteRef = dbRef(getDb(), votesPathById(roomCode, slideId, anonId));
 
-    // 以前の投票を読み取る
+  // 直前の投票状態を取得
     const prevSnap = await get(voteRef);
     const prevChoice = prevSnap.exists() ? (prevSnap.val().choiceId as string | null) : null;
     if (prevChoice === choiceId) {
-      // 変更なし
+  // 同一選択肢再投票 → 何もしない
       return false;
     }
 
-    // 新しい投票を書き込む
+  // 新しい投票レコードを書き込み（ユーザの最新選択）
     try {
       await set(voteRef, { choiceId, votedAt: new Date().toISOString() });
     } catch (e) {
-      // 書き込み失敗
+  // 投票書き込み失敗（ネットワークなど）
       // eslint-disable-next-line no-console
       console.error('submitVoteSafe: failed to write vote', e);
       throw e;
     }
 
-    // 集計をトランザクションで一括調整
+  // 集計をトランザクションで同時更新
   const aggRef = dbRef(getDb(), aggregatesPathById(roomCode, slideId));
     try {
       await runTransaction(aggRef, (current: any) => {
@@ -161,15 +161,10 @@ const useRoom = (): UseRoomApi => {
         current.total = (current.total || 0) + 1;
         return current;
       });
-      // eslint-disable-next-line no-console
-      console.log('submitVoteSafe: aggregates transaction succeeded', {
-        roomCode,
-        slideId,
-        choiceId,
-        prevChoice,
-      });
+  // デバッグログ: トランザクション成功
+  console.log('submitVoteSafe: aggregates transaction succeeded', { roomCode, slideId, choiceId, prevChoice });
     } catch (e) {
-      // トランザクション失敗：ログを出し呼び出し元で処理できるよう再スロー
+  // トランザクション失敗: 冪等性維持のため呼び出し側へ再スロー
       // eslint-disable-next-line no-console
       console.error('submitVoteSafe: transaction failed', e);
       throw e;
@@ -194,18 +189,18 @@ const useRoom = (): UseRoomApi => {
   const likeComment = async (roomCode: string, commentId: string): Promise<void> => {
     const anonId = getAnonId();
   const commentRef = dbRef(getDb(), `${commentsPath(roomCode)}/${commentId}`);
-    // コメントノード全体をトランザクションで扱い、userLikes と deleted フラグを確認する
+  // コメントノードをトランザクションで更新し重複 & 削除済みを防止
     await runTransaction(commentRef, (current: any) => {
       if (!current) return current; // コメントが存在しない場合
       if (current.deleted) return current; // 削除済みコメントにはいいねを付けない
       current.userLikes = current.userLikes || {};
       const already = !!current.userLikes[anonId];
       if (already) {
-        // オフにする（いいねを取り消す）
+  // 取り消し（トグル OFF）
         delete current.userLikes[anonId];
         current.likes = Math.max((current.likes || 1) - 1, 0);
       } else {
-        // オンにする（いいねを付ける）
+  // 付与（トグル ON）
         current.userLikes[anonId] = true;
         current.likes = (current.likes || 0) + 1;
       }
@@ -216,11 +211,10 @@ const useRoom = (): UseRoomApi => {
   const deleteComment = async (roomCode: string, commentId: string): Promise<void> => {
     const anonId = getAnonId();
     const commentRef = dbRef(getDb(), `rooms/${roomCode}/comments/${commentId}`);
-    // ソフトデリート（トランザクション）：deleted フラグを立てテキストを削除
+  // ソフトデリート: deleted フラグ + メタ情報 & text null 化
     await runTransaction(commentRef, (current: any) => {
       if (!current) return current;
-      // 同一 anonId のみ削除を許可（クライアント側チェック）。実際はセキュリティルールでサーバ側で制御すべき
-      // 削除フラグや削除者を記録する
+  // 同一 anonId 制限（本来は Security Rules で強制すべき）/ 監査用メタ記録
       current.deleted = true;
       current.deletedAt = new Date().toISOString();
       current.deletedBy = anonId;

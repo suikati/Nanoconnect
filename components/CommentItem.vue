@@ -11,6 +11,7 @@
       <span v-else class="text-gray-800 break-words">{{ comment.text }}</span>
     </div>
     <div class="mt-2 flex items-center gap-3 text-[11px] sm:text-xs">
+      <!-- いいねボタン（多重クリック抑制） -->
       <button
         @click="onLike"
         :disabled="comment.deleted"
@@ -19,7 +20,8 @@
       >
   <span class="mr-1 select-none">{{ comment.userLikes && currentAnonId && comment.userLikes[currentAnonId] ? '💙' : '👍' }}</span>{{ comment.likes || 0 }}
       </button>
-      <button
+  <!-- 削除ボタン（投稿者のみ表示） -->
+  <button
         v-if="!comment.deleted && comment.anonId === currentAnonId"
         @click="onDelete"
         class="delete-btn"
@@ -38,7 +40,7 @@ const time = computed(() => new Date(props.comment.createdAt).toLocaleTimeString
 const fullTime = computed(() => new Date(props.comment.createdAt).toISOString());
 const emit = defineEmits<{ (e: 'like', id: string): void; (e: 'delete', id: string): void }>();
 const wrapperClass = computed(() => 'p-3 rounded-xl border border-primary-100/60 bg-white/70 glass group anim-fade-in shadow-sm');
-let likeLocked = false;
+let likeLocked = false; // 連打防止ロック
 const onLike = (e: Event) => {
   try {
     e.stopImmediatePropagation();
@@ -47,7 +49,7 @@ const onLike = (e: Event) => {
     /* ignore */
   }
   if (likeLocked || props.comment.deleted) return;
-  likeLocked = true;
+  likeLocked = true; // 一時ロック
   emit('like', props.comment.id);
   setTimeout(() => {
     likeLocked = false;

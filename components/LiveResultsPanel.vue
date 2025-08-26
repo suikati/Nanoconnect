@@ -1,6 +1,6 @@
 <template>
   <div class="live-panel space-y-4">
-    <!-- Summary -->
+  <!-- 集計概要 (上位3件 + 合計票) -->
     <div class="summary flex flex-wrap items-center gap-3 text-[10px] sm:text-xs">
       <span class="px-2 py-0.5 rounded-full bg-primary-50 text-primary-600 font-semibold tracking-wide">合計 {{ total }} 票</span>
       <template v-if="topPercents.length">
@@ -11,7 +11,7 @@
         </span>
       </template>
     </div>
-    <!-- Avatar + Play bubble row (実況を上) -->
+  <!-- 実況バブル行（アバター + テキスト） -->
     <div class="flex items-start gap-3 play-row">
       <img src="/assets/images/linka.png" alt="linka" class="avatar" />
       <div class="play-box flex-1 rounded-xl border border-primary-100 bg-white/95 backdrop-blur p-3 shadow-sm">
@@ -20,7 +20,7 @@
         <div v-else class="text-gray-500 text-xs sm:text-sm">まだ投票がありません。投票結果が出たら実況します！</div>
       </div>
     </div>
-    <!-- Chart (下) -->
+  <!-- チャート表示 -->
     <div class="chart-wrapper rounded-xl border border-primary-100 bg-white/90 backdrop-blur p-3 shadow-sm overflow-hidden">
       <div class="h-[260px] flex items-center justify-center">
     <VoteChart :counts="counts" :choices="choices" :chart-type="props.chartType || 'bar'" />
