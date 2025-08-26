@@ -1,8 +1,8 @@
 <template>
   <AppShell>
   <div class="max-w-5xl mx-auto grid lg:grid-cols-5 gap-8">
-      <!-- Left: Join & Voting -->
-      <div class="lg:col-span-3 space-y-6">
+      <!-- Main (Slide + Voting + Live) -->
+      <div class="lg:col-span-5 xl:col-span-3 space-y-6">
         <UiCard variant="glass" interactive padding="md">
           <template #header>
             <div class="flex items-center gap-3 flex-wrap">
@@ -19,7 +19,7 @@
             </div>
           </div>
 
-          <div v-if="joined && slide" class="space-y-5">
+          <div v-if="joined && slide" class="space-y-8">
             <div class="flex items-start justify-between gap-4 text-xs sm:text-sm">
               <div class="flex flex-col flex-1 min-w-0">
                 <div class="flex items-baseline gap-2 flex-wrap">
@@ -29,7 +29,7 @@
               </div>
               <span class="text-[10px] sm:text-xs bg-primary-50 text-primary-600 px-2 py-1 rounded-full font-mono tracking-wide whitespace-nowrap">Total {{ aggregates?.total ?? 0 }}</span>
             </div>
-            <!-- inline chart removed; main chart appears on right column -->
+            <!-- Voting options -->
             <ul class="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <li v-for="(c, idx) in choicesArray" :key="idx">
                 <VoteOption
@@ -48,15 +48,22 @@
             <div v-if="voted" class="text-xs text-green-600">
               Voted: <strong>{{ myVote }}</strong>
             </div>
+
+            <!-- Large Live Panel (moved from right) -->
+            <UiCard v-if="choicesArray.length" variant="glass" interactive padding="md" class="live-big">
+              <template #header>
+                <div class="flex items-center justify-between w-full">
+                  <span class="text-primary-600 font-display font-bold text-sm sm:text-base">Live</span>
+                  <UiButton size="sm" variant="secondary" @pressed="fetchPlay">実況更新</UiButton>
+                </div>
+              </template>
+              <LiveResultsPanel :counts="aggregates?.counts || {}" :choices="choicesArray" :play-text="playText" :play-loading="playLoading" />
+            </UiCard>
           </div>
         </UiCard>
       </div>
-
-      <!-- Right: Unified Live panel (Chart + PlayByPlay) & Comments -->
-      <div class="lg:col-span-2 space-y-6">
-        <UiCard v-if="choicesArray.length" title="Live" titleClass="text-primary-600 font-display" variant="glass" padding="md" interactive>
-          <LiveResultsPanel :counts="aggregates?.counts || {}" :choices="choicesArray" :play-text="playText" :play-loading="playLoading" />
-        </UiCard>
+      <!-- Comments Side -->
+      <div class="lg:col-span-5 xl:col-span-2 space-y-6">
         <UiCard title="Comments" titleClass="text-secondary-600 font-display" variant="glass" padding="md">
           <div v-if="!joined" class="text-[10px] sm:text-xs text-gray-400">参加するとコメントできます。</div>
           <div v-else class="flex gap-3 mb-4">
@@ -67,13 +74,7 @@
             />
             <UiButton variant="primary" :disabled="!commentText" @pressed="onPostComment">Post</UiButton>
           </div>
-
-          <div class="mb-3 flex items-center justify-between text-[10px] sm:text-xs text-gray-500">
-            <span>実況は上部 Live パネルに表示</span>
-            <UiButton size="sm" variant="secondary" @pressed="fetchPlay">実況更新</UiButton>
-          </div>
-
-          <!-- LiveComment moved to be shown under choices in the left column -->
+          <!-- LiveComment moved under voting; Live panel moved below slide -->
 
           <ul class="space-y-3 max-h-[420px] overflow-y-auto pr-1">
             <CommentItem
@@ -86,9 +87,7 @@
             />
           </ul>
         </UiCard>
-        <pre v-if="isDev" class="text-[10px] text-gray-400 whitespace-pre-wrap">{{
-          log.join('\n')
-        }}</pre>
+  <pre v-if="isDev" class="text-[10px] text-gray-400 whitespace-pre-wrap">{{ log.join('\n') }}</pre>
       </div>
     </div>
   </AppShell>
