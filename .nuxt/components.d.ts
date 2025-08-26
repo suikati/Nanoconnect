@@ -17,6 +17,7 @@ interface _GlobalComponents {
     'OptionItem': typeof import("../components/OptionItem.vue")['default']
     'OptionList': typeof import("../components/OptionList.vue")['default']
     'PlayByPlay': typeof import("../components/PlayByPlay.vue")['default']
+    'SlideSorter': typeof import("../components/SlideSorter.vue")['default']
     'VoteChart': typeof import("../components/VoteChart.vue")['default']
     'VoteOption': typeof import("../components/VoteOption.vue")['default']
     'UiAppShell': typeof import("../components/ui/AppShell.vue")['default']
@@ -51,6 +52,7 @@ interface _GlobalComponents {
     'LazyOptionItem': LazyComponent<typeof import("../components/OptionItem.vue")['default']>
     'LazyOptionList': LazyComponent<typeof import("../components/OptionList.vue")['default']>
     'LazyPlayByPlay': LazyComponent<typeof import("../components/PlayByPlay.vue")['default']>
+    'LazySlideSorter': LazyComponent<typeof import("../components/SlideSorter.vue")['default']>
     'LazyVoteChart': LazyComponent<typeof import("../components/VoteChart.vue")['default']>
     'LazyVoteOption': LazyComponent<typeof import("../components/VoteOption.vue")['default']>
     'LazyUiAppShell': LazyComponent<typeof import("../components/ui/AppShell.vue")['default']>
@@ -91,6 +93,7 @@ export const LiveComment: typeof import("../components/LiveComment.vue")['defaul
 export const OptionItem: typeof import("../components/OptionItem.vue")['default']
 export const OptionList: typeof import("../components/OptionList.vue")['default']
 export const PlayByPlay: typeof import("../components/PlayByPlay.vue")['default']
+export const SlideSorter: typeof import("../components/SlideSorter.vue")['default']
 export const VoteChart: typeof import("../components/VoteChart.vue")['default']
 export const VoteOption: typeof import("../components/VoteOption.vue")['default']
 export const UiAppShell: typeof import("../components/ui/AppShell.vue")['default']
@@ -125,6 +128,7 @@ export const LazyLiveComment: LazyComponent<typeof import("../components/LiveCom
 export const LazyOptionItem: LazyComponent<typeof import("../components/OptionItem.vue")['default']>
 export const LazyOptionList: LazyComponent<typeof import("../components/OptionList.vue")['default']>
 export const LazyPlayByPlay: LazyComponent<typeof import("../components/PlayByPlay.vue")['default']>
+export const LazySlideSorter: LazyComponent<typeof import("../components/SlideSorter.vue")['default']>
 export const LazyVoteChart: LazyComponent<typeof import("../components/VoteChart.vue")['default']>
 export const LazyVoteOption: LazyComponent<typeof import("../components/VoteOption.vue")['default']>
 export const LazyUiAppShell: LazyComponent<typeof import("../components/ui/AppShell.vue")['default']>
