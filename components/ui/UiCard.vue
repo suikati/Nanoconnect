@@ -24,7 +24,7 @@ const wrapperClass = computed(() => {
   const base = 'relative overflow-hidden rounded-2xl border anim-fade-in';
   const pads: Record<string, string> = { none: 'p-0', sm: 'p-3', md: 'p-5', lg: 'p-7' };
   const variants: Record<string, string> = {
-    glass: 'glass bg-white/70 border-white/40 shadow-sm backdrop-blur',
+    glass: 'glass bg-white/55 border-white/40 shadow-sm backdrop-blur-sm before:absolute before:inset-0 before:bg-[linear-gradient(135deg,rgba(255,255,255,0.6)_0%,rgba(255,255,255,0.05)_80%)] before:pointer-events-none',
     solid: 'bg-white border-primary-100 shadow-md',
     subtle: 'bg-surface-alt border-surface-alt shadow-sm'
   };
