@@ -7,7 +7,15 @@
           <template #header>
             <div class="flex items-center gap-3 flex-wrap">
               <span class="text-emerald-600 font-display font-bold text-base sm:text-lg">Questionnaire</span>
-              <span v-if="currentCode" class="text-[10px] sm:text-xs text-emerald-600 font-mono tracking-wide">{{ currentCode }}</span>
+              <button
+                v-if="currentCode"
+                @click="copyRoomCode"
+                type="button"
+                class="group relative text-[10px] sm:text-xs bg-emerald-50 text-emerald-600 px-2 py-1 rounded-full font-mono tracking-wide focus:outline-none focus:ring-2 focus:ring-emerald-300 hover:bg-emerald-100 transition"
+                :title="copied ? 'Copied!' : 'クリックでコピー'"
+              >
+                <span>{{ copied ? 'Copied!' : currentCode }}</span>
+              </button>
             </div>
           </template>
           <div class="flex flex-wrap items-center gap-3 mb-4 text-xs sm:text-sm">
@@ -157,6 +165,7 @@ const aggregates = ref<Aggregate | null>(null);
 const commentText = ref('');
 const comments = ref<UIComment[]>([]);
 const currentCode = ref<string | null>(null);
+const copied = ref(false);
 const isDev = false; // simplified: devログ非表示
 const playText = ref('');
 const playLoading = ref(false);
@@ -202,6 +211,18 @@ onMounted(() => {
     void onJoin(code);
   }
 });
+
+async function copyRoomCode() {
+  try {
+    if (currentCode.value) {
+      await navigator.clipboard.writeText(currentCode.value);
+      copied.value = true;
+      setTimeout(() => (copied.value = false), 1600);
+    }
+  } catch (e) {
+    copied.value = false;
+  }
+}
 
 const startListeners = (code: string) => {
   const nuxt = useNuxtApp();

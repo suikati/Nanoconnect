@@ -7,10 +7,11 @@ const MODEL = 'gpt-5-nano-2025-08-07';
 export function buildPlaybyplayPrompt(title: string, choices: { id?: string; text: string; votes?: number }[]) {
   const total = choices.reduce((s, c) => s + (c.votes || 0), 0) || 0;
   const lines = choices.map((c) => {
-    const pct = total > 0 ? Math.round(((c.votes || 0) / total) * 100) : 0;
-    return `- ${c.text}: ${pct}%`;
+    const v = c.votes || 0;
+    const pct = total > 0 ? Math.round((v / total) * 100) : 0;
+    return `- ${c.text}: ${v}票 (${pct}%)`;
   });
-  return `あなたはナノコネクト株式会社の説明会で司会を務めるリンカさんです。以下のアンケートタイトルと各選択肢の割合を参照し、1〜2文で盛り上げるための短い実況を作成してください。出力は必ず日本語の自然な文章で、内部の推論や思考過程は含めず、実況の文章のみ記載してください。。(例)「何の果物が好き？」→「桃とレモンの接戦です！最後に勝つのは甘党でしょうか、酸っぱ党でしょうか！」\nタイトル: ${title}\n${lines.join('\n')}`;
+  return `あなたはナノコネクト株式会社の説明会で司会を務めるリンカさんです。以下のアンケートタイトルと各選択肢の投票数と割合を参照し、1〜2文で盛り上げるための短い実況を作成してください。出力は必ず日本語の自然な文章で、内部の推論や思考過程は含めず、実況の文章のみを返してください。(例)「何の果物が好き？」→「桃とレモンの接戦です！最後に勝つのは甘党でしょうか、酸っぱ党でしょうか！」\nタイトル: ${title}\n${lines.join('\n')}`;
 }
 
 export function buildCommentPrompt(title: string, selectedText: string) {
