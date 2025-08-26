@@ -1,7 +1,7 @@
 <template>
-  <button :disabled="disabled" @click="onClick" :class="btnClass" :style="btnStyle">
-    <span class="font-medium">{{ choice.text }}</span>
-    <span class="text-xs font-mono opacity-70">{{ count }}</span>
+  <button :disabled="disabled" @click="onClick" :class="btnClass" :style="styleOverride">
+    <span class="font-medium truncate">{{ choice.text }}</span>
+    <span class="text-[10px] sm:text-xs font-mono opacity-70">{{ count }}</span>
   </button>
 </template>
 
@@ -15,23 +15,26 @@ const props = defineProps<{
   disabled?: boolean;
 }>();
 const btnClass = computed(() => {
-  const base =
-    'w-full text-left px-4 py-3 rounded-xl border flex items-center justify-between transition-all focus-ring';
+  const base = 'group w-full text-left px-4 py-3 rounded-xl border flex items-center gap-3 justify-between transition-all focus-ring anim-pop relative overflow-hidden';
+  const palette = props.selected
+    ? 'bg-gradient-to-r from-primary-500 to-secondary-500 text-white border-transparent shadow-pop'
+    : 'bg-surface-alt hover:bg-white border-primary-100 hover:border-primary-300 text-gray-800';
   const disabled = props.disabled ? 'opacity-60 pointer-events-none' : '';
-  return [base, disabled, 'anim-pop'].join(' ');
+  return [base, palette, disabled].join(' ');
 });
 
-const btnStyle = computed(() => {
-  const defaultBg = props.selected ? '#4F46E5' : '#F8FAFC';
-  const bg = props.choice && (props.choice as any).color ? (props.choice as any).color : defaultBg;
-  const color = props.selected
-    ? '#ffffff'
-    : props.choice && (props.choice as any).color
-      ? '#ffffff'
-      : '#0f172a';
-  return { backgroundColor: bg, color };
+// Fallback inline style only if custom color provided in choice
+const styleOverride = computed(() => {
+  const anyChoice: any = props.choice;
+  if (anyChoice && anyChoice.color) {
+    return {
+      backgroundColor: anyChoice.color,
+      color: '#ffffff'
+    };
+  }
+  return {};
 });
-const emit = defineEmits<{ vote: (choiceKey: string) => void }>();
+const emit = defineEmits<{ (e: 'vote', choiceKey: string): void }>();
 let locked = false;
 const onClick = (e: Event) => {
   try {
