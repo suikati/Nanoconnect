@@ -86,7 +86,7 @@
       </div>
 
       <!-- Right: Unified Live panel & Comments -->
-      <div class="xl:col-span-2 space-y-6">
+  <div class="xl:col-span-2 space-y-6">
         <UiCard v-if="localLiveChoices.length" variant="glass" padding="md" interactive>
           <template #header>
             <div class="flex items-center justify-between w-full">
@@ -109,7 +109,7 @@
             />
           </ul>
         </UiCard>
-        <pre v-if="isDev" class="text-[10px] text-gray-400 whitespace-pre-wrap">{{ log }}</pre>
+  <pre class="text-[10px] text-gray-400 whitespace-pre-wrap bg-white/40 rounded p-2 max-h-40 overflow-auto">{{ log }}</pre>
       </div>
     </div>
   </AppShell>
@@ -239,6 +239,8 @@ const onMoveSlide = ({ from, to }: { from: number; to: number }) => {
 
 const onSaveSlides = async () => {
   console.debug('presenter: onSaveSlides called');
+  log.value = '[debug] 保存開始';
+  try { window.dispatchEvent(new CustomEvent('nanopoll-save-attempt')); } catch(e){}
   if (!roomCode.value) {
   log.value = 'roomCode 未設定のため保存できません (URL に ?code=XXXX があるか確認)';
   window.alert('ルームが未作成または URL の code クエリがありません。先にトップでルームを作成してください。');
@@ -278,7 +280,9 @@ const onSaveSlides = async () => {
   try {
     ensureR();
     const keepId = slides[currentIndex.value]?.id;
-    await (r as any).saveSlides(roomCode.value, payload);
+  log.value += '\n[debug] saveSlides 呼び出し';
+  await (r as any).saveSlides(roomCode.value, payload);
+  log.value += '\n[debug] saveSlides 成功';
     // current スライドの新しい index を再計算し共有 slideIndex を更新
     if (keepId) {
       const idx = slides.findIndex((s) => s.id === keepId);
@@ -290,7 +294,7 @@ const onSaveSlides = async () => {
     log.value = 'saved slides';
     reorderDirty.value = false;
   } catch (e: any) {
-    log.value = `save error: ${e.message}`;
+  log.value = `save error: ${e?.message || e}`;
   } finally {
     savingSlides.value = false;
   }
