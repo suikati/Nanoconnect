@@ -45,21 +45,6 @@ const renderChart = async () => {
   const ctx = canvas.value.getContext('2d');
   if (!ctx) return;
   const d = buildData();
-  // グラデーションを作るユーティリティ（updateパスでも使うため早めに定義）
-  const gradientFor = (ctx: CanvasRenderingContext2D, area: any, from: string, to: string) => {
-    // area may be empty when canvas not yet measured; if so, return a solid color fallback
-    try {
-      if (!area || !area.height || (!area.top && area.top !== 0)) {
-        return from;
-      }
-      const g = ctx.createLinearGradient(0, area.top, 0, area.bottom);
-      g.addColorStop(0, from);
-      g.addColorStop(1, to);
-      return g;
-    } catch (e) {
-      return from;
-    }
-  };
   const palette = ['#6366F1', '#EC4899', '#06B6D4', '#F59E0B', '#10B981', '#F97316'];
   const color = palette[0];
   // 既にチャートが存在する場合は新規作成せず更新する
@@ -71,8 +56,7 @@ const renderChart = async () => {
       const ctx2 = canvas.value.getContext('2d')!;
       const bgColorsUpdate = d.data.map((_, i) => {
         const choice = props.choices[i] as any;
-        const c1 = choice && choice.color ? choice.color : palette[i % palette.length];
-        return gradientFor(ctx2, canvas.value!.getBoundingClientRect(), c1, '#ffffff');
+        return choice && choice.color ? choice.color : palette[i % palette.length];
       });
       chart.data.datasets![0].backgroundColor = bgColorsUpdate as any;
       chart.update();
@@ -89,9 +73,7 @@ const renderChart = async () => {
   }
   const bgColors = d.data.map((_, i) => {
     const choice = props.choices[i] as any;
-    const c1 = choice && choice.color ? choice.color : palette[i % palette.length];
-    const c2 = '#ffffff';
-    return gradientFor(ctx, canvas.value!.getBoundingClientRect(), c1, c2);
+    return choice && choice.color ? choice.color : palette[i % palette.length];
   });
 
   chart = new Chart(ctx, {
@@ -128,7 +110,7 @@ const renderChart = async () => {
           color: '#ffffff',
           anchor: 'end',
           align: 'end',
-          font: { weight: '600', size: 12 },
+          font: { weight: 600, size: 12 },
           formatter: (val: number) => (val > 0 ? val : ''),
         },
       },

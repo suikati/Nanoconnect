@@ -311,6 +311,12 @@ onMounted(() => {
   } catch (e) {
     myAnonId.value = null;
   }
+  // クエリパラメータからルームコードを取得し自動参加
+  try {
+    const nuxt = useNuxtApp();
+    const qCode = (nuxt.$router.currentRoute.value.query.code as string) || '';
+    if (qCode) roomCode.value = qCode;
+  } catch (e) { /* ignore */ }
   // ルームがあるときに集計を監視する
   // （後で presenter 用にも index/audience と同様のリスナーを追加可能）
 });
@@ -440,14 +446,6 @@ onUnmounted(() => {
     /* ignore */
   }
   try {
-  // query からルームコードを取得
-  try {
-    const nuxt = useNuxtApp();
-    const qCode = (nuxt.$router.currentRoute.value.query.code as string) || '';
-    if (qCode) {
-      roomCode.value = qCode;
-    }
-  } catch (e) { /* ignore */ }
     if (unsubSlideContent) (unsubSlideContent as any)();
   } catch (e) {
     /* ignore */
