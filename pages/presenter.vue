@@ -56,9 +56,9 @@
 
             <div v-if="slides && slides[currentIndex]" class="p-4 rounded-xl border bg-white/70 backdrop-blur-sm shadow-sm space-y-3">
               <div class="flex items-center gap-2 mb-1">
-                <input ref="titleInput" v-model="slides[currentIndex].title" placeholder="タイトル" class="flex-1 border border-primary-200 focus:border-primary-400 focus:ring-2 focus:ring-primary-300/60 rounded-lg px-3 py-2 text-xs sm:text-sm bg-white/80" />
+                <input ref="titleInput" v-model="slides[currentIndex].title" @input="reorderDirty = true" placeholder="タイトル" class="flex-1 border border-primary-200 focus:border-primary-400 focus:ring-2 focus:ring-primary-300/60 rounded-lg px-3 py-2 text-xs sm:text-sm bg-white/80" />
               </div>
-              <OptionList v-model="slides[currentIndex].choices" />
+              <OptionList :key="slides[currentIndex].id" v-model="slides[currentIndex].choices" @update:modelValue="onChoicesUpdate" />
             </div>
             <div v-else class="text-xs sm:text-sm text-gray-500">スライドがありません。追加してください。</div>
 
@@ -146,15 +146,15 @@ const log = ref('');
 // TODO: 開発が終わったらplaceholderに変更
 const palette = ['#4F46E5', '#EC4899', '#F97316', '#10B981', '#06B6D4', '#F59E0B'];
 const slides = reactive<
-  Array<{ id: string; title: string; choices: Array<{ text: string; color?: string }> }>
+  Array<{ id: string; title: string; choices: Array<{ id?: string; text: string; color?: string }> }>
 >([
   {
     id: `slide_0_${Date.now()}`,
     title: '好きな色は？',
     choices: [
-      { text: '赤', color: '#EF4444' },
-      { text: '青', color: '#3B82F6' },
-      { text: '緑', color: '#10B981' },
+      { id: `opt_0_${Date.now()}`, text: '赤', color: '#EF4444' },
+      { id: `opt_1_${Date.now()}`, text: '青', color: '#3B82F6' },
+      { id: `opt_2_${Date.now()}`, text: '緑', color: '#10B981' },
     ],
   },
 ]);
@@ -201,23 +201,15 @@ const ensureR = () => {
 
 const addSlide = () => {
   console.debug('presenter: addSlide called');
-  // assign a palette color immediately so the color picker shows a value
   const idx = slides.length % palette.length;
   slides.push({
     id: `slide_${slides.length}_${Date.now()}`,
     title: '',
-    choices: [{ text: '', color: palette[idx] }],
+    choices: [{ id: `opt_0_${Date.now()}`, text: '', color: palette[idx] }],
   });
-  // switch to the newly added slide
   currentIndex.value = slides.length - 1;
-  // focus the title input on next tick if available
-  nextTick(() => {
-    try {
-      titleInput.value?.focus();
-    } catch (e) {
-      /* ignore */
-    }
-  });
+  nextTick(() => { try { titleInput.value?.focus(); } catch (e) {} });
+  reorderDirty.value = true;
 };
 const removeSlide = (i: number) => {
   console.debug('presenter: removeSlide', i);
@@ -536,4 +528,9 @@ const onDeleteComment = async (commentId: string) => {
     log.value = `delete error: ${e.message}`;
   }
 };
+
+function onChoicesUpdate() {
+  // 選択肢編集も未保存フラグに反映
+  reorderDirty.value = true;
+}
 </script>

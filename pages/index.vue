@@ -6,7 +6,7 @@
           リアルタイム<span class="block sm:inline"> アンケートアプリ</span>
         </h1>
         <p class="text-gray-600 text-sm sm:text-base max-w-2xl mx-auto font-sans">
-          ナノすけ & リンカさんと説明会をもっと楽しくインタラクティブに。
+          ナノすけ & リンカさんと説明会を楽しもう！
         </p>
       </div>
       <div class="grid gap-6 sm:gap-8 sm:grid-cols-2">
