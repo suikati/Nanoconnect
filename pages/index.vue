@@ -1,9 +1,9 @@
 <template>
   <AppShell>
-    <div class="max-w-3xl mx-auto px-4">
-      <div class="text-center mb-14 pt-6 pb-10 anim-fade-in">
-        <h1 class="text-3xl sm:text-5xl font-display font-bold leading-tight text-gradient mb-4 tracking-tight">
-          リアルタイム<span class="inline"> アンケートアプリ</span>
+    <div class="max-w-5xl mx-auto">
+      <div class="text-center mb-16 anim-fade-in">
+        <h1 class="text-3xl sm:text-5xl font-display font-bold leading-tight text-gradient mb-5 tracking-tight">
+          リアルタイム<span class="block sm:inline"> アンケートアプリ</span>
         </h1>
         <p class="text-gray-600 text-sm sm:text-base max-w-2xl mx-auto font-sans">
           ナノすけ & リンカさんと説明会を楽しもう！
@@ -26,7 +26,7 @@
             <div class="flex flex-col sm:flex-row gap-3">
               <UiButton class="sm:w-40" variant="primary" size="md" @pressed="createRoom">ルーム作成</UiButton>
               <div class="flex-1 flex items-center gap-2">
-                <input v-model="presenterJoinCode" placeholder="既存コードで入室" class="flex-1 border border-primary-200 focus:border-primary-400 focus:ring-2 focus:ring-primary-300/60 rounded-lg px-3 py-2 text-xs sm:text-sm bg-white/70" />
+                <input v-model="presenterJoinCode" placeholder="または既存コードで入室" class="flex-1 border border-primary-200 focus:border-primary-400 focus:ring-2 focus:ring-primary-300/60 rounded-lg px-3 py-2 text-xs sm:text-sm bg-white/70" />
                 <UiButton variant="ghost" size="sm" @pressed="enterRoomAsPresenter">入室</UiButton>
               </div>
             </div>
