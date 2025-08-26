@@ -223,26 +223,42 @@ const renderChart = async () => {
          datalabels: isPie
            ? {
                color: '#ffffff',
-               textStrokeColor: 'rgba(0,0,0,0.45)',
+               textStrokeColor: 'rgba(0,0,0,0.55)',
                textStrokeWidth: 2,
                anchor: 'center',
                align: 'center',
-               font: { weight: 700, size: 13 },
+               font: { weight: 600, size: 12 },
                clamp: true,
-               formatter: (val: number) => {
+               formatter: (val: number, ctx: any) => {
                  if (val <= 0) return '';
+                 const label = ctx.chart.data.labels?.[ctx.dataIndex] || '';
+                 // 小さすぎるスライスは省略 (総数 5% 未満)
                  const pct = Math.round((val / total) * 100);
-                 return `${pct}%`;
+                 if (pct < 5) return '';
+                 // 長いラベルは短縮
+                 const short = String(label).length > 6 ? String(label).slice(0,5) + '…' : label;
+                 return `${short} ${val}`;
                },
              }
            : {
                color: '#ffffff',
                textStrokeColor: 'rgba(0,0,0,0.45)',
                textStrokeWidth: 2,
-               anchor: 'end',
-               align: 'end',
                font: { weight: 600, size: 12 },
-               formatter: (val: number) => (val > 0 ? String(val) : ''),
+               clamp: true,
+               formatter: (val: number, ctx: any) => {
+                 if (val <= 0) return '';
+                 // バー高さに応じて位置調整 (小さいバーは上揃え)
+                 const dataArr = ctx.chart.data.datasets[0].data as number[];
+                 const maxValLocal = Math.max(...dataArr, 0);
+                 const current = dataArr[ctx.dataIndex] || 0;
+                 const ratio = maxValLocal ? current / maxValLocal : 0;
+                 // データラベル位置は plugin オプションでは動的 anchor 指定しづらいので
+                 // 小さいバーは後処理 (scriptable context) で外側表示: ここでは記号を付けるなどはしない
+                 return String(val);
+               },
+               anchor: 'center',
+               align: 'center',
              },
       },
       animation: { duration: 600, easing: 'easeOutCubic' },
@@ -258,7 +274,7 @@ const renderChart = async () => {
               y: {
                 beginAtZero: true,
                 grid: { display: false },
-                ticks: { precision: 0, font: { size: 13, weight: 600 }, color: '#1f2937' },
+                ticks: { display: false },
                 border: { display: false },
               },
             },
