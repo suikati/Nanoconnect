@@ -21,6 +21,8 @@
 
 <script setup lang="ts">
 import { onMounted, onBeforeUnmount, ref, watch, nextTick, computed } from 'vue';
+import { buildChartData, computeBgColors, truncateLabel } from '~/utils/chart';
+import { mixWithWhite } from '~/utils/colors';
 import {
   Chart,
   BarController,
@@ -60,24 +62,7 @@ const activeIndex = ref<number | null>(null);
 // Leader message (ARIA)
 const leaderMessage = ref('');
 
-// Build helper: mix color with white for dim effect
-function mixWithWhite(hex: string, ratio = 0.55) {
-  if (!/^#?[0-9a-fA-F]{6}$/.test(hex)) return hex;
-  const h = hex.replace('#', '');
-  const r = parseInt(h.slice(0, 2), 16);
-  const g = parseInt(h.slice(2, 4), 16);
-  const b = parseInt(h.slice(4, 6), 16);
-  const nr = Math.round(r + (255 - r) * ratio);
-  const ng = Math.round(g + (255 - g) * ratio);
-  const nb = Math.round(b + (255 - b) * ratio);
-  return `rgb(${nr}, ${ng}, ${nb})`;
-}
-
-const buildData = () => {
-  const labels: string[] = props.choices.map((c: Choice) => c.text);
-  const data: number[] = props.choices.map((c: Choice) => props.counts[c.key] ?? 0);
-  return { labels, data };
-};
+const buildData = () => buildChartData(props.choices, props.counts);
 
 const allZero = computed(() => {
   const d = buildData();
@@ -146,19 +131,7 @@ const renderChart = async () => {
   const maxVal = Math.max(...d.data);
   // maxIndexes no longer needed for highlight
 
-  function computeBgColors(active: number | null) {
-    return d.data.map((v, i) => {
-      // zero value pattern
-      if (v === 0) {
-        return stripePattern || '#e5e7eb';
-      }
-      const choice = (props.choices[i] as any);
-      const base = choice && choice.color ? choice.color : palette[i % palette.length];
-      const isDim = active !== null && active !== i;
-      if (isDim) return mixWithWhite(base, 0.75);
-      return base;
-    });
-  }
+  const bgColors = computeBgColors(d.data, props.choices as any, palette, activeIndex.value, stripePattern);
   // 既にチャートが存在する場合は新規作成せず更新する
   if (chart) {
     const desiredType = isPie ? 'pie' : 'bar';
@@ -180,7 +153,7 @@ const renderChart = async () => {
     try {
       chart.data.labels = d.labels as any;
       chart.data.datasets![0].data = d.data as any;
-      chart.data.datasets![0].backgroundColor = computeBgColors(activeIndex.value) as any;
+  chart.data.datasets![0].backgroundColor = computeBgColors(d.data, props.choices as any, palette, activeIndex.value, stripePattern) as any;
       chart.data.datasets![0].borderColor = isPie
         ? d.data.map(() => '#ffffff') as any
         : d.data.map(() => 'transparent') as any;
@@ -196,7 +169,7 @@ const renderChart = async () => {
       chart = null;
     }
   }
-  const bgColors = computeBgColors(activeIndex.value);
+  const bgColors2 = computeBgColors(d.data, props.choices as any, palette, activeIndex.value, stripePattern);
 
   // isPie already computed above
   try {
@@ -208,7 +181,7 @@ const renderChart = async () => {
         {
           label: 'Votes',
           data: d.data,
-          backgroundColor: bgColors as any,
+          backgroundColor: bgColors2 as any,
             ...(isPie
               ? { borderColor: d.data.map(() => '#ffffff') as any, borderWidth: d.data.map(() => 1) as any }
               : { borderRadius: 8, borderSkipped: false, borderColor: d.data.map(() => 'transparent') as any, borderWidth: d.data.map(() => 0) as any }),
@@ -247,7 +220,7 @@ const renderChart = async () => {
                  const label = ctx.chart.data.labels?.[ctx.dataIndex] || '';
                  const pct = Math.round((val / total) * 100);
                  if (pct < 5) return '';
-                 const short = String(label).length > 6 ? String(label).slice(0,5) + '…' : label;
+                 const short = truncateLabel(String(label), 6);
                  // 区切りを全角コロンに変更
                  return `${short}：${val}`;
                },
