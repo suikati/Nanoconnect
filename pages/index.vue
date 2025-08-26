@@ -1,46 +1,59 @@
 <template>
   <AppShell>
-    <div class="max-w-5xl mx-auto">
-      <div class="text-center mb-16 anim-fade-in">
-        <h1 class="text-3xl sm:text-5xl font-display font-bold leading-tight text-gradient mb-5 tracking-tight">
-          リアルタイム<span class="block sm:inline"> アンケートアプリ</span>
+    <div class="max-w-3xl mx-auto px-4">
+      <div class="text-center mb-14 pt-6 pb-10 anim-fade-in">
+        <h1 class="text-3xl sm:text-5xl font-display font-bold leading-tight text-gradient mb-4 tracking-tight">
+          リアルタイム<span class="inline"> アンケートアプリ</span>
         </h1>
         <p class="text-gray-600 text-sm sm:text-base max-w-2xl mx-auto font-sans">
           ナノすけ & リンカさんと説明会を楽しもう！
         </p>
       </div>
-      <div class="grid gap-6 sm:gap-8 sm:grid-cols-2">
-        <div class="group block rounded-2xl focus-ring">
-          <div class="h-full bg-white/80 glass rounded-2xl p-6 border border-primary-100 shadow-md hocus:shadow-pop transition relative overflow-hidden space-y-4">
-            <span class="absolute inset-0 opacity-0 group-hover:opacity-15 bg-gradient-to-tr from-primary-500/60 to-secondary-500/60 transition pointer-events-none" />
-            <div>
-              <h2 class="text-lg sm:text-xl font-bold text-primary-600 mb-1 font-display">発表者</h2>
-              <p class="text-xs sm:text-sm text-gray-600">ルームを作成して進行開始</p>
+
+      <div class="space-y-8">
+        <!-- Presenter Card -->
+        <UiCard variant="glass" padding="lg" interactive>
+          <template #header>
+            <div class="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-2 w-full">
+              <div class="flex items-baseline gap-2">
+                <h2 class="text-primary-600 font-display font-bold text-lg sm:text-xl">発表者</h2>
+                <span class="text-[10px] sm:text-xs text-primary-500 tracking-wide">Create / Control</span>
+              </div>
             </div>
-            <div class="flex flex-col gap-3">
-              <UiButton variant="primary" size="md" @pressed="createRoom">ルーム作成</UiButton>
-              <div class="flex items-center gap-2">
-                <input v-model="presenterJoinCode" placeholder="または既存コードで入室" class="flex-1 border border-primary-200 focus:border-primary-400 focus:ring-2 focus:ring-primary-300/60 rounded-lg px-3 py-2 text-xs sm:text-sm bg-white/70" />
+          </template>
+          <div class="space-y-5">
+            <p class="text-xs sm:text-sm text-gray-600">ルームを作成して進行開始</p>
+            <div class="flex flex-col sm:flex-row gap-3">
+              <UiButton class="sm:w-40" variant="primary" size="md" @pressed="createRoom">ルーム作成</UiButton>
+              <div class="flex-1 flex items-center gap-2">
+                <input v-model="presenterJoinCode" placeholder="既存コードで入室" class="flex-1 border border-primary-200 focus:border-primary-400 focus:ring-2 focus:ring-primary-300/60 rounded-lg px-3 py-2 text-xs sm:text-sm bg-white/70" />
                 <UiButton variant="ghost" size="sm" @pressed="enterRoomAsPresenter">入室</UiButton>
               </div>
-              <div v-if="presenterRoomCode" class="text-[10px] sm:text-xs text-primary-600 font-mono">コード: {{ presenterRoomCode }}</div>
             </div>
+            <div v-if="presenterRoomCode" class="text-[10px] sm:text-xs text-primary-600 font-mono">コード: {{ presenterRoomCode }}</div>
           </div>
-        </div>
-        <div class="group block rounded-2xl">
-          <div class="h-full bg-white/80 glass rounded-2xl p-6 border border-secondary-100 shadow-md hocus:shadow-pop transition relative overflow-hidden">
-            <h2 class="text-lg sm:text-xl font-bold text-secondary-600 mb-1 font-display">参加者</h2>
+        </UiCard>
+
+        <!-- Audience Card -->
+        <UiCard variant="glass" padding="lg" interactive>
+          <template #header>
+            <div class="flex items-baseline gap-2">
+              <h2 class="text-secondary-600 font-display font-bold text-lg sm:text-xl">参加者</h2>
+              <span class="text-[10px] sm:text-xs text-secondary-500 tracking-wide">Join / Vote</span>
+            </div>
+          </template>
+          <div class="space-y-5">
             <p class="text-xs sm:text-sm text-gray-600">コード入力で即参加・投票・コメント</p>
-            <div class="mt-4 flex gap-2">
+            <div class="flex flex-col sm:flex-row gap-3">
               <input
                 v-model="codeInput"
                 placeholder="ルームコードを入力"
                 class="flex-1 border border-primary-200 focus:border-primary-400 focus:ring-2 focus:ring-primary-300/60 rounded-lg px-3 py-2 text-sm bg-white/70 backdrop-blur placeholder:text-gray-400"
               />
-              <UiButton variant="secondary" size="md" @pressed="joinAsAudience">参加</UiButton>
+              <UiButton class="sm:w-32" variant="secondary" size="md" @pressed="joinAsAudience">参加</UiButton>
             </div>
           </div>
-        </div>
+        </UiCard>
       </div>
     </div>
   </AppShell>
