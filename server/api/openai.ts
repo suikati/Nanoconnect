@@ -132,7 +132,7 @@ export async function handler(event: any) {
         text: { verbosity: 'low' },
       });
 
-      const text = result.output_text ?? (result.output?.map((o: any) => (o?.content?.map((c: any) => c?.text ?? '').join(''))).join('\n')) ?? 'ナノすけが少し眠いナノ…';
+      const text = result.output_text ?? (result.output?.map((o: any) => (o?.content?.map((c: any) => c?.text ?? '').join(''))).join('\n')) ?? '少し眠いノ…';
       const out = { text, meta: { model: result.model } } as CommentResponse;
 
       (globalThis as any).__OPENAI_CACHE.set(commentCacheKey, out);

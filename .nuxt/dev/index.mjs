@@ -1113,7 +1113,22 @@ const plugins = [
   _RIYwG3bV6oPW9VwHwWomGNvEqgjn_QslzJ0A4pK3qU
 ];
 
-const assets = {};
+const assets = {
+  "/index.mjs": {
+    "type": "text/javascript; charset=utf-8",
+    "etag": "\"151fb-Lher4tgSt0GOvY+MXKfETOe1ygg\"",
+    "mtime": "2025-08-26T14:31:41.230Z",
+    "size": 86523,
+    "path": "index.mjs"
+  },
+  "/index.mjs.map": {
+    "type": "application/json",
+    "etag": "\"50f8d-eJHsd3lYm9WuGp2B4YuAHgTC4OQ\"",
+    "mtime": "2025-08-26T14:31:41.231Z",
+    "size": 331661,
+    "path": "index.mjs.map"
+  }
+};
 
 function readAsset (id) {
   const serverDir = dirname$1(fileURLToPath(globalThis._importMeta_.url));
@@ -1979,7 +1994,7 @@ async function handler(event) {
           var _a3;
           return (_a3 = c == null ? void 0 : c.text) != null ? _a3 : "";
         }).join("");
-      }).join("\n")) != null ? _n : "\u30CA\u30CE\u3059\u3051\u304C\u5C11\u3057\u7720\u3044\u30CA\u30CE\u2026";
+      }).join("\n")) != null ? _n : "\u5C11\u3057\u7720\u3044\u30CE\u2026";
       const out = { text, meta: { model: result.model } };
       globalThis.__OPENAI_CACHE.set(commentCacheKey, out);
       setTimeout(() => globalThis.__OPENAI_CACHE.delete(commentCacheKey), 60 * 1e3);
