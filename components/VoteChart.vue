@@ -136,7 +136,8 @@ const renderNow = async () => {
     }
   }
 
-  const total = d.data.reduce((a, b) => a + b, 0) || 1;
+  const numericSum = (arr: any[]) => arr.reduce((a, b) => a + (Number(b) || 0), 0);
+  const total = numericSum(d.data) || 1;
   const isPie = (props.chartType || 'bar') === 'pie';
   const maxVal = Math.max(...d.data);
   // maxIndexes no longer needed for highlight
@@ -198,16 +199,21 @@ const renderNow = async () => {
         tooltip: {
           callbacks: {
             label: (ctx: any) => {
-              const raw = ctx.parsed?.y ?? ctx.parsed;
-              const v = typeof raw === 'number' ? raw : 0;
-              const totalLocal = d.data.reduce((a: number, b: number) => a + b, 0) || 1;
-              const pct = Math.round((v / totalLocal) * 100);
+              // parsed may be {x: value, y: index} for horizontal bars, or a number for vertical bars
+              const parsed = ctx.parsed;
+              let rawVal: any = 0;
+              if (typeof parsed === 'number') rawVal = parsed;
+              else if (parsed && typeof parsed === 'object') rawVal = Number(parsed.x ?? parsed.y ?? parsed) || 0;
+              else rawVal = 0;
+              const v = Number(rawVal) || 0;
+              const totalLocal = numericSum(d.data) || 1;
+              const pct = totalLocal > 0 ? Math.round((v / totalLocal) * 100) : 0;
               return `${ctx.label}: ${v} (${pct}%)`;
             },
           },
         },
   // datalabels: バー/パイ内部の値ラベル表示設定
-         datalabels: isPie
+               datalabels: isPie
            ? {
                color: '#ffffff',
                textStrokeColor: 'rgba(0,0,0,0.55)',
@@ -216,14 +222,15 @@ const renderNow = async () => {
                align: 'center',
                font: { weight: 600, size: 14 },
                clamp: true,
-               formatter: (val: number, ctx: any) => {
-                 if (val <= 0) return '';
+                formatter: (val: number, ctx: any) => {
+                 const numVal = Number(val) || 0;
+                 if (numVal <= 0) return '';
                  const label = ctx.chart.data.labels?.[ctx.dataIndex] || '';
-                 const pct = Math.round((val / total) * 100);
+                 const pct = total > 0 ? Math.round((numVal / total) * 100) : 0;
                  if (pct < 5) return '';
                  const short = truncateLabel(String(label), 6);
                  // 区切りを全角コロンに変更
-                 return `${short}：${val}`;
+                 return `${short}：${numVal}`;
                },
              }
            : {
