@@ -13,7 +13,7 @@
     <div class="comment-box bg-white/70 border border-secondary-200 rounded-xl px-3 py-2 shadow-sm backdrop-blur-sm max-w-[32rem]">
       <div v-if="loading" class="text-secondary-400 text-xs sm:text-sm">読み込み中…</div>
       <div v-else-if="text" class="text-gray-800 text-xs sm:text-sm whitespace-pre-wrap">{{ text }}</div>
-      <div v-else class="text-gray-500 text-xs sm:text-sm">コメントはまだありません。</div>
+      <div v-else class="text-gray-500 text-xs sm:text-sm">説明会に参加してくれてありがとうナノ！</div>
     </div>
   </div>
 </template>
