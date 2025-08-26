@@ -74,9 +74,9 @@
           />
         </UiCard>
       </div>
-      <!-- Comments Side: xl 以上で左カラム (Slide+Live) 全体の高さに揃えて下端を合わせる -->
-      <div class="lg:col-span-5 xl:col-span-2 xl:h-full">
-        <UiCard title="Comments" titleClass="text-secondary-600 font-display" variant="glass" padding="md" class="xl:h-full xl:flex xl:flex-col">
+      <!-- Comments Side: 固定高 870px（越えたら内部スクロール） -->
+      <div class="lg:col-span-5 xl:col-span-2">
+        <UiCard title="Comments" titleClass="text-secondary-600 font-display" variant="glass" padding="md" class="h-[870px] flex flex-col">
           <div class="flex flex-col gap-4 xl:flex-1 xl:min-h-0">
           <div v-if="!joined" class="text-[10px] sm:text-xs text-gray-400">参加するとコメントできます。</div>
           <div v-else class="flex gap-3 mb-4">
@@ -88,7 +88,7 @@
             <UiButton variant="primary" :disabled="!commentText" @pressed="onPostComment">Post</UiButton>
           </div>
           <!-- LiveComment は投票ブロック直下 / Live パネルはスライド下へ配置 -->
-          <ul class="space-y-3 overflow-y-auto pr-1 xl:flex-1 xl:min-h-0 max-h-[420px] xl:max-h-none">
+          <ul class="space-y-3 overflow-y-auto pr-1 flex-1 min-h-0">
             <CommentItem
               v-for="c in comments"
               :key="c.id"

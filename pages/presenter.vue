@@ -73,7 +73,7 @@ import LivePanelWrapper from '~/components/LivePanelWrapper.vue';
 import SlideControls from '~/components/SlideControls.vue';
 import SlideEditor from '~/components/SlideEditor.vue';
 import type { Aggregate, Comment as CommentType, Choice, Slide } from '~/types/models';
-import { slideIndexPath, slidePath, aggregatesPath, commentsPath } from '~/utils/paths';
+import { slideIndexPath, slidePath, aggregatesPath, commentsPath, roomPath } from '~/utils/paths';
 import { migrateLegacyChoiceIds } from '~/utils/migration';
 
 type RoomApi = {
@@ -141,6 +141,7 @@ async function fetchPlay() {
 let unsubSlideIndex: (() => void) | null = null;
 let unsubAggregates: (() => void) | null = null;
 let unsubSlideContent: (() => void) | null = null;
+let unsubAllSlides: (() => void) | null = null; // 全スライド同期用
 
 const ensureR = () => {
   if (!r) r = useRoom();
@@ -294,6 +295,36 @@ watch(roomCode, async (val: string | null) => {
   const nuxt = useNuxtApp();
   const db = (nuxt.$firebaseDb as any) || null;
   if (!db) return;
+
+  // 全スライドリスナー: 再入室やリロード時に現在スライド以外が欠落しないよう同期
+  if (unsubAllSlides) { try { unsubAllSlides(); } catch(e){} unsubAllSlides = null; }
+  unsubAllSlides = createDbListener(db, `${roomPath(val)}/slides`, (snap: any) => {
+    if (!snap || !snap.exists()) return;
+    // 既存配列を維持しつつ順序再構築: slide_1, slide_2 ... のキー順で並び替え
+    const entries: Array<{ id: string; title: string; chartType?: 'bar'|'pie'; choices: any[]; slideNumber: number }> = [];
+    snap.forEach((child: any) => {
+      const key = child.key as string; // e.g. slide_1
+      const val = child.val() as Slide;
+      const num = typeof val.slideNumber === 'number' ? val.slideNumber : (Number(key.split('_')[1]) || 0);
+      const choiceArr = val.choices ? Object.entries(val.choices)
+        .map((e:any, i:number) => { const [cid, cv] = e; const it:any = cv; return { id: cid, text: it.text || '', color: it.color, _order: typeof it.index==='number'? it.index : i }; })
+        .sort((a,b)=> a._order - b._order)
+        .map(o=> ({ id: o.id, text: o.text, color: o.color })) : [];
+      entries.push({ id: key, title: val.title || '', chartType: (val as any).chartType || 'bar', choices: choiceArr, slideNumber: num });
+    });
+    entries.sort((a,b)=> a.slideNumber - b.slideNumber);
+    // ローカル slides を差し替え（参照維持）
+    // 抑制フラグ中はユーザ手動並び替えが優先なので上書きしない
+    if (suppressSlideSync.value) return;
+    // 既存と同一ならスキップ
+    const sameLength = slides.length === entries.length;
+    const same = sameLength && entries.every((e,i)=> slides[i] && slides[i].id === e.id);
+    if (!same) {
+      slides.splice(0, slides.length, ...entries.map(e => ({ id: e.id, title: e.title, chartType: e.chartType, choices: e.choices })));
+      // currentIndex が範囲外になった場合丸め
+      if (currentIndex.value >= slides.length) currentIndex.value = Math.max(0, slides.length - 1);
+    }
+  });
 
   // slideIndex のリスナー（前のリスナーをクリーンアップ）
   if (unsubSlideIndex) {
