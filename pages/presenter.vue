@@ -269,12 +269,11 @@ const onSaveSlides = async () => {
         rawColor && rawColor.toLowerCase() !== placeholder
           ? rawColor
           : palette[(ci + si) % palette.length];
-      return {
-        text: String(c.text || '').trim(),
-        color: normalizedColor,
-      };
+      const obj: any = { text: String(c.text || '').trim() };
+      if (normalizedColor) obj.color = normalizedColor; // undefined を送らない
+      return obj;
     });
-    return { title: s.title || 'untitled', chartType: s.chartType, choices };
+    return { title: s.title || 'untitled', chartType: (s.chartType || 'bar'), choices };
   });
 
   try {

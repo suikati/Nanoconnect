@@ -45,10 +45,5 @@
         "slide_2": { "counts": { "choice_1": 1 }, "total": 1 }
       }
     }
-  },
-  "users": {
-    "anon_001": {
-      "nanosuke": { "exp": 3, "evolved": false, "points": 0 }
-    }
   }
 }

@@ -30,9 +30,14 @@ const toDbSlides = (slides: UiSlide[]): Record<string, DbSlide> => {
     choicesArr.forEach((c: UiChoice, idx: number) => {
       const text = c && c.text ? String(c.text) : '';
       const color = c && c.color ? String(c.color) : undefined;
-      choicesMap[`choice_${idx}`] = { text, index: idx, color };
+      const base: DbChoice = { text, index: idx };
+      if (color) base.color = color; // undefined を送らない
+      choicesMap[`choice_${idx}`] = base;
     });
-    slidesObj[`slide_${i + 1}`] = { title: s.title || '', slideNumber: i + 1, chartType: s.chartType, choices: choicesMap };
+    const baseSlide: any = { title: s.title || '', slideNumber: i + 1, choices: choicesMap };
+    const ct = s.chartType || 'bar';
+    if (ct) baseSlide.chartType = ct; // 常に 'bar' または 'pie'
+    slidesObj[`slide_${i + 1}`] = baseSlide as DbSlide;
   });
   return slidesObj;
 };
