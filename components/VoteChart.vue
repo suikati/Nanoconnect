@@ -135,6 +135,7 @@ const renderChart = async () => {
   }
 
   const total = d.data.reduce((a, b) => a + b, 0) || 1;
+  const isPie = (props.chartType || 'bar') === 'pie';
   const maxVal = Math.max(...d.data);
   const maxIndexes = d.data.map((v, i) => (v === maxVal && maxVal > 0 ? i : -1)).filter(i => i !== -1);
 
@@ -154,6 +155,13 @@ const renderChart = async () => {
     });
   }
   // 既にチャートが存在する場合は新規作成せず更新する
+  if (chart) {
+    const desiredType = isPie ? 'pie' : 'bar';
+    if ((chart.config as any).type !== desiredType) {
+      try { chart.destroy(); } catch (e) { /* ignore */ }
+      chart = null;
+    }
+  }
   if (chart) {
     try {
       chart.data.labels = d.labels as any;
@@ -176,7 +184,7 @@ const renderChart = async () => {
   }
   const bgColors = computeBgColors(activeIndex.value);
 
-  const isPie = (props.chartType || 'bar') === 'pie';
+  // isPie already computed above
   try {
     chart = new Chart(ctx, {
     type: isPie ? 'pie' : 'bar',
@@ -220,21 +228,25 @@ const renderChart = async () => {
           },
         },
         // datalabels: バー内部に白い値ラベルを表示
-        datalabels: {
-          color: '#ffffff',
-          textStrokeColor: 'rgba(0,0,0,0.55)',
-          textStrokeWidth: 3,
-          anchor: isPie ? 'center' : 'end',
-          align: isPie ? 'center' : 'end',
-          font: { weight: 700, size: isPie ? 13 : 14 },
-          clamp: true,
-          formatter: (val: number, ctx: any) => {
-            if (val <= 0) return '';
-            const pct = Math.round((val / total) * 100);
-            if (isPie) return `${pct}%`;
-            return `${val} (${pct}%)`;
-          },
-        },
+         datalabels: isPie
+          ? {
+              color: '#ffffff',
+              textStrokeColor: 'rgba(0,0,0,0.45)',
+              textStrokeWidth: 2,
+              anchor: 'center',
+              align: 'center',
+              font: { weight: 700, size: 13 },
+              clamp: true,
+              formatter: (val: number) => {
+                if (val <= 0) return '';
+                const pct = Math.round((val / total) * 100);
+                return `${pct}%`;
+              },
+            }
+          : {
+              // bar: hide value labels per requirement
+              formatter: () => '',
+            },
       },
       animation: { duration: 600, easing: 'easeOutCubic' },
       ...(isPie
