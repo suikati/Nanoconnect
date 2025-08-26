@@ -49,17 +49,28 @@
               Voted: <strong>{{ myVote }}</strong>
             </div>
 
-            <!-- Large Live Panel (moved from right) -->
-            <UiCard v-if="choicesArray.length" variant="glass" interactive padding="md" class="live-big">
-              <template #header>
-                <div class="flex items-center justify-between w-full">
-                  <span class="text-primary-600 font-display font-bold text-sm sm:text-base">Live</span>
-                  <UiButton size="sm" variant="secondary" @pressed="fetchPlay">実況更新</UiButton>
-                </div>
-              </template>
-              <LiveResultsPanel :counts="aggregates?.counts || {}" :choices="choicesArray" :play-text="playText" :play-loading="playLoading" />
-            </UiCard>
           </div>
+        </UiCard>
+        <!-- Independent Live Panel Card -->
+        <UiCard
+          v-if="joined && slide && choicesArray.length"
+          variant="glass"
+          interactive
+          padding="md"
+          class="live-big"
+        >
+          <template #header>
+            <div class="flex items-center justify-between w-full">
+              <span class="text-primary-600 font-display font-bold text-sm sm:text-base">Live</span>
+              <UiButton size="sm" variant="secondary" @pressed="fetchPlay">実況更新</UiButton>
+            </div>
+          </template>
+          <LiveResultsPanel
+            :counts="aggregates?.counts || {}"
+            :choices="choicesArray"
+            :play-text="playText"
+            :play-loading="playLoading"
+          />
         </UiCard>
       </div>
       <!-- Comments Side -->

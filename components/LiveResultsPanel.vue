@@ -11,19 +11,19 @@
         </span>
       </template>
     </div>
-    <!-- Chart -->
-    <div class="chart-wrapper rounded-xl border border-primary-100 bg-white/90 backdrop-blur p-3 shadow-sm">
-      <div class="h-[230px]">
-        <VoteChart :counts="counts" :choices="choices" />
-      </div>
-    </div>
-    <!-- Avatar + Play bubble row -->
+    <!-- Avatar + Play bubble row (実況を上) -->
     <div class="flex items-start gap-3 play-row">
       <img src="/assets/images/linka.png" alt="linka" class="avatar" />
       <div class="play-box flex-1 rounded-xl border border-primary-100 bg-white/95 backdrop-blur p-3 shadow-sm">
         <div v-if="playLoading" class="text-primary-400 text-xs sm:text-sm">読み込み中…</div>
         <div v-else-if="playText" class="text-gray-800 text-xs sm:text-sm whitespace-pre-wrap leading-relaxed">{{ playText }}</div>
         <div v-else class="text-gray-500 text-xs sm:text-sm">実況はまだありません。</div>
+      </div>
+    </div>
+    <!-- Chart (下) -->
+    <div class="chart-wrapper rounded-xl border border-primary-100 bg-white/90 backdrop-blur p-3 shadow-sm">
+      <div class="h-[230px]">
+        <VoteChart :counts="counts" :choices="choices" />
       </div>
     </div>
   </div>
