@@ -49,6 +49,21 @@
               <div class="flex items-center gap-2 mb-1">
                 <input ref="titleInput" v-model="slides[currentIndex].title" @input="reorderDirty = true" placeholder="タイトル" class="flex-1 border border-primary-200 focus:border-primary-400 focus:ring-2 focus:ring-primary-300/60 rounded-lg px-3 py-2 text-xs sm:text-sm bg-white/80" />
               </div>
+              <!-- Chart type toggle -->
+              <div class="flex items-center gap-2 text-[10px] sm:text-xs">
+                <span class="text-gray-500">グラフタイプ:</span>
+                <button
+                  v-for="t in ['bar','pie']"
+                  :key="t"
+                  type="button"
+                  class="px-2 py-1 rounded-md border text-[10px] sm:text-xs font-medium transition"
+                  :class="slides[currentIndex].chartType === t || (!slides[currentIndex].chartType && t==='bar') ? 'bg-primary-600 text-white border-primary-600 shadow-sm' : 'bg-white/70 hover:bg-primary-50 text-gray-600 border-primary-200'"
+                  @click="setChartType(t as any)"
+                >
+                  <span v-if="t==='bar'">棒</span>
+                  <span v-else>円</span>
+                </button>
+              </div>
               <OptionList :key="slides[currentIndex].id" v-model="slides[currentIndex].choices" @update:modelValue="onChoicesUpdate" />
             </div>
             <div v-else class="text-xs sm:text-sm text-gray-500">スライドがありません。追加してください。</div>
@@ -79,7 +94,7 @@
               <UiButton size="sm" variant="secondary" @pressed="fetchPlay">実況更新</UiButton>
             </div>
           </template>
-          <LiveResultsPanel :counts="aggregates?.counts || {}" :choices="currentSlideChoices" :play-text="playText" :play-loading="playLoading" />
+          <LiveResultsPanel :counts="aggregates?.counts || {}" :choices="currentSlideChoices" :play-text="playText" :play-loading="playLoading" :chart-type="activeChartType" />
         </UiCard>
         <UiCard v-if="roomCode" title="Comments" titleClass="text-secondary-600 font-display" variant="glass" padding="md">
           <div class="mb-3 text-[10px] sm:text-xs text-gray-500">実況は上部 Live パネルに表示</div>
@@ -132,7 +147,7 @@ const log = ref('');
 // TODO: 開発が終わったらplaceholderに変更
 const palette = ['#4F46E5', '#EC4899', '#F97316', '#10B981', '#06B6D4', '#F59E0B'];
 const slides = reactive<
-  Array<{ id: string; title: string; choices: Array<{ id?: string; text: string; color?: string }> }>
+  Array<{ id: string; title: string; chartType?: 'bar' | 'pie'; choices: Array<{ id?: string; text: string; color?: string }> }>
 >([
   {
     id: `slide_0_${Date.now()}`,
@@ -243,7 +258,7 @@ const onSaveSlides = async () => {
   }
 
   // Normalize slides and auto-assign colors when missing
-  const payload = slides.map((s: { title: string; choices: any[] }, si: number) => {
+  const payload = slides.map((s: { title: string; chartType?: 'bar' | 'pie'; choices: any[] }, si: number) => {
     const choices = (s.choices || []).map((c: any, ci: number) => {
       const rawColor = c && c.color ? String(c.color) : '';
       const placeholder = '#f3f4f6';
@@ -256,7 +271,7 @@ const onSaveSlides = async () => {
         color: normalizedColor,
       };
     });
-    return { title: s.title || 'untitled', choices };
+    return { title: s.title || 'untitled', chartType: s.chartType, choices };
   });
 
   try {
@@ -388,6 +403,7 @@ watch(roomCode, async (val: string | null) => {
             slides[idx] = {
               id: existingId,
               title: slideObj2.title || '',
+              chartType: (slideObj2 as any).chartType || 'bar',
               choices: editorChoices,
             } as any;
           }
@@ -497,6 +513,19 @@ const onDeleteComment = async (commentId: string) => {
 
 function onChoicesUpdate() {
   // 選択肢編集も未保存フラグに反映
+  reorderDirty.value = true;
+}
+
+const activeChartType = computed(() => {
+  const s = slides[currentIndex.value];
+  return (s && s.chartType) || 'bar';
+});
+
+function setChartType(t: 'bar' | 'pie') {
+  const s = slides[currentIndex.value];
+  if (!s) return;
+  if (s.chartType === t) return;
+  s.chartType = t;
   reorderDirty.value = true;
 }
 </script>

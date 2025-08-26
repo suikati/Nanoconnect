@@ -21,9 +21,9 @@
       </div>
     </div>
     <!-- Chart (下) -->
-    <div class="chart-wrapper rounded-xl border border-primary-100 bg-white/90 backdrop-blur p-3 shadow-sm">
+  <div class="chart-wrapper rounded-xl border border-primary-100 bg-white/90 backdrop-blur p-3 shadow-sm overflow-hidden">
       <div class="h-[230px]">
-        <VoteChart :counts="counts" :choices="choices" />
+    <VoteChart :counts="counts" :choices="choices" :chart-type="props.chartType || 'bar'" />
       </div>
     </div>
   </div>
@@ -33,7 +33,7 @@
 import { computed } from 'vue';
 import VoteChart from '~/components/VoteChart.vue';
 import type { Choice } from '~/types/models';
-const props = defineProps<{ counts: Record<string, number>; choices: Choice[]; playText?: string; playLoading?: boolean }>();
+const props = defineProps<{ counts: Record<string, number>; choices: Choice[]; playText?: string; playLoading?: boolean; chartType?: 'bar' | 'pie' }>();
 
 const counts = computed(() => props.counts || {});
 const choices = computed(() => props.choices || []);
