@@ -13,12 +13,7 @@
       </li>
     </ul>
     <div class="pt-2">
-      <button
-        class="w-full bg-gray-100 rounded-xl py-3 text-sm text-gray-700"
-        @click.prevent="addOption"
-      >
-        選択肢を追加
-      </button>
+      <button class="w-full rounded-xl py-3 text-xs sm:text-sm font-medium bg-primary-50 text-primary-600 hover:bg-primary-100 transition border border-primary-100" @click.prevent="addOption">選択肢を追加</button>
     </div>
   </div>
 </template>

@@ -1,32 +1,28 @@
 <template>
-  <li class="p-3 bg-gray-50 rounded-xl border border-gray-100 group anim-fade-in">
+  <li :class="wrapperClass">
     <div class="flex items-center justify-between">
-      <small class="text-[10px] uppercase tracking-wide text-gray-400" :title="fullTime">{{
-        time
-      }}</small>
+      <small class="time-chip" :title="fullTime">{{ time }}</small>
       <div class="flex items-center gap-2">
         <slot name="meta" />
       </div>
     </div>
-    <div class="mt-1 text-sm">
+    <div class="mt-1 text-sm leading-relaxed">
       <em v-if="comment.deleted" class="text-gray-400">(削除済み)</em>
       <span v-else class="text-gray-800 break-words">{{ comment.text }}</span>
     </div>
-    <div class="mt-2 flex items-center gap-3 text-xs">
+    <div class="mt-2 flex items-center gap-3 text-[11px] sm:text-xs">
       <button
         @click="onLike"
         :disabled="comment.deleted"
-        class="px-2 py-1 rounded-full border bg-white hover:bg-indigo-50 transition focus-ring text-gray-600 disabled:opacity-40"
+        class="like-btn"
+  :aria-pressed="comment.userLikes && currentAnonId && comment.userLikes[currentAnonId] ? 'true' : 'false'"
       >
-        <span class="mr-1">{{
-          comment.userLikes && comment.userLikes[currentAnonId] ? '💙' : '👍'
-        }}</span
-        >{{ comment.likes || 0 }}
+  <span class="mr-1 select-none">{{ comment.userLikes && currentAnonId && comment.userLikes[currentAnonId] ? '💙' : '👍' }}</span>{{ comment.likes || 0 }}
       </button>
       <button
         v-if="!comment.deleted && comment.anonId === currentAnonId"
         @click="onDelete"
-        class="text-red-500 hover:underline"
+        class="delete-btn"
       >
         Delete
       </button>
@@ -40,7 +36,8 @@ import type { Comment } from '~/types/models';
 const props = defineProps<{ comment: Comment & { id: string }; currentAnonId: string | null }>();
 const time = computed(() => new Date(props.comment.createdAt).toLocaleTimeString());
 const fullTime = computed(() => new Date(props.comment.createdAt).toISOString());
-const emit = defineEmits<{ like: (id: string) => void; delete: (id: string) => void }>();
+const emit = defineEmits<{ (e: 'like', id: string): void; (e: 'delete', id: string): void }>();
+const wrapperClass = computed(() => 'p-3 rounded-xl border border-primary-100/60 bg-white/70 glass group anim-fade-in shadow-sm');
 let likeLocked = false;
 const onLike = (e: Event) => {
   try {
