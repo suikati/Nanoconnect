@@ -14,6 +14,7 @@ type LazyComponent<T> = (T & DefineComponent<HydrationStrategies, {}, {}, {}, {}
 interface _GlobalComponents {
       'CommentItem': typeof import("../components/CommentItem.vue")['default']
     'LiveComment': typeof import("../components/LiveComment.vue")['default']
+    'LiveResultsPanel': typeof import("../components/LiveResultsPanel.vue")['default']
     'OptionItem': typeof import("../components/OptionItem.vue")['default']
     'OptionList': typeof import("../components/OptionList.vue")['default']
     'PlayByPlay': typeof import("../components/PlayByPlay.vue")['default']
@@ -49,6 +50,7 @@ interface _GlobalComponents {
     'NuxtRouteAnnouncer': typeof import("../node_modules/.pnpm/nuxt@3.18.1_@types+node@20.19.11_@vue+compiler-sfc@3.5.20_typescript@5.9.2_vite@6.3.5/node_modules/nuxt/dist/app/components/server-placeholder")['default']
       'LazyCommentItem': LazyComponent<typeof import("../components/CommentItem.vue")['default']>
     'LazyLiveComment': LazyComponent<typeof import("../components/LiveComment.vue")['default']>
+    'LazyLiveResultsPanel': LazyComponent<typeof import("../components/LiveResultsPanel.vue")['default']>
     'LazyOptionItem': LazyComponent<typeof import("../components/OptionItem.vue")['default']>
     'LazyOptionList': LazyComponent<typeof import("../components/OptionList.vue")['default']>
     'LazyPlayByPlay': LazyComponent<typeof import("../components/PlayByPlay.vue")['default']>
@@ -90,6 +92,7 @@ declare module 'vue' {
 
 export const CommentItem: typeof import("../components/CommentItem.vue")['default']
 export const LiveComment: typeof import("../components/LiveComment.vue")['default']
+export const LiveResultsPanel: typeof import("../components/LiveResultsPanel.vue")['default']
 export const OptionItem: typeof import("../components/OptionItem.vue")['default']
 export const OptionList: typeof import("../components/OptionList.vue")['default']
 export const PlayByPlay: typeof import("../components/PlayByPlay.vue")['default']
@@ -125,6 +128,7 @@ export const NuxtIsland: typeof import("../node_modules/.pnpm/nuxt@3.18.1_@types
 export const NuxtRouteAnnouncer: typeof import("../node_modules/.pnpm/nuxt@3.18.1_@types+node@20.19.11_@vue+compiler-sfc@3.5.20_typescript@5.9.2_vite@6.3.5/node_modules/nuxt/dist/app/components/server-placeholder")['default']
 export const LazyCommentItem: LazyComponent<typeof import("../components/CommentItem.vue")['default']>
 export const LazyLiveComment: LazyComponent<typeof import("../components/LiveComment.vue")['default']>
+export const LazyLiveResultsPanel: LazyComponent<typeof import("../components/LiveResultsPanel.vue")['default']>
 export const LazyOptionItem: LazyComponent<typeof import("../components/OptionItem.vue")['default']>
 export const LazyOptionList: LazyComponent<typeof import("../components/OptionList.vue")['default']>
 export const LazyPlayByPlay: LazyComponent<typeof import("../components/PlayByPlay.vue")['default']>
