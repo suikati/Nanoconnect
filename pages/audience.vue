@@ -74,9 +74,10 @@
           />
         </UiCard>
       </div>
-      <!-- Comments Side -->
-      <div class="lg:col-span-5 xl:col-span-2 space-y-6">
-        <UiCard title="Comments" titleClass="text-secondary-600 font-display" variant="glass" padding="md">
+      <!-- Comments Side: xl 以上で左カラム (Slide+Live) 全体の高さに揃えて下端を合わせる -->
+      <div class="lg:col-span-5 xl:col-span-2 xl:h-full">
+        <UiCard title="Comments" titleClass="text-secondary-600 font-display" variant="glass" padding="md" class="xl:h-full xl:flex xl:flex-col">
+          <div class="flex flex-col gap-4 xl:flex-1 xl:min-h-0">
           <div v-if="!joined" class="text-[10px] sm:text-xs text-gray-400">参加するとコメントできます。</div>
           <div v-else class="flex gap-3 mb-4">
             <input
@@ -87,8 +88,7 @@
             <UiButton variant="primary" :disabled="!commentText" @pressed="onPostComment">Post</UiButton>
           </div>
           <!-- LiveComment は投票ブロック直下 / Live パネルはスライド下へ配置 -->
-
-          <ul class="space-y-3 max-h-[420px] overflow-y-auto pr-1">
+          <ul class="space-y-3 overflow-y-auto pr-1 xl:flex-1 xl:min-h-0 max-h-[420px] xl:max-h-none">
             <CommentItem
               v-for="c in comments"
               :key="c.id"
@@ -98,6 +98,7 @@
               @delete="() => onDeleteComment(c.id)"
             />
           </ul>
+          </div>
         </UiCard>
   <pre v-if="isDev" class="text-[10px] text-gray-400 whitespace-pre-wrap">{{ log.join('\n') }}</pre>
       </div>
