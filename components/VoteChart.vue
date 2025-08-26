@@ -198,16 +198,23 @@ const renderNow = async () => {
         tooltip: {
           callbacks: {
             label: (ctx: any) => {
-              // ctx.parsed for bar: vertical -> number, horizontal -> {x: value, y: index}; for pie -> number
+              // 正しい値抽出: 縦棒(indexAxis='x'): parsed.y が値, 横棒(indexAxis='y'): parsed.x が値
+              const cfgAxis = (ctx.chart?.options as any)?.indexAxis || 'x';
               const parsed = ctx.parsed;
               let v = 0;
-              if (typeof parsed === 'number') v = parsed;
-              else if (parsed && typeof parsed === 'object') v = Number(parsed.x ?? parsed.y ?? 0) || 0;
-              // Use dataset data to compute total to avoid stale closure values
+              if (typeof parsed === 'number') {
+                v = parsed; // pie 等
+              } else if (parsed && typeof parsed === 'object') {
+                if (cfgAxis === 'y') {
+                  v = Number(parsed.x) || 0; // horizontal bar
+                } else {
+                  v = Number(parsed.y) || 0; // vertical bar
+                }
+              }
               const ds = ctx.chart?.data?.datasets?.[ctx.datasetIndex];
               const arr = Array.isArray(ds?.data) ? ds!.data : [];
               const totalLocal = arr.reduce((s: number, n: any) => s + (Number(n) || 0), 0) || 1;
-              const pct = Math.round((v / totalLocal) * 100);
+              const pct = totalLocal > 0 ? Math.round((v / totalLocal) * 100) : 0;
               return `${ctx.label}: ${v} (${pct}%)`;
             },
           },
