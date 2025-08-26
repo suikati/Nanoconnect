@@ -37,6 +37,10 @@
   .anim-pop {
     @apply animate-pop;
   }
+  /* Force line-height normal utility for cases where text-* utilities set line-height:1 */
+  .lh-normal {
+    line-height: normal !important;
+  }
   /* scrollbar */
   ::-webkit-scrollbar {
     width: 10px;

@@ -2,7 +2,7 @@
   <AppShell>
     <div class="max-w-5xl mx-auto">
       <div class="text-center mb-16 anim-fade-in">
-  <h1 class="text-3xl sm:text-5xl font-display font-bold leading-normal text-gradient mb-5 tracking-tight">
+  <h1 class="text-3xl sm:text-5xl font-display font-bold leading-normal lh-normal text-gradient mb-5 tracking-tight">
           リアルタイム<span class="block sm:inline"> アンケートアプリ</span>
         </h1>
         <p class="text-gray-600 text-sm sm:text-base max-w-2xl mx-auto font-sans">
