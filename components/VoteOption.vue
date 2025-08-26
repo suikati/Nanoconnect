@@ -1,5 +1,5 @@
 <template>
-  <button :disabled="disabled" @click="onClick" :class="btnClass" :style="styleOverride">
+  <button :disabled="disabled" @click="onClick" :class="btnClass" :style="styleOverride" :aria-pressed="selected ? 'true' : 'false'">
     <span class="font-medium truncate">{{ choice.text }}</span>
     <span class="text-[10px] sm:text-xs font-mono opacity-70">{{ count }}</span>
   </button>
@@ -16,13 +16,24 @@ const props = defineProps<{
 }>();
 const btnClass = computed(() => {
   const base = 'group w-full text-left px-4 py-3 rounded-xl border flex items-center gap-3 justify-between transition-all focus-ring relative overflow-hidden select-none';
+  // disabled 状態の扱い (選択中は減光しない)
+  const disabledClass = props.disabled
+    ? (props.selected ? 'pointer-events-none cursor-default' : 'opacity-50 pointer-events-none cursor-not-allowed')
+    : '';
+
   if (props.selected) {
-    // 立体・押し込み (inset) スタイル
-    const pressed = 'bg-white text-primary-700 border-primary-400 shadow-inner [box-shadow:inset_0_2px_4px_0_rgba(0,0,0,0.12),0_2px_4px_-1px_rgba(0,0,0,0.15)] translate-y-[1px]';
-    return [base, pressed, props.disabled ? 'opacity-60 pointer-events-none' : ''].join(' ');
+    // 押し込み強調: 深い inset + y 方向 + わずかに縮小 + 上部ハイライト
+    const pressed = [
+      'bg-white text-primary-700 border-primary-500',
+      'shadow-inner',
+      '[box-shadow:inset_0_3px_6px_0_rgba(0,0,0,0.18),0_2px_3px_-1px_rgba(0,0,0,0.25)]',
+      'translate-y-[2px] scale-[0.985]',
+      'after:absolute after:inset-x-1 after:top-1 after:h-1 after:rounded after:bg-gradient-to-b after:from-white/70 after:to-transparent after:pointer-events-none'
+    ].join(' ');
+    return [base, pressed, disabledClass].join(' ');
   }
-  const normal = 'bg-white/80 backdrop-blur-sm border-primary-200 hover:bg-white hover:border-primary-300 text-gray-800 shadow-sm active:translate-y-[1px] active:shadow-inner active:border-primary-400';
-  return [base, normal, props.disabled ? 'opacity-60 pointer-events-none' : ''].join(' ');
+  const normal = 'bg-white/85 backdrop-blur-sm border-primary-200 hover:bg-white hover:border-primary-300 text-gray-800 shadow-sm active:translate-y-[2px] active:scale-[0.985] active:shadow-inner active:border-primary-400';
+  return [base, normal, disabledClass].join(' ');
 });
 
 // Fallback inline style only if custom color provided in choice
