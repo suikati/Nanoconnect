@@ -70,10 +70,19 @@
         </UiCard>
       </div>
 
-      <!-- Right: Comments only -->
+      <!-- Right: Unified Live panel & Comments -->
       <div class="xl:col-span-2 space-y-6">
+        <UiCard v-if="currentSlideChoices.length" variant="glass" padding="md" interactive>
+          <template #header>
+            <div class="flex items-center justify-between w-full">
+              <span class="text-primary-600 font-display font-bold text-sm sm:text-base">Live</span>
+              <UiButton size="sm" variant="secondary" @pressed="fetchPlay">実況更新</UiButton>
+            </div>
+          </template>
+          <LiveResultsPanel :counts="aggregates?.counts || {}" :choices="currentSlideChoices" :play-text="playText" :play-loading="playLoading" />
+        </UiCard>
         <UiCard v-if="roomCode" title="Comments" titleClass="text-secondary-600 font-display" variant="glass" padding="md">
-          <div class="mb-2 text-[10px] sm:text-xs text-gray-500">実況は下部 Live パネルに表示</div>
+          <div class="mb-3 text-[10px] sm:text-xs text-gray-500">実況は上部 Live パネルに表示</div>
           <ul class="space-y-3 max-h-[460px] overflow-y-auto pr-1">
             <CommentItem
               v-for="c in comments"
@@ -87,19 +96,6 @@
         </UiCard>
         <pre v-if="isDev" class="text-[10px] text-gray-400 whitespace-pre-wrap">{{ log }}</pre>
       </div>
-
-      <!-- Full-width Live Panel -->
-      <div class="xl:col-span-5 col-span-5">
-        <UiCard v-if="currentSlideChoices.length" variant="glass" interactive padding="md">
-          <template #header>
-            <div class="flex items-center justify-between w-full">
-              <span class="text-primary-600 font-display font-bold text-sm sm:text-base">Live</span>
-              <UiButton size="sm" variant="secondary" @pressed="fetchPlay">実況更新</UiButton>
-            </div>
-          </template>
-          <LiveResultsPanel :counts="aggregates?.counts || {}" :choices="currentSlideChoices" :play-text="playText" :play-loading="playLoading" />
-        </UiCard>
-      </div>
     </div>
   </AppShell>
 </template>
@@ -107,7 +103,7 @@
 <script setup lang="ts">
 import { reactive, ref, onMounted, watch, onUnmounted, nextTick } from 'vue';
 import useRoom from '~/composables/useRoom';
-// VoteChart は統合パネル内部で使用されるため個別インポート不要
+import VoteChart from '~/components/VoteChart.vue';
 import createDbListener from '~/composables/useDbListener';
 import AppShell from '~/components/ui/AppShell.vue';
 import UiButton from '~/components/ui/UiButton.vue';
