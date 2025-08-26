@@ -155,6 +155,14 @@
   .lh-normal {
     line-height: normal !important;
   }
+  /* Brand gradient text */
+  .brand-gradient {
+    @apply bg-gradient-to-r from-indigo-500 via-fuchsia-500 to-rose-500 bg-clip-text text-transparent drop-shadow-sm transition-colors duration-300 hover:brightness-110 hover:saturate-125 hover:drop-shadow-[0_0_6px_rgba(255,200,255,0.55)];
+    color: transparent !important;
+    -webkit-text-fill-color: transparent !important;
+    -webkit-background-clip: text;
+    background-clip: text;
+  }
   /* scrollbar */
   ::-webkit-scrollbar {
     width: 10px;
