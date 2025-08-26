@@ -107,7 +107,6 @@ import UiCard from '~/components/ui/UiCard.vue';
 import VoteOption from '~/components/VoteOption.vue';
 import CommentItem from '~/components/CommentItem.vue';
 import LiveComment from '~/components/LiveComment.vue';
-import PlayByPlay from '~/components/PlayByPlay.vue';
 import type { Aggregate, Comment as CommentType, Choice, Slide } from '~/types/models';
 
 // ここで使う composable の簡易 API 形

@@ -70,24 +70,17 @@
         </UiCard>
       </div>
 
-      <!-- Right: Live Result & Comments -->
+      <!-- Right: Unified Live panel & Comments -->
       <div class="xl:col-span-2 space-y-6">
-        <UiCard v-if="aggregates && currentSlideChoices.length" title="Live Results" titleClass="text-primary-600 font-display" variant="glass" padding="md" interactive>
-          <VoteChart :counts="aggregates.counts" :choices="currentSlideChoices" />
+        <UiCard v-if="currentSlideChoices.length" title="Live" titleClass="text-primary-600 font-display" variant="glass" padding="md" interactive>
+          <LiveResultsPanel :counts="aggregates?.counts || {}" :choices="currentSlideChoices" :play-text="playText" :play-loading="playLoading" />
         </UiCard>
         <UiCard v-if="roomCode" title="Comments" titleClass="text-secondary-600 font-display" variant="glass" padding="md">
-          <div class="flex items-center justify-between mb-3 text-xs sm:text-sm">
-            <div class="text-gray-600 font-medium">実況プレビュー</div>
-            <div class="flex items-center gap-2">
-              <UiButton size="sm" variant="secondary" @pressed="fetchPlay">実況更新</UiButton>
-            </div>
+          <div class="mb-3 flex items-center justify-between text-[10px] sm:text-xs text-gray-500">
+            <span>実況は Live パネルに表示</span>
+            <UiButton size="sm" variant="secondary" @pressed="fetchPlay">実況更新</UiButton>
           </div>
-          <PlayByPlay :text="playText" :loading="playLoading" />
-          <div class="my-3 border-t border-primary-100 pt-3"></div>
-
-          <!-- Comment generation UI removed for presenter view -->
-
-          <ul class="space-y-3 max-h-[460px] overflow-y-auto pr-1 mt-3">
+          <ul class="space-y-3 max-h-[460px] overflow-y-auto pr-1">
             <CommentItem
               v-for="c in comments"
               :key="c.id"
@@ -114,7 +107,7 @@ import UiButton from '~/components/ui/UiButton.vue';
 import UiCard from '~/components/ui/UiCard.vue';
 import CommentItem from '~/components/CommentItem.vue';
 import OptionList from '~/components/OptionList.vue';
-import PlayByPlay from '~/components/PlayByPlay.vue';
+import LiveResultsPanel from '~/components/LiveResultsPanel.vue';
 import SlideSorter from '~/components/SlideSorter.vue';
 import type { Aggregate, Comment as CommentType, Choice, Slide } from '~/types/models';
 
