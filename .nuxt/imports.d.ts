@@ -34,5 +34,6 @@ export { default as useLiveCommentGenerator } from '../composables/useLiveCommen
 export { default as useRoom } from '../composables/useRoom';
 export { buildChartData, computeBgColors, truncateLabel } from '../utils/chart';
 export { PALETTE, withFallbackColor, mixWithWhite, PaletteColor } from '../utils/colors';
+export { needsChoiceIdMigration, buildChoiceIdMigrationUpdates, migrateLegacyChoiceIds, MigrationResult } from '../utils/migration';
 export { roomPath, slidePath, aggregatesPath, votesPath, liveCommentPath, commentsPath, slideIndexPath, slidePathById, aggregatesPathById, votesPathById, liveCommentPathById } from '../utils/paths';
 export { definePageMeta } from '../node_modules/.pnpm/nuxt@3.18.1_@types+node@20.19.11_@vue+compiler-sfc@3.5.20_typescript@5.9.2_vite@6.3.5/node_modules/nuxt/dist/pages/runtime/composables';

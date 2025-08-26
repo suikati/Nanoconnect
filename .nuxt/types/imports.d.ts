@@ -7,6 +7,7 @@ declare global {
   const aggregatesPath: typeof import('../../utils/paths')['aggregatesPath']
   const aggregatesPathById: typeof import('../../utils/paths')['aggregatesPathById']
   const buildChartData: typeof import('../../utils/chart')['buildChartData']
+  const buildChoiceIdMigrationUpdates: typeof import('../../utils/migration')['buildChoiceIdMigrationUpdates']
   const callOnce: typeof import('../../node_modules/.pnpm/nuxt@3.18.1_@types+node@20.19.11_@vue+compiler-sfc@3.5.20_typescript@5.9.2_vite@6.3.5/node_modules/nuxt/dist/app/composables/once')['callOnce']
   const cancelIdleCallback: typeof import('../../node_modules/.pnpm/nuxt@3.18.1_@types+node@20.19.11_@vue+compiler-sfc@3.5.20_typescript@5.9.2_vite@6.3.5/node_modules/nuxt/dist/app/compat/idle-callback')['cancelIdleCallback']
   const clearError: typeof import('../../node_modules/.pnpm/nuxt@3.18.1_@types+node@20.19.11_@vue+compiler-sfc@3.5.20_typescript@5.9.2_vite@6.3.5/node_modules/nuxt/dist/app/composables/error')['clearError']
@@ -54,8 +55,10 @@ declare global {
   const loadPayload: typeof import('../../node_modules/.pnpm/nuxt@3.18.1_@types+node@20.19.11_@vue+compiler-sfc@3.5.20_typescript@5.9.2_vite@6.3.5/node_modules/nuxt/dist/app/composables/payload')['loadPayload']
   const markRaw: typeof import('vue')['markRaw']
   const mergeModels: typeof import('vue')['mergeModels']
+  const migrateLegacyChoiceIds: typeof import('../../utils/migration')['migrateLegacyChoiceIds']
   const mixWithWhite: typeof import('../../utils/colors')['mixWithWhite']
   const navigateTo: typeof import('../../node_modules/.pnpm/nuxt@3.18.1_@types+node@20.19.11_@vue+compiler-sfc@3.5.20_typescript@5.9.2_vite@6.3.5/node_modules/nuxt/dist/app/composables/router')['navigateTo']
+  const needsChoiceIdMigration: typeof import('../../utils/migration')['needsChoiceIdMigration']
   const nextTick: typeof import('vue')['nextTick']
   const onActivated: typeof import('vue')['onActivated']
   const onBeforeMount: typeof import('vue')['onBeforeMount']
@@ -202,6 +205,9 @@ declare global {
   // @ts-ignore
   export type { PaletteColor } from '../../utils/colors'
   import('../../utils/colors')
+  // @ts-ignore
+  export type { MigrationResult } from '../../utils/migration'
+  import('../../utils/migration')
 }
 // for vue template auto import
 import { UnwrapRef } from 'vue'
@@ -213,6 +219,7 @@ declare module 'vue' {
     readonly aggregatesPath: UnwrapRef<typeof import('../../utils/paths')['aggregatesPath']>
     readonly aggregatesPathById: UnwrapRef<typeof import('../../utils/paths')['aggregatesPathById']>
     readonly buildChartData: UnwrapRef<typeof import('../../utils/chart')['buildChartData']>
+    readonly buildChoiceIdMigrationUpdates: UnwrapRef<typeof import('../../utils/migration')['buildChoiceIdMigrationUpdates']>
     readonly callOnce: UnwrapRef<typeof import('../../node_modules/.pnpm/nuxt@3.18.1_@types+node@20.19.11_@vue+compiler-sfc@3.5.20_typescript@5.9.2_vite@6.3.5/node_modules/nuxt/dist/app/composables/once')['callOnce']>
     readonly cancelIdleCallback: UnwrapRef<typeof import('../../node_modules/.pnpm/nuxt@3.18.1_@types+node@20.19.11_@vue+compiler-sfc@3.5.20_typescript@5.9.2_vite@6.3.5/node_modules/nuxt/dist/app/compat/idle-callback')['cancelIdleCallback']>
     readonly clearError: UnwrapRef<typeof import('../../node_modules/.pnpm/nuxt@3.18.1_@types+node@20.19.11_@vue+compiler-sfc@3.5.20_typescript@5.9.2_vite@6.3.5/node_modules/nuxt/dist/app/composables/error')['clearError']>
@@ -260,8 +267,10 @@ declare module 'vue' {
     readonly loadPayload: UnwrapRef<typeof import('../../node_modules/.pnpm/nuxt@3.18.1_@types+node@20.19.11_@vue+compiler-sfc@3.5.20_typescript@5.9.2_vite@6.3.5/node_modules/nuxt/dist/app/composables/payload')['loadPayload']>
     readonly markRaw: UnwrapRef<typeof import('vue')['markRaw']>
     readonly mergeModels: UnwrapRef<typeof import('vue')['mergeModels']>
+    readonly migrateLegacyChoiceIds: UnwrapRef<typeof import('../../utils/migration')['migrateLegacyChoiceIds']>
     readonly mixWithWhite: UnwrapRef<typeof import('../../utils/colors')['mixWithWhite']>
     readonly navigateTo: UnwrapRef<typeof import('../../node_modules/.pnpm/nuxt@3.18.1_@types+node@20.19.11_@vue+compiler-sfc@3.5.20_typescript@5.9.2_vite@6.3.5/node_modules/nuxt/dist/app/composables/router')['navigateTo']>
+    readonly needsChoiceIdMigration: UnwrapRef<typeof import('../../utils/migration')['needsChoiceIdMigration']>
     readonly nextTick: UnwrapRef<typeof import('vue')['nextTick']>
     readonly onActivated: UnwrapRef<typeof import('vue')['onActivated']>
     readonly onBeforeMount: UnwrapRef<typeof import('vue')['onBeforeMount']>

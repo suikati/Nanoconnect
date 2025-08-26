@@ -14,10 +14,13 @@ type LazyComponent<T> = (T & DefineComponent<HydrationStrategies, {}, {}, {}, {}
 interface _GlobalComponents {
       'CommentItem': typeof import("../components/CommentItem.vue")['default']
     'LiveComment': typeof import("../components/LiveComment.vue")['default']
+    'LivePanelWrapper': typeof import("../components/LivePanelWrapper.vue")['default']
     'LiveResultsPanel': typeof import("../components/LiveResultsPanel.vue")['default']
     'OptionItem': typeof import("../components/OptionItem.vue")['default']
     'OptionList': typeof import("../components/OptionList.vue")['default']
     'PlayByPlay': typeof import("../components/PlayByPlay.vue")['default']
+    'SlideControls': typeof import("../components/SlideControls.vue")['default']
+    'SlideEditor': typeof import("../components/SlideEditor.vue")['default']
     'SlideSorter': typeof import("../components/SlideSorter.vue")['default']
     'VoteChart': typeof import("../components/VoteChart.vue")['default']
     'VoteOption': typeof import("../components/VoteOption.vue")['default']
@@ -50,10 +53,13 @@ interface _GlobalComponents {
     'NuxtRouteAnnouncer': typeof import("../node_modules/.pnpm/nuxt@3.18.1_@types+node@20.19.11_@vue+compiler-sfc@3.5.20_typescript@5.9.2_vite@6.3.5/node_modules/nuxt/dist/app/components/server-placeholder")['default']
       'LazyCommentItem': LazyComponent<typeof import("../components/CommentItem.vue")['default']>
     'LazyLiveComment': LazyComponent<typeof import("../components/LiveComment.vue")['default']>
+    'LazyLivePanelWrapper': LazyComponent<typeof import("../components/LivePanelWrapper.vue")['default']>
     'LazyLiveResultsPanel': LazyComponent<typeof import("../components/LiveResultsPanel.vue")['default']>
     'LazyOptionItem': LazyComponent<typeof import("../components/OptionItem.vue")['default']>
     'LazyOptionList': LazyComponent<typeof import("../components/OptionList.vue")['default']>
     'LazyPlayByPlay': LazyComponent<typeof import("../components/PlayByPlay.vue")['default']>
+    'LazySlideControls': LazyComponent<typeof import("../components/SlideControls.vue")['default']>
+    'LazySlideEditor': LazyComponent<typeof import("../components/SlideEditor.vue")['default']>
     'LazySlideSorter': LazyComponent<typeof import("../components/SlideSorter.vue")['default']>
     'LazyVoteChart': LazyComponent<typeof import("../components/VoteChart.vue")['default']>
     'LazyVoteOption': LazyComponent<typeof import("../components/VoteOption.vue")['default']>
@@ -92,10 +98,13 @@ declare module 'vue' {
 
 export const CommentItem: typeof import("../components/CommentItem.vue")['default']
 export const LiveComment: typeof import("../components/LiveComment.vue")['default']
+export const LivePanelWrapper: typeof import("../components/LivePanelWrapper.vue")['default']
 export const LiveResultsPanel: typeof import("../components/LiveResultsPanel.vue")['default']
 export const OptionItem: typeof import("../components/OptionItem.vue")['default']
 export const OptionList: typeof import("../components/OptionList.vue")['default']
 export const PlayByPlay: typeof import("../components/PlayByPlay.vue")['default']
+export const SlideControls: typeof import("../components/SlideControls.vue")['default']
+export const SlideEditor: typeof import("../components/SlideEditor.vue")['default']
 export const SlideSorter: typeof import("../components/SlideSorter.vue")['default']
 export const VoteChart: typeof import("../components/VoteChart.vue")['default']
 export const VoteOption: typeof import("../components/VoteOption.vue")['default']
@@ -128,10 +137,13 @@ export const NuxtIsland: typeof import("../node_modules/.pnpm/nuxt@3.18.1_@types
 export const NuxtRouteAnnouncer: typeof import("../node_modules/.pnpm/nuxt@3.18.1_@types+node@20.19.11_@vue+compiler-sfc@3.5.20_typescript@5.9.2_vite@6.3.5/node_modules/nuxt/dist/app/components/server-placeholder")['default']
 export const LazyCommentItem: LazyComponent<typeof import("../components/CommentItem.vue")['default']>
 export const LazyLiveComment: LazyComponent<typeof import("../components/LiveComment.vue")['default']>
+export const LazyLivePanelWrapper: LazyComponent<typeof import("../components/LivePanelWrapper.vue")['default']>
 export const LazyLiveResultsPanel: LazyComponent<typeof import("../components/LiveResultsPanel.vue")['default']>
 export const LazyOptionItem: LazyComponent<typeof import("../components/OptionItem.vue")['default']>
 export const LazyOptionList: LazyComponent<typeof import("../components/OptionList.vue")['default']>
 export const LazyPlayByPlay: LazyComponent<typeof import("../components/PlayByPlay.vue")['default']>
+export const LazySlideControls: LazyComponent<typeof import("../components/SlideControls.vue")['default']>
+export const LazySlideEditor: LazyComponent<typeof import("../components/SlideEditor.vue")['default']>
 export const LazySlideSorter: LazyComponent<typeof import("../components/SlideSorter.vue")['default']>
 export const LazyVoteChart: LazyComponent<typeof import("../components/VoteChart.vue")['default']>
 export const LazyVoteOption: LazyComponent<typeof import("../components/VoteOption.vue")['default']>
