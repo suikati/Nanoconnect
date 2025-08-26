@@ -3,7 +3,15 @@
     <template #header>
       <div class="flex items-center justify-between gap-3 w-full">
   <h2 class="text-emerald-600 font-display font-bold text-sm sm:text-base">Create Questionnaire</h2>
-  <span v-if="roomCode" class="text-[10px] sm:text-xs text-emerald-600 font-mono tracking-wide">{{ roomCode }}</span>
+  <button
+    v-if="roomCode"
+    @click="copyRoomCode"
+    type="button"
+    class="group relative text-[10px] sm:text-xs bg-emerald-50 text-emerald-600 px-2 py-1 rounded-full font-mono tracking-wide focus:outline-none focus:ring-2 focus:ring-emerald-300 hover:bg-emerald-100 transition"
+    :title="copied ? 'Copied!' : 'クリックでコピー'"
+  >
+    <span>{{ copied ? 'Copied!' : roomCode }}</span>
+  </button>
       </div>
     </template>
     <div class="space-y-6">
@@ -39,8 +47,9 @@
 import UiButton from '~/components/ui/UiButton.vue';
 import UiCard from '~/components/ui/UiCard.vue';
 import SlideSorter from '~/components/SlideSorter.vue';
+import { ref } from 'vue';
 
-defineProps<{
+const props = defineProps<{
   slides: Array<{ id: string; title: string; chartType?: 'bar' | 'pie'; choices: any[] }>;
   currentIndex: number;
   reorderDirty: boolean;
@@ -55,4 +64,21 @@ defineEmits<{
   (e: 'move', payload: { from: number; to: number }): void;
   (e: 'remove', index: number): void;
 }>();
+
+// クリックコピー用状態
+const copied = ref(false);
+async function copyRoomCode() {
+  try {
+    if (!navigator?.clipboard) {
+      // フォールバック: 選択してユーザに促す
+      copied.value = false;
+      return;
+    }
+  if (props.roomCode) await navigator.clipboard.writeText(props.roomCode);
+    copied.value = true;
+    setTimeout(() => (copied.value = false), 1600);
+  } catch (e) {
+    copied.value = false;
+  }
+}
 </script>
