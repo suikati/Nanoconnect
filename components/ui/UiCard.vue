@@ -21,10 +21,10 @@ const props = defineProps<{
 const wrapperClass = computed(() => {
   const pad = props.padding || 'md';
   const variant = props.variant || 'glass';
-  const base = 'relative overflow-hidden rounded-2xl border anim-fade-in text-ink-soft';
+  const base = 'relative overflow-hidden rounded-2xl border anim-fade-in text-gray-800';
   const pads: Record<string, string> = { none: 'p-0', sm: 'p-3', md: 'p-5', lg: 'p-7' };
   const variants: Record<string, string> = {
-  glass: 'glass bg-white/70 border-white/60 shadow-md backdrop-blur before:absolute before:inset-0 before:bg-[linear-gradient(135deg,rgba(255,255,255,0.9)_0%,rgba(255,255,255,0.15)_85%)] before:pointer-events-none',
+  glass: 'glass bg-white/75 border-white/60 shadow-md backdrop-blur before:absolute before:inset-0 before:z-0 before:bg-[linear-gradient(140deg,rgba(255,255,255,0.85)_0%,rgba(255,255,255,0.08)_90%)] before:pointer-events-none [&>*]:relative [&>*]:z-10',
     solid: 'bg-white border-primary-100 shadow-md',
     subtle: 'bg-surface-alt border-surface-alt shadow-sm'
   };
