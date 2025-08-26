@@ -3,6 +3,8 @@ export type Choice = { key: string; text: string; color?: string };
 export type Slide = {
   title: string;
   slideNumber: number;
+  // グラフ表示タイプ（未指定は 'bar' 扱い）
+  chartType?: 'bar' | 'pie';
   // choices is stored in Firebase as an object map choice_0, choice_1 ... but in UI we may use an array of {text,color,index}
   choices: Record<string, { text: string; index: number; color?: string }>;
 };

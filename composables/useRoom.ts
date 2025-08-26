@@ -17,22 +17,22 @@ type UseRoomApi = {
 
 // UI / DB shapes
 type UiChoice = { text: string; color?: string };
-type UiSlide = { title: string; choices: UiChoice[] };
+type UiSlide = { title: string; choices: UiChoice[]; chartType?: 'bar' | 'pie' };
 
 type DbChoice = { text: string; index: number; color?: string };
-type DbSlide = { title: string; slideNumber: number; choices: Record<string, DbChoice> };
+type DbSlide = { title: string; slideNumber: number; chartType?: 'bar' | 'pie'; choices: Record<string, DbChoice> };
 
 const toDbSlides = (slides: UiSlide[]): Record<string, DbSlide> => {
   const slidesObj: Record<string, DbSlide> = {};
-  slides.forEach((s, i) => {
+  slides.forEach((s: UiSlide, i: number) => {
     const choicesMap: Record<string, DbChoice> = {};
     const choicesArr = Array.isArray(s.choices) ? s.choices : [];
-    choicesArr.forEach((c, idx) => {
+    choicesArr.forEach((c: UiChoice, idx: number) => {
       const text = c && c.text ? String(c.text) : '';
       const color = c && c.color ? String(c.color) : undefined;
       choicesMap[`choice_${idx}`] = { text, index: idx, color };
     });
-    slidesObj[`slide_${i + 1}`] = { title: s.title || '', slideNumber: i + 1, choices: choicesMap };
+    slidesObj[`slide_${i + 1}`] = { title: s.title || '', slideNumber: i + 1, chartType: s.chartType, choices: choicesMap };
   });
   return slidesObj;
 };

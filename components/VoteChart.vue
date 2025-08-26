@@ -43,7 +43,7 @@ Chart.register(
   ChartDataLabels,
 );
 
-const props = defineProps<{ counts: Record<string, number>; choices: Choice[] }>();
+const props = defineProps<{ counts: Record<string, number>; choices: Choice[]; chartType?: 'bar' | 'pie' }>();
 const canvas = ref<HTMLCanvasElement | null>(null);
 const container = ref<HTMLDivElement | null>(null);
 const wrapper = ref<HTMLDivElement | null>(null);
@@ -169,8 +169,9 @@ const renderChart = async () => {
   }
   const bgColors = computeBgColors(activeIndex.value);
 
+  const isPie = (props.chartType || 'bar') === 'pie';
   chart = new Chart(ctx, {
-    type: 'bar',
+    type: isPie ? 'pie' : 'bar',
     data: {
       labels: d.labels,
       datasets: [
@@ -178,81 +179,97 @@ const renderChart = async () => {
           label: 'Votes',
           data: d.data,
           backgroundColor: bgColors as any,
-          borderRadius: 8,
-          borderSkipped: false,
-          borderColor: d.data.map((v, i) => (maxIndexes.includes(i) ? '#111827' : 'transparent')) as any,
-          borderWidth: d.data.map((v, i) => (maxIndexes.includes(i) ? 2 : 0)) as any,
+          ...(isPie
+            ? {
+                // pie specific
+                borderColor: d.data.map((v, i) => (maxIndexes.includes(i) ? '#111827' : '#ffffff')) as any,
+                borderWidth: d.data.map((v, i) => (maxIndexes.includes(i) ? 2 : 1)) as any,
+              }
+            : {
+                borderRadius: 8,
+                borderSkipped: false,
+                borderColor: d.data.map((v, i) => (maxIndexes.includes(i) ? '#111827' : 'transparent')) as any,
+                borderWidth: d.data.map((v, i) => (maxIndexes.includes(i) ? 2 : 0)) as any,
+              }),
         },
       ],
     },
     options: {
       responsive: true,
       maintainAspectRatio: false,
-      indexAxis: props.choices.length > 6 ? 'y' : 'x',
+      ...(isPie ? {} : { indexAxis: props.choices.length > 6 ? 'y' : 'x' }),
       plugins: {
         legend: { display: false },
         tooltip: {
           callbacks: {
             label: (ctx: any) => {
-              const v = ctx.parsed.y ?? ctx.parsed;
+              const raw = ctx.parsed?.y ?? ctx.parsed;
+              const v = typeof raw === 'number' ? raw : 0;
               const totalLocal = d.data.reduce((a: number, b: number) => a + b, 0) || 1;
               const pct = Math.round((v / totalLocal) * 100);
-              return `${v} (${pct}%)`;
+              return `${ctx.label}: ${v} (${pct}%)`;
             },
           },
         },
         // datalabels: バー内部に白い値ラベルを表示
         datalabels: {
-            color: '#ffffff',
-            textStrokeColor: 'rgba(0,0,0,0.55)',
-            textStrokeWidth: 3,
-            anchor: 'end',
-            align: 'end',
-            font: { weight: 700, size: 14 },
-            clamp: true,
-            formatter: (val: number) => {
-              if (val <= 0) return '';
-              const pct = Math.round((val / total) * 100);
-              return `${val} (${pct}%)`;
-            },
+          color: '#ffffff',
+          textStrokeColor: 'rgba(0,0,0,0.55)',
+          textStrokeWidth: 3,
+          anchor: isPie ? 'center' : 'end',
+          align: isPie ? 'center' : 'end',
+          font: { weight: 700, size: isPie ? 13 : 14 },
+          clamp: true,
+          formatter: (val: number, ctx: any) => {
+            if (val <= 0) return '';
+            const pct = Math.round((val / total) * 100);
+            if (isPie) return `${pct}%`;
+            return `${val} (${pct}%)`;
+          },
         },
       },
       animation: { duration: 600, easing: 'easeOutCubic' },
-      scales: {
-          x: {
-            grid: { display: false },
-            ticks: { maxRotation: 0, autoSkip: false, font: { size: 13, weight: 600 }, color: '#1f2937' },
-            border: { display: false },
-          },
-          y: {
-            beginAtZero: true,
-            grid: { display: false },
-            ticks: { precision: 0, font: { size: 13, weight: 600 }, color: '#1f2937' },
-            border: { display: false },
-          },
-      },
+      ...(isPie
+        ? { scales: {} }
+        : {
+            scales: {
+              x: {
+                grid: { display: false },
+                ticks: { maxRotation: 0, autoSkip: false, font: { size: 13, weight: 600 }, color: '#1f2937' },
+                border: { display: false },
+              },
+              y: {
+                beginAtZero: true,
+                grid: { display: false },
+                ticks: { precision: 0, font: { size: 13, weight: 600 }, color: '#1f2937' },
+                border: { display: false },
+              },
+            },
+          }),
       onHover: (evt, activeEls) => {
         if (!chart) return;
-        if (activeEls.length) {
-          activeIndex.value = activeEls[0].index;
-        } else if (activeIndex.value !== null) {
-          activeIndex.value = null;
+        if (!isPie) {
+          if (activeEls.length) {
+            activeIndex.value = activeEls[0].index;
+          } else if (activeIndex.value !== null) {
+            activeIndex.value = null;
+          }
+          // Recompute colors only (fast)
+          const dataset = chart.data.datasets[0];
+          const d2 = buildData();
+          const maxVal2 = Math.max(...d2.data);
+          const maxIdx2 = d2.data.map((v, i) => (v === maxVal2 && maxVal2 > 0 ? i : -1)).filter(i => i !== -1);
+          (dataset as any).backgroundColor = d2.data.map((v, i) => {
+            if (v === 0) return stripePattern || '#e5e7eb';
+            const choice = (props.choices[i] as any);
+            const base = choice && choice.color ? choice.color : palette[i % palette.length];
+            const isDim = activeIndex.value !== null && activeIndex.value !== i;
+            return isDim ? mixWithWhite(base, 0.75) : base;
+          });
+          (dataset as any).borderColor = d2.data.map((v, i) => (maxIdx2.includes(i) ? '#111827' : 'transparent'));
+          (dataset as any).borderWidth = d2.data.map((v, i) => (maxIdx2.includes(i) ? 2 : 0));
+          chart.update('none');
         }
-        // Recompute colors only (fast)
-        const dataset = chart.data.datasets[0];
-        const d2 = buildData();
-        const maxVal2 = Math.max(...d2.data);
-        const maxIdx2 = d2.data.map((v, i) => (v === maxVal2 && maxVal2 > 0 ? i : -1)).filter(i => i !== -1);
-        (dataset as any).backgroundColor = d2.data.map((v, i) => {
-          if (v === 0) return stripePattern || '#e5e7eb';
-          const choice = (props.choices[i] as any);
-          const base = choice && choice.color ? choice.color : palette[i % palette.length];
-          const isDim = activeIndex.value !== null && activeIndex.value !== i;
-          return isDim ? mixWithWhite(base, 0.75) : base;
-        });
-        (dataset as any).borderColor = d2.data.map((v, i) => (maxIdx2.includes(i) ? '#111827' : 'transparent'));
-        (dataset as any).borderWidth = d2.data.map((v, i) => (maxIdx2.includes(i) ? 2 : 0));
-        chart.update('none');
       },
     },
   });

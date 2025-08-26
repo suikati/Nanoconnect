@@ -80,7 +80,7 @@
           <div v-else class="flex gap-3 mb-4">
             <input
               v-model="commentText"
-              placeholder="コメントを書く..."
+              placeholder="コメント、質問を受付中です。"
               class="flex-1 border border-primary-200 focus:border-primary-400 focus:ring-2 focus:ring-primary-300/60 rounded-lg px-3 py-2 text-xs sm:text-sm bg-white/80"
             />
             <UiButton variant="primary" :disabled="!commentText" @pressed="onPostComment">Post</UiButton>
