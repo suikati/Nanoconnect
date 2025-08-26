@@ -4,11 +4,11 @@ import { Server } from 'node:http';
 import { resolve, dirname, join } from 'node:path';
 import nodeCrypto, { createHash } from 'node:crypto';
 import { parentPort, threadId } from 'node:worker_threads';
-import { escapeHtml } from 'file:///home/suikati/Nanoconnect/node_modules/.pnpm/@vue+shared@3.5.19/node_modules/@vue/shared/dist/shared.cjs.js';
+import { escapeHtml } from 'file:///home/suikati/Nanoconnect/node_modules/.pnpm/@vue+shared@3.5.20/node_modules/@vue/shared/dist/shared.cjs.js';
 import OpenAI from 'file:///home/suikati/Nanoconnect/node_modules/.pnpm/openai@5.15.0/node_modules/openai/index.mjs';
 import { createRenderer, getRequestDependencies, getPreloadLinks, getPrefetchLinks } from 'file:///home/suikati/Nanoconnect/node_modules/.pnpm/vue-bundle-renderer@2.1.2/node_modules/vue-bundle-renderer/dist/runtime.mjs';
 import { parseURL, withoutBase, joinURL, getQuery, withQuery, withTrailingSlash, decodePath, withLeadingSlash, withoutTrailingSlash, joinRelativeURL } from 'file:///home/suikati/Nanoconnect/node_modules/.pnpm/ufo@1.6.1/node_modules/ufo/dist/index.mjs';
-import { renderToString } from 'file:///home/suikati/Nanoconnect/node_modules/.pnpm/vue@3.5.19_typescript@5.9.2/node_modules/vue/server-renderer/index.mjs';
+import { renderToString } from 'file:///home/suikati/Nanoconnect/node_modules/.pnpm/vue@3.5.20_typescript@5.9.2/node_modules/vue/server-renderer/index.mjs';
 import destr, { destr as destr$1 } from 'file:///home/suikati/Nanoconnect/node_modules/.pnpm/destr@2.0.5/node_modules/destr/dist/index.mjs';
 import { createHooks } from 'file:///home/suikati/Nanoconnect/node_modules/.pnpm/hookable@5.5.3/node_modules/hookable/dist/index.mjs';
 import { createFetch, Headers as Headers$1 } from 'file:///home/suikati/Nanoconnect/node_modules/.pnpm/ofetch@1.4.1/node_modules/ofetch/dist/node.mjs';
@@ -29,7 +29,7 @@ import { SourceMapConsumer } from 'file:///home/suikati/Nanoconnect/node_modules
 import { AsyncLocalStorage } from 'node:async_hooks';
 import { stringify, uneval } from 'file:///home/suikati/Nanoconnect/node_modules/.pnpm/devalue@5.1.1/node_modules/devalue/index.js';
 import { captureRawStackTrace, parseRawStackTrace } from 'file:///home/suikati/Nanoconnect/node_modules/.pnpm/errx@0.1.0/node_modules/errx/dist/index.js';
-import { isVNode, toValue, isRef } from 'file:///home/suikati/Nanoconnect/node_modules/.pnpm/vue@3.5.19_typescript@5.9.2/node_modules/vue/index.mjs';
+import { isVNode, toValue, isRef } from 'file:///home/suikati/Nanoconnect/node_modules/.pnpm/vue@3.5.20_typescript@5.9.2/node_modules/vue/index.mjs';
 import { promises } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname as dirname$1, resolve as resolve$1 } from 'file:///home/suikati/Nanoconnect/node_modules/.pnpm/pathe@2.0.3/node_modules/pathe/dist/index.mjs';
@@ -661,7 +661,7 @@ const _inlineRuntimeConfig = {
     }
   },
   "private": {
-    "openaiApiKey": "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"
+    "openaiApiKey": ""
   }
 };
 const envOptions = {
@@ -1040,7 +1040,7 @@ const devReducers = {
   URL: (data) => data instanceof URL ? data.toString() : void 0
 };
 const asyncContext = getContext("nuxt-dev", { asyncContext: true, AsyncLocalStorage });
-const _WCgDaq5ZrAUmFmetxcbFlIaZVFlfpAdOTRCOwmjxpI0 = (nitroApp) => {
+const _n4CuiJWWqI3ZhJ9oJTdZpvkbayzY2NKgYxuzJRDMhD0 = (nitroApp) => {
   const handler = nitroApp.h3App.handler;
   nitroApp.h3App.handler = (event) => {
     return asyncContext.callAsync({ logs: [], event }, () => handler(event));
@@ -1110,25 +1110,10 @@ function onConsoleLog(callback) {
 }
 
 const plugins = [
-  _WCgDaq5ZrAUmFmetxcbFlIaZVFlfpAdOTRCOwmjxpI0
+  _n4CuiJWWqI3ZhJ9oJTdZpvkbayzY2NKgYxuzJRDMhD0
 ];
 
-const assets = {
-  "/index.mjs": {
-    "type": "text/javascript; charset=utf-8",
-    "etag": "\"14eed-LbVCO6KyHYFa0S7xJYgbV+anBYg\"",
-    "mtime": "2025-08-25T08:17:51.469Z",
-    "size": 85741,
-    "path": "index.mjs"
-  },
-  "/index.mjs.map": {
-    "type": "application/json",
-    "etag": "\"4fd14-xu8DtBMRp0mNZ0MV4ATw7BQ4wPU\"",
-    "mtime": "2025-08-25T08:17:51.470Z",
-    "size": 326932,
-    "path": "index.mjs.map"
-  }
-};
+const assets = {};
 
 function readAsset (id) {
   const serverDir = dirname$1(fileURLToPath(globalThis._importMeta_.url));
@@ -1536,14 +1521,14 @@ async function getIslandContext(event) {
 }
 
 const _lazy_8YV8Oq = () => Promise.resolve().then(function () { return openai; });
-const _lazy_TREL_y = () => Promise.resolve().then(function () { return renderer$1; });
+const _lazy_wwHJPN = () => Promise.resolve().then(function () { return renderer$1; });
 
 const handlers = [
   { route: '', handler: _zWOXb4, lazy: false, middleware: true, method: undefined },
   { route: '/api/openai', handler: _lazy_8YV8Oq, lazy: true, middleware: false, method: undefined },
-  { route: '/__nuxt_error', handler: _lazy_TREL_y, lazy: true, middleware: false, method: undefined },
+  { route: '/__nuxt_error', handler: _lazy_wwHJPN, lazy: true, middleware: false, method: undefined },
   { route: '/__nuxt_island/**', handler: _SxA8c9, lazy: false, middleware: false, method: undefined },
-  { route: '/**', handler: _lazy_TREL_y, lazy: true, middleware: false, method: undefined }
+  { route: '/**', handler: _lazy_wwHJPN, lazy: true, middleware: false, method: undefined }
 ];
 
 function createNitroApp() {

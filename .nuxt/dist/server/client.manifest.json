@@ -7,12 +7,12 @@
     "module": true,
     "resourceType": "script"
   },
-  "/home/suikati/Nanoconnect/node_modules/.pnpm/nuxt@3.18.1_@types+node@20.19.11_@vue+compiler-sfc@3.5.19_typescript@5.9.2_vite@7.1.3/node_modules/nuxt/dist/app/entry.js": {
+  "/home/suikati/Nanoconnect/node_modules/.pnpm/nuxt@3.18.1_@types+node@20.19.11_@vue+compiler-sfc@3.5.20_typescript@5.9.2_vite@7.1.3/node_modules/nuxt/dist/app/entry.js": {
     "resourceType": "script",
     "module": true,
     "prefetch": true,
     "preload": true,
     "isEntry": true,
-    "file": "/home/suikati/Nanoconnect/node_modules/.pnpm/nuxt@3.18.1_@types+node@20.19.11_@vue+compiler-sfc@3.5.19_typescript@5.9.2_vite@7.1.3/node_modules/nuxt/dist/app/entry.js"
+    "file": "/home/suikati/Nanoconnect/node_modules/.pnpm/nuxt@3.18.1_@types+node@20.19.11_@vue+compiler-sfc@3.5.20_typescript@5.9.2_vite@7.1.3/node_modules/nuxt/dist/app/entry.js"
   }
 }
