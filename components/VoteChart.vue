@@ -29,6 +29,8 @@ import {
   LinearScale,
   Tooltip,
   Legend,
+  PieController,
+  ArcElement,
 } from 'chart.js';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
 import type { Choice } from '~/types/models';
@@ -40,6 +42,8 @@ Chart.register(
   LinearScale,
   Tooltip,
   Legend,
+  PieController,
+  ArcElement,
   ChartDataLabels,
 );
 
@@ -100,7 +104,10 @@ function updateLeaderMessage() {
   }
 }
 
+let rendering = false;
 const renderChart = async () => {
+  if (rendering) return; // prevent overlapping builds
+  rendering = true;
   await nextTick();
   if (!canvas.value || !container.value) return;
   const ctx = canvas.value.getContext('2d');
@@ -170,7 +177,8 @@ const renderChart = async () => {
   const bgColors = computeBgColors(activeIndex.value);
 
   const isPie = (props.chartType || 'bar') === 'pie';
-  chart = new Chart(ctx, {
+  try {
+    chart = new Chart(ctx, {
     type: isPie ? 'pie' : 'bar',
     data: {
       labels: d.labels,
@@ -272,7 +280,14 @@ const renderChart = async () => {
         }
       },
     },
-  });
+    });
+  } catch (e) {
+    // eslint-disable-next-line no-console
+    console.error('Chart init error', e);
+    try { if (chart) { chart.destroy(); chart = null; } } catch (_) { /* ignore */ }
+  } finally {
+    rendering = false;
+  }
 };
 
 onMounted(() => {
