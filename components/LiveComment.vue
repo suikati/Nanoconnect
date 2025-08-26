@@ -67,15 +67,24 @@ const avatarAnimClass = computed(() => {
   return map[currentAnim.value] || '';
 });
 
-// Click (poyooon) handling
+// Click animation handling (random purupuru / poyooon)
 const clickAnim = ref<string>('');
+const clickVariants: Array<{ name: string; dur: number }> = [
+  { name: 'poyooon', dur: 900 },
+  { name: 'purupuru', dur: 800 },
+];
 function onAvatarClick() {
-  // remove existing to retrigger
+  // If initial enter purupuru is still running, avoid choosing purupuru to ensure visible change
+  const pool = enterAnim.value === 'purupuru' ? clickVariants.filter(v => v.name !== 'purupuru') : clickVariants;
+  const picked = pool[Math.floor(Math.random() * pool.length)];
+  // reset to retrigger even if same class
+  const prev = clickAnim.value;
   clickAnim.value = '';
+  // Force next frame
   requestAnimationFrame(() => {
-    clickAnim.value = 'poyooon';
-    // cleanup after animation end (~900ms)
-    setTimeout(() => { if (clickAnim.value === 'poyooon') clickAnim.value = ''; }, 950);
+    clickAnim.value = picked.name;
+    const timeout = picked.dur + 50; // small buffer to ensure animationend
+    setTimeout(() => { if (clickAnim.value === picked.name) clickAnim.value = ''; }, timeout);
   });
 }
 </script>
