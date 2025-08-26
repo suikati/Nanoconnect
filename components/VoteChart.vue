@@ -198,9 +198,15 @@ const renderNow = async () => {
         tooltip: {
           callbacks: {
             label: (ctx: any) => {
-              const raw = ctx.parsed?.y ?? ctx.parsed;
-              const v = typeof raw === 'number' ? raw : 0;
-              const totalLocal = d.data.reduce((a: number, b: number) => a + b, 0) || 1;
+              // ctx.parsed for bar: vertical -> number, horizontal -> {x: value, y: index}; for pie -> number
+              const parsed = ctx.parsed;
+              let v = 0;
+              if (typeof parsed === 'number') v = parsed;
+              else if (parsed && typeof parsed === 'object') v = Number(parsed.x ?? parsed.y ?? 0) || 0;
+              // Use dataset data to compute total to avoid stale closure values
+              const ds = ctx.chart?.data?.datasets?.[ctx.datasetIndex];
+              const arr = Array.isArray(ds?.data) ? ds!.data : [];
+              const totalLocal = arr.reduce((s: number, n: any) => s + (Number(n) || 0), 0) || 1;
               const pct = Math.round((v / totalLocal) * 100);
               return `${ctx.label}: ${v} (${pct}%)`;
             },
