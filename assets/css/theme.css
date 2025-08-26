@@ -88,10 +88,41 @@
   .nanosuke-anim-squish {
     animation: nanosuke-squish-pop 0.95s cubic-bezier(0.65, 0.05, 0.36, 1);
   }
+  /* Click one-shot poyooon animation */
+  @keyframes poyooon {
+    0% {
+      transform: scale(1, 1) translate(0%, 0%);
+    }
+    10% {
+      transform: scale(1.1, 0.9) translate(0%, 5%);
+    }
+    40% {
+      transform: scale(1.2, 0.8) translate(0%, 15%);
+    }
+    50% {
+      transform: scale(1, 1) translate(0%, 0%);
+    }
+    60% {
+      transform: scale(0.9, 1.2) translate(0%, -100%);
+    }
+    75% {
+      transform: scale(0.9, 1.2) translate(0%, -20%);
+    }
+    85% {
+      transform: scale(1.2, 0.8) translate(0%, 15%);
+    }
+    100% {
+      transform: scale(1, 1) translate(0%, 0%);
+    }
+  }
+  .poyooon {
+    animation: poyooon 0.9s linear 0s 1;
+  }
   @media (prefers-reduced-motion: reduce) {
     .nanosuke-anim-bounce,
     .nanosuke-anim-float,
-    .nanosuke-anim-squish {
+    .nanosuke-anim-squish,
+    .poyooon {
       animation: none !important;
     }
   }

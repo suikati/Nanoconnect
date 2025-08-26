@@ -5,7 +5,8 @@
         src="/assets/images/nanosuke.png"
         alt="nanosuke"
         class="avatar"
-        :class="avatarAnimClass"
+        :class="[avatarAnimClass, clickAnim]"
+        @click="onAvatarClick"
       />
       <span class="status-dot" aria-hidden="true" />
     </div>
@@ -60,8 +61,20 @@ const avatarAnimClass = computed(() => {
   };
   return map[currentAnim.value] || '';
 });
+
+// Click (poyooon) handling
+const clickAnim = ref<string>('');
+function onAvatarClick() {
+  // remove existing to retrigger
+  clickAnim.value = '';
+  requestAnimationFrame(() => {
+    clickAnim.value = 'poyooon';
+    // cleanup after animation end (~900ms)
+    setTimeout(() => { if (clickAnim.value === 'poyooon') clickAnim.value = ''; }, 950);
+  });
+}
 </script>
 
 <style scoped>
-.avatar { width:4rem; height:4rem;}
+.avatar { width:4rem; height:4rem; cursor:pointer; }
 </style>
