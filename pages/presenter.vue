@@ -1,20 +1,20 @@
 <template>
   <AppShell>
-    <div class="max-w-6xl mx-auto grid xl:grid-cols-5 gap-8">
+  <div class="max-w-6xl mx-auto grid xl:grid-cols-5 gap-8">
       <!-- Left: Compact slide editor + control -->
       <div class="xl:col-span-3 space-y-6">
-        <UiCard>
+        <UiCard variant="glass" interactive padding="md">
           <template #header>
             <div class="flex items-center gap-3">
               <!-- <span class="text-indigo-600 font-extrabold">発表者</span> -->
               <UiButton size="sm" variant="primary" @pressed="onCreateRoom">ルームを作る</UiButton>
               <div class="flex items-center gap-2">
-                <input v-model="joinCodeInput" placeholder="またはルームコードを入力" class="border rounded px-2 py-1 text-sm" />
+                <input v-model="joinCodeInput" placeholder="またはルームコードを入力" class="border border-primary-200 focus:border-primary-400 focus:ring-2 focus:ring-primary-300/60 rounded-lg px-3 py-1.5 text-xs sm:text-sm bg-white/80" />
                 <UiButton size="sm" variant="ghost" @pressed="onEnterRoom">入室</UiButton>
               </div>
               <span
                 v-if="roomCode"
-                class="text-xs bg-indigo-50 text-indigo-600 px-2 py-1 rounded-full"
+                class="text-xs bg-primary-50 text-primary-600 px-2 py-1 rounded-full font-mono tracking-wide"
                 >ルームコード: {{ roomCode }}</span
               >
             </div>
@@ -22,21 +22,21 @@
 
           <!-- Compact editor: show current slide only -->
           <div class="space-y-3">
-            <div class="flex items-center justify-between">
-              <div class="text-sm text-gray-600">Slide {{ (currentIndex || 0) + 1 }} / {{ slides.length }}</div>
+            <div class="flex items-center justify-between text-xs sm:text-sm">
+              <div class="text-gray-600 font-medium">Slide {{ (currentIndex || 0) + 1 }} / {{ slides.length }}</div>
               <div class="flex items-center gap-2">
                 <!-- placeholder to keep header aligned -->
               </div>
             </div>
 
-            <div v-if="slides && slides[currentIndex]" class="p-3 rounded-lg border bg-gray-50">
-              <div class="flex items-center gap-2 mb-2">
-                <input ref="titleInput" v-model="slides[currentIndex].title" placeholder="Title" class="flex-1 border rounded-lg px-3 py-2 focus-ring text-sm" />
+            <div v-if="slides && slides[currentIndex]" class="p-4 rounded-xl border bg-white/70 backdrop-blur-sm shadow-sm space-y-3">
+              <div class="flex items-center gap-2 mb-1">
+                <input ref="titleInput" v-model="slides[currentIndex].title" placeholder="タイトル" class="flex-1 border border-primary-200 focus:border-primary-400 focus:ring-2 focus:ring-primary-300/60 rounded-lg px-3 py-2 text-xs sm:text-sm bg-white/80" />
                 <UiButton size="sm" variant="ghost" @pressed="removeSlide(currentIndex)">削除</UiButton>
               </div>
               <OptionList v-model="slides[currentIndex].choices" />
             </div>
-            <div v-else class="text-sm text-gray-500">スライドがありません。追加してください。</div>
+            <div v-else class="text-xs sm:text-sm text-gray-500">スライドがありません。追加してください。</div>
 
             <div class="flex items-center gap-3 mt-2 justify-between">
               <div class="flex items-center gap-3">
@@ -62,22 +62,18 @@
 
       <!-- Right: Live Result & Comments -->
       <div class="xl:col-span-2 space-y-6">
-        <UiCard
-          v-if="aggregates && currentSlideChoices.length"
-          title="Live Results"
-          titleClass="text-indigo-700"
-        >
+        <UiCard v-if="aggregates && currentSlideChoices.length" title="Live Results" titleClass="text-primary-600 font-display" variant="glass" padding="md" interactive>
           <VoteChart :counts="aggregates.counts" :choices="currentSlideChoices" />
         </UiCard>
-        <UiCard v-if="roomCode" title="Comments" titleClass="text-pink-600">
-          <div class="flex items-center justify-between mb-3">
-            <div class="text-sm text-gray-600">実況プレビュー</div>
+        <UiCard v-if="roomCode" title="Comments" titleClass="text-secondary-600 font-display" variant="glass" padding="md">
+          <div class="flex items-center justify-between mb-3 text-xs sm:text-sm">
+            <div class="text-gray-600 font-medium">実況プレビュー</div>
             <div class="flex items-center gap-2">
               <UiButton size="sm" variant="secondary" @pressed="fetchPlay">実況更新</UiButton>
             </div>
           </div>
           <PlayByPlay :text="playText" :loading="playLoading" />
-          <div class="my-3 border-t pt-3"></div>
+          <div class="my-3 border-t border-primary-100 pt-3"></div>
 
           <!-- Comment generation UI removed for presenter view -->
 

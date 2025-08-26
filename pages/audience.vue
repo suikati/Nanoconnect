@@ -1,31 +1,27 @@
 <template>
   <AppShell>
-    <div class="max-w-5xl mx-auto grid lg:grid-cols-5 gap-8">
+  <div class="max-w-5xl mx-auto grid lg:grid-cols-5 gap-8">
       <!-- Left: Join & Voting -->
       <div class="lg:col-span-3 space-y-6">
-        <UiCard>
+        <UiCard variant="glass" interactive padding="md">
           <template #header>
             <div class="flex items-center gap-2">
-              <span class="text-pink-600 font-bold text-lg">参加者</span>
+              <span class="text-secondary-600 font-display font-bold text-base sm:text-lg">参加者</span>
             </div>
           </template>
-          <div class="flex flex-wrap items-center gap-3 mb-4">
-            <div v-if="!joined" class="text-sm text-gray-500">
+          <div class="flex flex-wrap items-center gap-3 mb-4 text-xs sm:text-sm">
+            <div v-if="!joined" class="text-gray-500">
               ルームコードが自動的に適用されます。トップ画面からコードで参加してください。
             </div>
-            <div v-if="joined" class="text-xs text-gray-500">
-              as <strong class="text-indigo-600">{{ anonId }}</strong>
+            <div v-if="joined" class="text-gray-500">
+              as <strong class="text-primary-600 font-mono">{{ anonId }}</strong>
             </div>
           </div>
 
           <div v-if="joined && slide" class="space-y-5">
-            <div class="flex items-center justify-between">
-              <h2 class="text-base font-semibold text-indigo-600">
-                Slide {{ slideNumber }}: {{ slide.title }}
-              </h2>
-              <span class="text-xs bg-indigo-50 text-indigo-600 px-2 py-1 rounded-full"
-                >Total {{ aggregates?.total ?? 0 }}</span
-              >
+            <div class="flex items-center justify-between gap-3 text-xs sm:text-sm">
+              <h2 class="font-semibold text-primary-600 tracking-tight">Slide {{ slideNumber }}: {{ slide.title }}</h2>
+              <span class="text-[10px] sm:text-xs bg-primary-50 text-primary-600 px-2 py-1 rounded-full font-mono tracking-wide">Total {{ aggregates?.total ?? 0 }}</span>
             </div>
             <!-- inline chart removed; main chart appears on right column -->
             <ul class="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -40,10 +36,10 @@
               </li>
             </ul>
             <!-- LiveComment placed under choices for audience, unified with voting UI -->
-            <div class="mt-3">
-              <div class="flex items-center gap-2 mb-2">
+            <div class="mt-3 space-y-2">
+              <div class="flex items-center gap-2">
                 <UiButton size="sm" variant="secondary" @pressed="fetchComment">コメント生成</UiButton>
-                <div class="text-xs text-gray-500">選択肢の下でコメントを生成します（開発用）</div>
+                <div class="text-[10px] sm:text-xs text-gray-500">選択肢の下でコメントを生成します（開発用）</div>
               </div>
               <LiveComment :text="commentTextLive" :loading="commentLoading" />
             </div>
@@ -56,29 +52,23 @@
 
       <!-- Right: Chart & Comments (chart first like presenter) -->
       <div class="lg:col-span-2 space-y-6">
-        <UiCard
-          v-if="aggregates && choicesArray.length"
-          title="Live Results"
-          titleClass="text-indigo-700"
-        >
+        <UiCard v-if="aggregates && choicesArray.length" title="Live Results" titleClass="text-primary-600 font-display" variant="glass" padding="md" interactive>
           <VoteChart :counts="aggregates.counts || {}" :choices="choicesArray" />
         </UiCard>
-        <UiCard title="Comments" titleClass="text-pink-600">
-          <div v-if="!joined" class="text-xs text-gray-400">参加するとコメントできます。</div>
+        <UiCard title="Comments" titleClass="text-secondary-600 font-display" variant="glass" padding="md">
+          <div v-if="!joined" class="text-[10px] sm:text-xs text-gray-400">参加するとコメントできます。</div>
           <div v-else class="flex gap-3 mb-4">
             <input
               v-model="commentText"
               placeholder="コメントを書く..."
-              class="flex-1 border rounded-lg px-3 py-2 focus-ring"
+              class="flex-1 border border-primary-200 focus:border-primary-400 focus:ring-2 focus:ring-primary-300/60 rounded-lg px-3 py-2 text-xs sm:text-sm bg-white/80"
             />
-            <UiButton variant="primary" :disabled="!commentText" @pressed="onPostComment"
-              >Post</UiButton
-            >
+            <UiButton variant="primary" :disabled="!commentText" @pressed="onPostComment">Post</UiButton>
           </div>
 
           <div class="mb-3">
-            <div class="flex items-center justify-between mb-2">
-              <div class="text-sm text-gray-600">実況プレビュー（開発用）</div>
+            <div class="flex items-center justify-between mb-2 text-xs sm:text-sm">
+              <div class="text-gray-600 font-medium">実況プレビュー（開発用）</div>
               <UiButton size="sm" variant="secondary" @pressed="fetchPlay">実況更新</UiButton>
             </div>
             <PlayByPlay :text="playText" :loading="playLoading" />

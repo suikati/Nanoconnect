@@ -1,15 +1,34 @@
 <template>
-  <div
-    class="bg-white rounded-2xl shadow-md p-5 border border-gray-100 relative overflow-hidden anim-fade-in"
-  >
-    <div v-if="title || $slots.header" class="mb-3 flex items-center justify-between">
-      <h3 v-if="title" class="font-semibold text-gray-700" :class="titleClass">{{ title }}</h3>
+  <section :class="wrapperClass">
+    <div v-if="title || $slots.header" class="mb-4 flex items-center justify-between gap-4">
+      <h3 v-if="title" :class="['font-semibold tracking-tight text-sm sm:text-base', titleClass]">{{ title }}</h3>
       <slot name="header" />
     </div>
     <slot />
-  </div>
+  </section>
 </template>
 
 <script setup lang="ts">
-defineProps<{ title?: string; titleClass?: string }>();
+import { computed } from 'vue';
+const props = defineProps<{
+  title?: string;
+  titleClass?: string;
+  padding?: 'sm' | 'md' | 'lg' | 'none';
+  variant?: 'solid' | 'glass' | 'subtle';
+  interactive?: boolean;
+}>();
+
+const wrapperClass = computed(() => {
+  const pad = props.padding || 'md';
+  const variant = props.variant || 'glass';
+  const base = 'relative overflow-hidden rounded-2xl border anim-fade-in';
+  const pads: Record<string, string> = { none: 'p-0', sm: 'p-3', md: 'p-5', lg: 'p-7' };
+  const variants: Record<string, string> = {
+    glass: 'glass bg-white/70 border-white/40 shadow-sm backdrop-blur',
+    solid: 'bg-white border-primary-100 shadow-md',
+    subtle: 'bg-surface-alt border-surface-alt shadow-sm'
+  };
+  const interactive = props.interactive ? 'transition hocus:shadow-pop hocus:-translate-y-0.5' : '';
+  return [base, pads[pad], variants[variant], interactive].join(' ');
+});
 </script>
