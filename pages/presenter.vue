@@ -87,14 +87,14 @@
 
       <!-- Right: Unified Live panel & Comments -->
       <div class="xl:col-span-2 space-y-6">
-        <UiCard v-if="currentSlideChoices.length" variant="glass" padding="md" interactive>
+        <UiCard v-if="localLiveChoices.length" variant="glass" padding="md" interactive>
           <template #header>
             <div class="flex items-center justify-between w-full">
               <span class="text-primary-600 font-display font-bold text-sm sm:text-base">Live</span>
               <UiButton size="sm" variant="secondary" @pressed="fetchPlay">実況更新</UiButton>
             </div>
           </template>
-          <LiveResultsPanel :counts="aggregates?.counts || {}" :choices="currentSlideChoices" :play-text="playText" :play-loading="playLoading" :chart-type="activeChartType" />
+          <LiveResultsPanel :counts="aggregates?.counts || {}" :choices="localLiveChoices" :play-text="playText" :play-loading="playLoading" :chart-type="activeChartType" />
         </UiCard>
         <UiCard v-if="roomCode" title="Comments" titleClass="text-secondary-600 font-display" variant="glass" padding="md">
           <div class="mb-3 text-[10px] sm:text-xs text-gray-500">実況は上部 Live パネルに表示</div>
@@ -240,7 +240,8 @@ const onMoveSlide = ({ from, to }: { from: number; to: number }) => {
 const onSaveSlides = async () => {
   console.debug('presenter: onSaveSlides called');
   if (!roomCode.value) {
-    log.value = 'no room';
+  log.value = 'roomCode 未設定のため保存できません (URL に ?code=XXXX があるか確認)';
+  window.alert('ルームが未作成または URL の code クエリがありません。先にトップでルームを作成してください。');
     return;
   }
   savingSlides.value = true;
@@ -519,6 +520,14 @@ function onChoicesUpdate() {
 const activeChartType = computed(() => {
   const s = slides[currentIndex.value];
   return (s && s.chartType) || 'bar';
+});
+
+// 保存前は DB から choices が来ないのでエディタ内のローカルスライドを Live 表示にフォールバック
+const localLiveChoices = computed(() => {
+  if (currentSlideChoices.value.length > 0) return currentSlideChoices.value; // DB 反映済み
+  const s = slides[currentIndex.value];
+  if (!s) return [];
+  return (s.choices || []).map((c, idx) => ({ key: `choice_${idx}`, text: c.text || '', color: c.color }));
 });
 
 function setChartType(t: 'bar' | 'pie') {
