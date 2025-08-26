@@ -144,6 +144,8 @@ let unsubSlideIndex: (() => void) | null = null;
 let unsubAggregates: (() => void) | null = null;
 let unsubSlideContent: (() => void) | null = null;
 let unsubAllSlides: (() => void) | null = null; // 全スライド同期用
+// 二重登録防止用: 現在購読中の全スライドパスを保持
+const currentAllSlidesPath = ref<string | null>(null);
 
 const ensureR = () => {
   if (!r) r = useRoom();
@@ -299,8 +301,22 @@ watch(roomCode, async (val: string | null) => {
   if (!db) return;
 
   // 全スライドリスナー: 再入室やリロード時に現在スライド以外が欠落しないよう同期
-  if (unsubAllSlides) { try { unsubAllSlides(); } catch(e){} unsubAllSlides = null; }
-  unsubAllSlides = createDbListener(db, `${roomPath(val)}/slides`, (snap: any) => {
+  const allSlidesPath = `${roomPath(val)}/slides`;
+  if (currentAllSlidesPath.value !== allSlidesPath) {
+    // 既存購読が別パスなら解除して再登録
+    if (unsubAllSlides) { try { unsubAllSlides(); } catch(e){} }
+    unsubAllSlides = createDbListener(db, allSlidesPath, (snap: any) => {
+      handleAllSlidesSnapshot(snap);
+    });
+    currentAllSlidesPath.value = allSlidesPath;
+  } else if (!unsubAllSlides) {
+    // パス同一だが unsub 済みの場合のみ再登録
+    unsubAllSlides = createDbListener(db, allSlidesPath, (snap: any) => {
+      handleAllSlidesSnapshot(snap);
+    });
+  }
+
+  function handleAllSlidesSnapshot(snap: any) {
     if (!snap || !snap.exists()) return;
     // 既存配列を維持しつつ順序再構築: slide_1, slide_2 ... のキー順で並び替え
     const entries: Array<{ id: string; title: string; chartType?: 'bar'|'pie'; choices: any[]; slideNumber: number }> = [];
@@ -326,7 +342,7 @@ watch(roomCode, async (val: string | null) => {
       // currentIndex が範囲外になった場合丸め
       if (currentIndex.value >= slides.length) currentIndex.value = Math.max(0, slides.length - 1);
     }
-  });
+  }
 
   // slideIndex のリスナー（前のリスナーをクリーンアップ）
   if (unsubSlideIndex) {
