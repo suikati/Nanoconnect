@@ -21,7 +21,7 @@ export default defineNuxtConfig({
       },
     },
     private: {
-      openaiApiKey: process.env.OPENAI_KEY
+      openaiApiKey: process.env.OPENAI_API_KEY
     }
   },
 });
