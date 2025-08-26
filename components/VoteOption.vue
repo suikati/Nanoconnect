@@ -15,12 +15,14 @@ const props = defineProps<{
   disabled?: boolean;
 }>();
 const btnClass = computed(() => {
-  const base = 'group w-full text-left px-4 py-3 rounded-xl border flex items-center gap-3 justify-between transition-all focus-ring anim-pop relative overflow-hidden';
-  const palette = props.selected
-    ? 'bg-gradient-to-r from-primary-500 to-secondary-500 text-white border-transparent shadow-pop'
-    : 'bg-surface-alt hover:bg-white border-primary-100 hover:border-primary-300 text-gray-800';
-  const disabled = props.disabled ? 'opacity-60 pointer-events-none' : '';
-  return [base, palette, disabled].join(' ');
+  const base = 'group w-full text-left px-4 py-3 rounded-xl border flex items-center gap-3 justify-between transition-all focus-ring relative overflow-hidden select-none';
+  if (props.selected) {
+    // 立体・押し込み (inset) スタイル
+    const pressed = 'bg-white text-primary-700 border-primary-400 shadow-inner [box-shadow:inset_0_2px_4px_0_rgba(0,0,0,0.12),0_2px_4px_-1px_rgba(0,0,0,0.15)] translate-y-[1px]';
+    return [base, pressed, props.disabled ? 'opacity-60 pointer-events-none' : ''].join(' ');
+  }
+  const normal = 'bg-white/80 backdrop-blur-sm border-primary-200 hover:bg-white hover:border-primary-300 text-gray-800 shadow-sm active:translate-y-[1px] active:shadow-inner active:border-primary-400';
+  return [base, normal, props.disabled ? 'opacity-60 pointer-events-none' : ''].join(' ');
 });
 
 // Fallback inline style only if custom color provided in choice

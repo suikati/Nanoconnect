@@ -1,7 +1,7 @@
 <template>
   <div class="flex items-start gap-3 anim-fade-in">
     <div class="relative">
-      <img src="/assets/images/nanosuke.png" alt="nanosuke" class="avatar" />
+  <img src="/assets/images/nanosuke.png" alt="nanosuke" class="avatar" />
       <span class="status-dot" aria-hidden="true" />
     </div>
     <div class="comment-box bg-white/70 border border-secondary-200 rounded-xl px-3 py-2 shadow-sm backdrop-blur-sm max-w-[32rem]">
@@ -20,6 +20,6 @@ const loading = computed(() => (props.loading ?? false));
 </script>
 
 <style scoped>
-.avatar { width: 2.5rem; height: 2.5rem; border-radius: 9999px; box-shadow: 0 0 0 3px rgba(255,255,255,.6); }
-.status-dot { position:absolute; right:0; bottom:0; width:10px; height:10px; background:linear-gradient(90deg,#6366f1,#ec4899); border-radius:50%; box-shadow:0 0 0 2px #fff; }
+.avatar { width: 3.25rem; height: 3.25rem; border-radius: 9999px; box-shadow: 0 2px 8px -2px rgba(0,0,0,.25), 0 0 0 4px rgba(255,255,255,.75); object-fit: cover; }
+.status-dot { position:absolute; right:2px; bottom:2px; width:12px; height:12px; background:linear-gradient(90deg,#6366f1,#ec4899); border-radius:50%; box-shadow:0 0 0 2px #fff; }
 </style>
