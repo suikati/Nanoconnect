@@ -10,11 +10,11 @@ export function buildPlaybyplayPrompt(title: string, choices: { id?: string; tex
     const pct = total > 0 ? Math.round(((c.votes || 0) / total) * 100) : 0;
     return `- ${c.text}: ${pct}%`;
   });
-  return `あなたは司会のリンカです。以下のアンケートタイトルと各選択肢の割合を参照し、まず主要な結果を1文で簡潔に日本語で述べ、その後、1〜2文で盛り上げるための短い実況を作成してください。接戦の場合は「接戦」と明記してください。(例)「何の果物が好き？」→「桃とレモンの接戦です！最後に勝つのは甘党か酸っぱ党か！」\nタイトル: ${title}\n${lines.join('\n')}`;
+  return `あなたは司会のリンカさんです。以下のアンケートタイトルと各選択肢の割合を参照し、1〜2文で盛り上げるための短い実況を作成してください。接戦の場合は「接戦」と明記してください。(例)「何の果物が好き？」→「桃とレモンの接戦です！最後に勝つのは甘党でしょうか、酸っぱ党でしょうか！」\nタイトル: ${title}\n${lines.join('\n')}`;
 }
 
 export function buildCommentPrompt(title: string, selectedText: string) {
-  return `あなたはマスコットキャラクターのナノすけです。アンケートのタイトル: "${title}" に対して、ユーザーが選んだ選択肢: "${selectedText}" に合わせた親しみやすい短い日本語コメント（1文）を返してください。コメントの最後は「〜ナノ！」または「～ノ！」で締めてください。出力は必ず日本語の自然な文章で、内部の推論や思考過程は含めず、指定外の情報は記載しないでください。(例)タイトル：「何色が好き？」選択：「赤色」コメント(出力)：「情熱的ナノ！」`;
+  return `あなたはマスコットキャラクターのナノすけです。アンケートのタイトル: "${title}" に対して、ユーザーが選んだ選択肢: "${selectedText}" に合わせた親しみやすい短い日本語コメント（1文）を返してください。コメントの最後は「〜ナノ！」または「～ノ！」の語呂が良い方で締めてください。出力は必ず日本語の自然な文章で、内部の推論や思考過程は含めず、指定外の情報は記載しないでください。(例)タイトル：「何色が好き？」選択：「赤色」コメント(出力)：「情熱的ナノ！」`;
 }
 // Nuxt recommends using eventHandler()/fromNodeMiddleware() for server handlers.
 // We provide both a default export wrapped with eventHandler and a named `handler` for tests.

@@ -118,11 +118,36 @@
   .poyooon {
     animation: poyooon 0.9s linear 0s 1;
   }
+  /* Page enter one-shot purupuru animation */
+  @keyframes purupuru {
+    0% {
+      transform: scale(1, 1) translate(0%, 0%);
+    }
+    20% {
+      transform: scale(1, 1.06) translate(-5%, -4%) skew(6deg, 0deg);
+    }
+    50% {
+      transform: scale(1, 0.94) translate(5%, 4%) skew(-6deg, 0deg);
+    }
+    65% {
+      transform: scale(1, 1.03) translate(2%, -2%) skew(-3deg, 0deg);
+    }
+    80% {
+      transform: scale(1, 0.97) translate(-2%, 2%) skew(3deg, 0deg);
+    }
+    100% {
+      transform: scale(1, 1) translate(0%, 0%);
+    }
+  }
+  .purupuru {
+    animation: purupuru 0.8s linear 0s 1;
+  }
   @media (prefers-reduced-motion: reduce) {
     .nanosuke-anim-bounce,
     .nanosuke-anim-float,
     .nanosuke-anim-squish,
-    .poyooon {
+    .poyooon,
+    .purupuru {
       animation: none !important;
     }
   }

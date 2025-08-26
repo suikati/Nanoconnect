@@ -5,7 +5,7 @@
         src="/assets/images/nanosuke.png"
         alt="nanosuke"
         class="avatar"
-        :class="[avatarAnimClass, clickAnim]"
+        :class="[avatarAnimClass, clickAnim, enterAnim]"
         @click="onAvatarClick"
       />
       <span class="status-dot" aria-hidden="true" />
@@ -25,6 +25,7 @@ const text = computed(() => (props.text ?? ''));
 const loading = computed(() => (props.loading ?? false));
 
 const currentAnim = ref<string>('');
+const enterAnim = ref<string>('purupuru');
 const basePool = ['bounce','float'];
 
 function pickIdle() {
@@ -35,7 +36,11 @@ function pickIdle() {
 }
 
 onMounted(() => {
-  currentAnim.value = pickIdle();
+  // play enter animation first, then start idle loop
+  setTimeout(() => {
+    enterAnim.value = '';
+    currentAnim.value = pickIdle();
+  }, 820); // slightly longer than purupuru duration
 });
 
 watch(() => text.value, (n, o) => {
