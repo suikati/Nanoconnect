@@ -6,8 +6,8 @@
         <UiCard variant="glass" interactive padding="md">
           <template #header>
             <div class="flex items-center gap-3 flex-wrap">
-              <span class="font-display font-bold text-base sm:text-lg inline-block px-2 py-1 rounded-md bg-secondary-50 text-secondary-600 shadow-sm/50 shadow-inner">Questionnaire</span>
-              <span v-if="currentCode" class="text-[10px] sm:text-xs bg-secondary-50 text-secondary-600 px-2 py-1 rounded-full font-mono tracking-wide">{{ currentCode }}</span>
+              <span class="text-secondary-600 font-display font-bold text-base sm:text-lg">Questionnaire</span>
+              <span v-if="currentCode" class="text-[10px] sm:text-xs text-secondary-600 font-mono tracking-wide">{{ currentCode }}</span>
             </div>
           </template>
           <div class="flex flex-wrap items-center gap-3 mb-4 text-xs sm:text-sm">
@@ -61,7 +61,7 @@
         >
           <template #header>
             <div class="flex items-center justify-between w-full">
-              <span class="text-primary-600 font-display font-bold text-sm sm:text-base">Live</span>
+              <span class="text-emerald-600 font-display font-bold text-sm sm:text-base">Live</span>
               <UiButton size="sm" variant="secondary" @pressed="fetchPlay">実況更新</UiButton>
             </div>
           </template>
@@ -76,7 +76,7 @@
       </div>
       <!-- Comments Side: 固定高 862px（越えたら内部スクロール） -->
       <div class="lg:col-span-5 xl:col-span-2">
-  <UiCard title="Comments" titleClass="font-display font-semibold text-rose-600 bg-rose-50 px-2 py-1 rounded-md inline-block" variant="glass" padding="md" class="h-[862px] flex flex-col">
+  <UiCard title="Comments" titleClass="font-display font-semibold text-rose-600" variant="glass" padding="md" class="h-[862px] flex flex-col">
           <div class="flex flex-col gap-4 xl:flex-1 xl:min-h-0">
           <div v-if="!joined" class="text-[10px] sm:text-xs text-gray-400">参加するとコメントできます。</div>
           <div v-else class="flex gap-3 mb-4">

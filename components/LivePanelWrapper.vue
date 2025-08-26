@@ -2,7 +2,7 @@
   <UiCard v-if="choices.length" variant="glass" padding="md" interactive>
     <template #header>
       <div class="flex items-center justify-between w-full">
-        <span class="text-primary-600 font-display font-bold text-sm sm:text-base">Live</span>
+  <span class="text-emerald-600 font-display font-bold text-sm sm:text-base">Live</span>
         <UiButton size="sm" variant="secondary" @pressed="$emit('refresh')">実況更新</UiButton>
       </div>
     </template>
