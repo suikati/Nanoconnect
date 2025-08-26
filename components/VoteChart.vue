@@ -105,13 +105,20 @@ function updateLeaderMessage() {
 }
 
 let rendering = false;
+let pending = false;
 const renderChart = async () => {
-  if (rendering) return; // prevent overlapping builds
+  if (rendering) {
+    pending = true; // 更新要求をキュー
+    return;
+  }
   rendering = true;
+  pending = false;
   await nextTick();
-  if (!canvas.value || !container.value) return;
+  if (!canvas.value || !container.value) {
+    rendering = false; return;
+  }
   const ctx = canvas.value.getContext('2d');
-  if (!ctx) return;
+  if (!ctx) { rendering = false; return; }
   const d = buildData();
   updateLeaderMessage();
   const palette = ['#6366F1', '#EC4899', '#06B6D4', '#F59E0B', '#10B981', '#F97316'];
@@ -162,6 +169,15 @@ const renderChart = async () => {
   }
   if (chart) {
     try {
+      // ラベル数が変わった/タイプ変更済みで再生成されていない場合は破棄
+      if ((chart.data.labels?.length || 0) !== d.labels.length) {
+        chart.destroy();
+        chart = null;
+      }
+  } catch (e) { try { if (chart) chart.destroy(); } catch(_){} chart=null; }
+  }
+  if (chart) {
+    try {
       chart.data.labels = d.labels as any;
       chart.data.datasets![0].data = d.data as any;
       chart.data.datasets![0].backgroundColor = computeBgColors(activeIndex.value) as any;
@@ -172,14 +188,11 @@ const renderChart = async () => {
         ? d.data.map(() => 1) as any
         : d.data.map(() => 0) as any;
       chart.update();
+      rendering = false;
+      if (pending) void renderChart();
       return;
     } catch (e) {
-      // 更新に失敗したら破棄して再作成する
-      try {
-        chart.destroy();
-      } catch (err) {
-        /* ignore */
-      }
+      try { chart.destroy(); } catch(_){}
       chart = null;
     }
   }
@@ -300,6 +313,7 @@ const renderChart = async () => {
     try { if (chart) { chart.destroy(); chart = null; } } catch (_) { /* ignore */ }
   } finally {
     rendering = false;
+    if (pending) { pending = false; void renderChart(); }
   }
 };
 
