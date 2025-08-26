@@ -4,10 +4,10 @@
 
 リアルタイム投票 & ライブコメント生成を行うアンケートアプリです。Firebase Realtime Database を用いた低レイテンシ同期、リンカによるライブ実況/ナノすけによるコメント生成、Chart.js による動的グラフ描画を組み合わせています。Presenter (発表者) と Audience (参加者) の 2 画面構成。
 
-## 簡単な使い方
+## 使い方
 
 1. Presenter 画面でルーム作成 → 投票スライド追加・編集
-2. 表示された参加コード / URL を共有し、Audience が参加
+2. 表示された参加コード を共有し、Audience が参加
 3. Audience は選択肢をタップして投票。結果はリアルタイム更新
 4. 投票後や進行中に AI ライブコメントが自動生成されます
 
@@ -27,28 +27,25 @@ nuxt.config.ts
 tailwind.config.ts
 components/      UI・投票・ライブコメント関連
 composables/     ルーム状態 / リスナー / AI コメント生成
-pages/           presenter.vue / audience.vue / index.vue
+pages/           index.vue / presenter.vue / audience.vue
 server/api/      OpenAI 経由コメント生成 API
 server/utils/    OpenAI クライアント
-utils/           マイグレーション / Chart ヘルパ / パス定義
+utils/           Chart ヘルパ / パス定義
 types/           型定義
 tests/           単体テスト (migration / vote / chart 等)
-document/        追加仕様・プロンプト・スキーマ
+document/        仕様・スキーマ
 ```
 
-## 主要ファイル解説
+## 主要ファイル
 
-- `composables/useRoom.ts`: 投票処理・スライド編集・コメント CRUD・トランザクション制御の中核。
-- `composables/useDbListener.ts`: Realtime DB リスナー登録と重複防止管理。
-- `composables/useLiveCommentGenerator.ts`: AI ライブコメント生成ロック & クールダウン。
-- `utils/chart.ts`: グラフデータ生成・色 / ラベル整形・ゼロ票ストライプ処理。
-- `utils/paths.ts`: Firebase パス集中管理（typo/分散防止）。
-- `components/VoteChart.vue`: Chart.js 描画 & rAF バッチ更新・タイプ切替。
-- `components/OptionList.vue` / `OptionItem.vue`: 選択肢編集・順序管理。
-- `components/LiveComment.vue`: アニメ表示・クリック変化。
-- `pages/presenter.vue`: 発表者 UI（スライド操作・結果監視・AI コメントトリガ）。
-- `pages/audience.vue`: 参加者 UI（投票 / ライブ表示）。
-- `server/api/openai.ts`: OpenAI へのプロンプト組立とレスポンス整形。
+- `composables/useRoom.ts`: 投票処理・スライド編集・コメント CRUD・トランザクション制御の中核
+- `composables/useDbListener.ts`: Realtime DB リスナー登録と重複防止管理
+- `utils/paths.ts`: Firebase パス集中管理（typo/分散防止）
+- `components/LiveResultsPanel.vue`: チャート,リンカ
+- `components/LiveComment.vue`: ナノすけ
+- `pages/presenter.vue`: 発表者 UI（スライド操作・結果監視・AI コメントトリガ）
+- `pages/audience.vue`: 参加者 UI（投票 / ライブ表示）
+- `server/api/openai.ts`: OpenAI へのプロンプト組立とレスポンス整形
 
 ## データベーススキーマ (Firebase Realtime Database)
 
@@ -63,7 +60,7 @@ rooms/{roomId} = {
   [slideId]: {
    id: string,
    title: string,
-   choices: {               // 安定 ID: ch_xxxxx
+   choices: {               // 選択肢
     [choiceId]: {
      id: string,
      label: string,

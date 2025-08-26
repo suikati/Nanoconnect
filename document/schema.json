@@ -1,48 +1,290 @@
 {
-  "rooms": {
-    "room_ABC123": {
-      "presenterId": "presenter_1",
-      "slideIndex": 0,
-      "createdAt": "2025-08-24T00:00:00Z",
-      "slides": {
-        "slide_1": {
-          "title": "好きな色は何ですか？",
-          "slideNumber": 1,
-          "choices": {
-            "choice_0": { "text": "赤", "index": 0, "color": "#EF4444" },
-            "choice_1": { "text": "青", "index": 1, "color": "#3B82F6" }
+  "M9P7G5": {
+    "aggregates": {
+      "slide_1": {
+        "counts": {
+          "ch_0x7wjzrr": 5,
+          "ch_5v4ct2ay": 2,
+          "ch_alpvpmbe": 32,
+          "ch_ofesruyx": 38,
+          "ch_swf0uaf3": 74
+        },
+        "total": 151
+      },
+      "slide_2": {
+        "counts": {
+          "ch_3vb2w5a1": 77,
+          "ch_xt3g3fbz": 76
+        },
+        "total": 153
+      },
+      "slide_3": {
+        "counts": {
+          "ch_bcr42o29": 105,
+          "ch_x8430jf7": 45
+        },
+        "total": 150
+      }
+    },
+    "comments": {
+      "-OY_uxM9ClbZ6gOy72Gd": {
+        "anonId": "anon_a1",
+        "createdAt": "2025-08-26T10:28:15.087Z",
+        "deleted": false,
+        "likes": 57,
+        "text": "よろしくお願いします！"
+      },
+      "-OY_v5cH0CJ-eAuFmMz5": {
+        "anonId": "anon_b2",
+        "createdAt": "2025-08-26T10:28:53.048Z",
+        "deleted": false,
+        "likes": 64,
+        "text": "こんにちは～"
+      },
+      "-OY_vQ80EmzndLf4LXeV": {
+        "anonId": "anon_c3",
+        "createdAt": "2025-08-26T10:30:17.063Z",
+        "deleted": true,
+        "deletedAt": "2025-08-26T11:32:03.847Z",
+        "deletedBy": "anon_c3",
+        "likes": 42
+      },
+      "-OY_vUcT8h-6f6uqMXrd": {
+        "anonId": "anon_d4",
+        "createdAt": "2025-08-26T10:30:35.460Z",
+        "deleted": false,
+        "likes": 45,
+        "text": "楽しみ"
+      },
+      "-OY_vyAzt3fuEhOw_E14": {
+        "anonId": "anon_e5",
+        "createdAt": "2025-08-26T10:32:40.613Z",
+        "deleted": false,
+        "likes": 59,
+        "text": "おしゃれなお家！"
+      },
+      "-OY_wSs5XNzotCerZywo": {
+        "anonId": "anon_f6",
+        "createdAt": "2025-08-26T10:34:50.412Z",
+        "deleted": false,
+        "likes": 62,
+        "text": "地質調査！？すごい"
+      },
+      "-OY_wcF6hCx2P9ypkoUl": {
+        "anonId": "anon_g7",
+        "createdAt": "2025-08-26T10:35:32.909Z",
+        "deleted": false,
+        "likes": 58,
+        "text": "バイクかっこいいです！"
+      },
+      "-OY_wniVZZO4EocF6q6P": {
+        "anonId": "anon_h8",
+        "createdAt": "2025-08-26T10:36:19.910Z",
+        "deleted": false,
+        "likes": 65,
+        "text": "いい写真だ～",
+        "userLikes": {
+          "anon_h8": true
+        }
+      },
+      "-OY_wwCpsQfjDpKJkX6_": {
+        "anonId": "anon_3iub9nbt",
+        "createdAt": "2025-08-26T10:36:54.683Z",
+        "deleted": false,
+        "likes": 48,
+        "text": "猫ちゃん可愛すぎる"
+      }
+    },
+    "createdAt": "2025-08-26T10:10:42.198Z",
+    "liveComment": {
+      "slide_1": {
+        "choiceKey": "ch_0x7wjzrr",
+        "choiceText": "芸術系",
+        "generating": false,
+        "lockOwner": "anon_3iub9nbt",
+        "startedAt": "2025-08-26T11:31:28.172Z",
+        "text": "芸術のセンス光るナノ！",
+        "updatedAt": "2025-08-26T11:31:30.235Z"
+      },
+      "slide_2": {
+        "choiceKey": "ch_3vb2w5a1",
+        "choiceText": "猫派",
+        "generating": false,
+        "lockOwner": "anon_3iub9nbt",
+        "startedAt": "2025-08-26T11:48:19.594Z",
+        "text": "猫派だね！にゃんともかわいい選択、応援してるナノ！",
+        "updatedAt": "2025-08-26T11:48:35.552Z"
+      }
+    },
+    "presenterId": "anon_3iub9nbt",
+    "slideIndex": 1,
+    "slides": {
+      "slide_1": {
+        "chartType": "bar",
+        "choices": {
+          "ch_0x7wjzrr": {
+            "color": "#e6e04c",
+            "index": 3,
+            "text": "芸術系"
+          },
+          "ch_5v4ct2ay": {
+            "color": "#858391",
+            "index": 4,
+            "text": "その他"
+          },
+          "ch_alpvpmbe": {
+            "color": "#EF4444",
+            "index": 0,
+            "text": "文系"
+          },
+          "ch_ofesruyx": {
+            "color": "#3B82F6",
+            "index": 1,
+            "text": "理系"
+          },
+          "ch_swf0uaf3": {
+            "color": "#10B981",
+            "index": 2,
+            "text": "情報系"
           }
         },
-        "slide_2": {
-          "title": "何系の学部ですか？",
-          "slideNumber": 2,
-          "choices": {
-            "choice_0": { "text": "文系", "index": 0, "color": "#6366F1" },
-            "choice_1": { "text": "理系", "index": 1, "color": "#EC4899" },
-            "choice_2": { "text": "情報系", "index": 2, "color": "#0B2545" }
+        "slideNumber": 1,
+        "title": "何系の学生さんですか？"
+      },
+      "slide_2": {
+        "chartType": "pie",
+        "choices": {
+          "ch_3vb2w5a1": {
+            "color": "#4ce6e3",
+            "index": 1,
+            "text": "猫派"
+          },
+          "ch_xt3g3fbz": {
+            "color": "#88ec46",
+            "index": 0,
+            "text": "犬派"
           }
-        }
-      },
-      "votes": {
-        "slide_1": {
-          "anon_001": { "choiceId": "choice_0", "votedAt": "2025-08-24T02:00:00Z" },
-          "anon_002": { "choiceId": "choice_1", "votedAt": "2025-08-24T02:01:00Z" }
         },
-        "slide_2": {
-          "anon_004": { "choiceId": "choice_1", "votedAt": "2025-08-24T02:05:00Z" }
+        "slideNumber": 2,
+        "title": "どっち派？"
+      },
+      "slide_3": {
+        "chartType": "pie",
+        "choices": {
+          "ch_bcr42o29": {
+            "color": "#15f930",
+            "index": 0,
+            "text": "知ってた"
+          },
+          "ch_x8430jf7": {
+            "color": "#9995e9",
+            "index": 1,
+            "text": "知らなかった"
+          }
+        },
+        "slideNumber": 3,
+        "title": "ナノコネクトをご存知でしたか？"
+      }
+    },
+    "votes": {
+      "slide_1": {
+        "anon_3iub9nbt": {
+          "choiceId": "ch_0x7wjzrr",
+          "votedAt": "2025-08-26T11:31:27.987Z"
         }
       },
-      "comments": {
-        "comment_001": {
-          "anonId": "anon_003",
-          "text": "このアンケート面白い！",
-          "likes": 5,
-          "createdAt": "2025-08-24T02:10:00Z"
+      "slide_2": {
+        "anon_3iub9nbt": {
+          "choiceId": "ch_3vb2w5a1",
+          "votedAt": "2025-08-26T11:48:19.416Z"
+        }
+      }
+    }
+  },
+  "room_ABC123": {
+    "aggregates": {
+      "slide_1": {
+        "counts": {
+          "choice_0": 3,
+          "choice_1": 2
+        },
+        "total": 5
+      },
+      "slide_2": {
+        "counts": {
+          "choice_1": 1
+        },
+        "total": 1
+      }
+    },
+    "comments": {
+      "-OYZwMCViXgKu-wEndw9": {
+        "anonId": "anon_3iub9nbt",
+        "createdAt": "2025-08-26T05:54:47.051Z",
+        "deleted": true,
+        "deletedAt": "2025-08-26T05:54:51.312Z",
+        "deletedBy": "anon_3iub9nbt",
+        "likes": 0
+      },
+      "comment_001": {
+        "anonId": "anon_003",
+        "createdAt": "2025-08-24T02:10:00Z",
+        "likes": 6,
+        "text": "このアンケート面白い！",
+        "userLikes": {
+          "anon_3iub9nbt": true
+        }
+      }
+    },
+    "createdAt": "2025-08-24T00:00:00Z",
+    "liveComment": {
+      "slide_1": {
+        "choiceKey": "choice_1",
+        "choiceText": "青",
+        "generating": false,
+        "lockOwner": "anon_81ay730a",
+        "startedAt": "2025-08-26T02:56:52.842Z",
+        "text": "さわやかで落ち着く青が好きなんだナノ！",
+        "updatedAt": "2025-08-26T02:56:55.180Z"
+      }
+    },
+    "presenterId": "presenter_1",
+    "slideIndex": 0,
+    "slides": {
+      "slide_1": {
+        "chartType": "pie",
+        "choices": {
+          "choice_0": {
+            "color": "#EF4444",
+            "index": 0,
+            "text": "赤"
+          },
+          "choice_1": {
+            "color": "#3B82F6",
+            "index": 1,
+            "text": "青"
+          }
+        },
+        "slideNumber": 1,
+        "title": "好きな色は何ですか？"
+      }
+    },
+    "votes": {
+      "slide_1": {
+        "anon_001": {
+          "choiceId": "choice_0",
+          "votedAt": "2025-08-24T02:00:00Z"
+        },
+        "anon_002": {
+          "choiceId": "choice_1",
+          "votedAt": "2025-08-24T02:01:00Z"
         }
       },
-      "aggregates": {
-        "slide_1": { "counts": { "choice_0": 1, "choice_1": 1 }, "total": 2 },
-        "slide_2": { "counts": { "choice_1": 1 }, "total": 1 }
+      "slide_2": {
+        "anon_004": {
+          "choiceId": "choice_1",
+          "votedAt": "2025-08-24T02:05:00Z"
+        }
       }
     }
   }
