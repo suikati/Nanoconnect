@@ -16,6 +16,10 @@ export function buildPlaybyplayPrompt(title: string, choices: { id?: string; tex
 export function buildCommentPrompt(title: string, selectedText: string) {
   return `あなたはマスコットキャラクターのナノすけです。アンケートのタイトル: "${title}" に対して、ユーザーが選んだ選択肢: "${selectedText}" に合わせた親しみやすい短い日本語コメント（1文）を返してください。語尾は「～ナノ！」でお願いします。`;
 }
+// Nuxt recommends using eventHandler()/fromNodeMiddleware() for server handlers.
+// We provide both a default export wrapped with eventHandler and a named `handler` for tests.
+import { eventHandler } from '#imports';
+
 export async function handler(event: any) {
   // Read body (may be parsed object or raw string depending on runtime)
   let body: any = await (globalThis as any).readBody?.(event) ?? event?.body;
@@ -187,5 +191,5 @@ export async function handler(event: any) {
   }
 }
 
-// Default export for Nuxt and named export `handler` is already declared above
-export default handler;
+// Default export wrapped with Nuxt's eventHandler to avoid implicit conversion warning
+export default eventHandler(handler as any);
