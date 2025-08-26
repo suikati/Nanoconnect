@@ -92,14 +92,21 @@ export default <Partial<Config>>{
       addVariant('hocus', ['&:hover', '&:focus-visible'])
       addUtilities({
         '.glass': {
-          'background': 'rgba(255,255,255,0.78)',
-          'backdrop-filter': 'blur(14px) saturate(1.4)'
+          'background': 'rgba(255,255,255,0.88)',
+          'box-shadow': '0 4px 18px -4px rgba(30,41,59,0.18)',
+          'backdrop-filter': 'blur(18px) saturate(1.6)'
         },
         '.text-gradient': {
-          'background': 'linear-gradient(90deg,#6366f1,#ec4899)',
+          'background': 'linear-gradient(92deg,#4f46e5 0%,#6366f1 30%,#d946ef 70%,#ec4899 100%)',
           '-webkit-background-clip': 'text',
           'background-clip': 'text',
           'color': 'transparent'
+        },
+        '.text-ink-strong': {
+          'color': '#1f2937'
+        },
+        '.text-ink-soft': {
+          'color': '#374151'
         }
       })
     }
