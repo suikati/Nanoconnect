@@ -141,3 +141,44 @@ OpenAI 生成テキスト（キャラクターコメント / 実況）の表示�
 ### `types/models.ts` / `types/openai.ts`
 
 スライド・コメント・集計・OpenAI リクエスト/レスポンスの型を定義し、Vue & サーバー間の整合性を確保。
+
+## データベーススキーマ (Realtime Database)
+
+RTDB ルート配下 (rooms/{roomCode}/...):
+
+```text
+rooms/{code}/
+ presenterId: string
+ slideIndex: number  // 現在表示スライド 0-based
+ createdAt: ISOString
+ slides/
+  slide_{n}/
+   title: string
+   slideNumber: number (1-based)
+   chartType: 'bar' | 'pie'
+   choices: {
+    {choiceId}: { text: string, index: number, color?: string }
+   }
+ aggregates/
+  slide_{n}/
+   counts: { [choiceId]: number }
+   total: number
+ votes/
+  slide_{n}/
+   {anonId}: { choiceId: string, votedAt: ISOString }
+ comments/
+  {commentId}:
+   anonId: string
+   text: string | null
+   likes: number
+   userLikes: { [anonId]: true }
+   deleted: boolean
+   createdAt: ISOString
+   deletedAt?: ISOString
+   deletedBy?: string
+ liveComment/
+  slide_{n}:
+   text: string
+   generating?: boolean
+   error?: string
+```
