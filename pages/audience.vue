@@ -35,12 +35,8 @@
                 />
               </li>
             </ul>
-            <!-- LiveComment placed under choices for audience, unified with voting UI -->
-            <div class="mt-3 space-y-2">
-              <div class="flex items-center gap-2">
-                <UiButton size="sm" variant="secondary" @pressed="fetchComment">コメント生成</UiButton>
-                <div class="text-[10px] sm:text-xs text-gray-500">選択肢の下でコメントを生成します（開発用）</div>
-              </div>
+            <!-- LiveComment: 投票後自動生成 -->
+            <div class="mt-3">
               <LiveComment :text="commentTextLive" :loading="commentLoading" />
             </div>
             <div v-if="voted" class="text-xs text-green-600">
@@ -97,6 +93,7 @@
 
 <script setup lang="ts">
 import { ref, reactive, onUnmounted, onMounted } from 'vue';
+import { ref as dbRef, runTransaction, update } from 'firebase/database';
 import useRoom from '~/composables/useRoom';
 import VoteChart from '~/components/VoteChart.vue';
 import createDbListener from '~/composables/useDbListener';
@@ -146,11 +143,13 @@ const playText = ref('');
 const playLoading = ref(false);
 const commentTextLive = ref('');
 const commentLoading = ref(false);
+const liveCommentError = ref<string | null>(null);
 let unsubSlide: (() => void) | null = null;
 let unsubSlideContent: (() => void) | null = null;
 let unsubAgg: (() => void) | null = null;
 let unsubVotes: (() => void) | null = null;
 let unsubComments: (() => void) | null = null;
+let unsubLiveComment: (() => void) | null = null;
 const pushLog = (s: string) => {
   log.value.unshift(`${new Date().toISOString()} ${s}`);
 };
@@ -282,6 +281,24 @@ const startListeners = (code: string) => {
       });
       comments.value = arr;
     });
+
+    // LiveComment のリスナー
+    if (unsubLiveComment) {
+      try { unsubLiveComment(); } catch (e) { /* ignore */ }
+      unsubLiveComment = null;
+    }
+    unsubLiveComment = createDbListener(db, `rooms/${code}/liveComment/slide_${idx + 1}`, (snap: any) => {
+      if (!snap.exists()) {
+        commentTextLive.value = '';
+        liveCommentError.value = null;
+        commentLoading.value = false;
+        return;
+      }
+      const lc = snap.val() as any;
+      commentTextLive.value = lc.text || '';
+      liveCommentError.value = lc.error || null;
+      commentLoading.value = !!lc.generating;
+    });
   });
 };
 
@@ -295,6 +312,8 @@ const onVote = async (choiceKey: string) => {
       pushLog(`voted ${choiceKey}`);
       voted.value = true;
       myVote.value = choiceKey;
+  // 自動 LiveComment 生成試行
+  await attemptGenerateLiveComment(choiceKey);
     } else {
       pushLog('vote was no-op (same choice)');
     }
@@ -354,36 +373,81 @@ async function fetchPlay() {
   }
 }
 
-async function fetchComment() {
+// ===== LiveComment 自動生成ロジック =====
+const LIVE_COMMENT_COOLDOWN_MS = 10000; // 同一内容再生成の最小間隔
+const LIVE_COMMENT_LOCK_TIMEOUT_MS = 30000; // generating ロックが残った際の再取得猶予
+
+async function attemptGenerateLiveComment(choiceKey: string) {
   const code = currentCode.value;
   if (!code) return;
-  // Prefer the user's selected vote (myVote) if present, otherwise fall back to first choice
-  let selectedText = '';
-  if (myVote.value) {
-    const found = choicesArray.value.find((c) => c.key === myVote.value);
-    selectedText = found?.text ?? '';
-  }
-  if (!selectedText) {
-    const choice = choicesArray.value[0];
-    selectedText = choice?.text ?? '';
-  }
-  if (!selectedText) {
-    commentTextLive.value = '(選択肢が未定義のためコメントを生成できません)';
+  const c = choicesArray.value.find((x) => x.key === choiceKey);
+  const choiceText = c?.text?.trim() || '';
+  if (!choiceText) return; // 空なら生成不可
+  const title = slide.value?.title || '';
+
+  const db = (useNuxtApp() as any).$firebaseDb;
+  const path = `rooms/${code}/liveComment/slide_${slideNumber.value}`;
+  const now = Date.now();
+  const startedAtIso = new Date().toISOString();
+
+  let acquired = false;
+  try {
+    await runTransaction(dbRef(db, path), (current: any) => {
+      const cur = current || null;
+      // タイムアウト判定
+      const canSteal = cur && cur.generating && cur.startedAt && (now - Date.parse(cur.startedAt)) > LIVE_COMMENT_LOCK_TIMEOUT_MS;
+      if (cur && cur.generating && !canSteal) {
+        return cur; // 他クライアント生成中
+      }
+      if (cur && cur.text && cur.choiceKey === choiceKey) {
+        const last = cur.updatedAt ? Date.parse(cur.updatedAt) : 0;
+        if (now - last < LIVE_COMMENT_COOLDOWN_MS) {
+          return cur; // クールダウン内
+        }
+      }
+      // ロック取得
+      acquired = true;
+      return {
+        choiceKey,
+        choiceText,
+        generating: true,
+        text: null,
+        error: null,
+        startedAt: startedAtIso,
+        updatedAt: startedAtIso,
+        lockOwner: anonId.value || 'unknown'
+      };
+    });
+  } catch (e) {
+    pushLog('liveComment lock error');
     return;
   }
-  try { console.debug('fetchComment selectedText', selectedText); } catch (e) {}
+
+  if (!acquired) return; // 他で生成中 or クールダウン
+
   commentLoading.value = true;
   try {
     const resp = await fetch('/api/openai', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ title: slide.value?.title || '', selectedChoice: selectedText }),
+      body: JSON.stringify({ title, selectedChoice: choiceText })
     });
     const data = await resp.json();
-    commentTextLive.value = data?.text || '(生成失敗)';
+    const text = data?.text || '(生成失敗)';
+    await update(dbRef(db, path), {
+      text,
+      generating: false,
+      updatedAt: new Date().toISOString(),
+      error: null
+    });
   } catch (e: any) {
-    commentTextLive.value = '(エラー)';
+    await update(dbRef(db, path), {
+      generating: false,
+      error: e?.message || 'error',
+      updatedAt: new Date().toISOString()
+    });
   } finally {
+    // listener が loading 状態を同期するのでここでは直接解除しない（ただし保険として解除）
     commentLoading.value = false;
   }
 }
