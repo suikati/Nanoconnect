@@ -52,10 +52,10 @@
         </UiCard>
       </div>
 
-      <!-- Right: Chart & Comments (chart first like presenter) -->
+      <!-- Right: Unified Live panel (Chart + PlayByPlay) & Comments -->
       <div class="lg:col-span-2 space-y-6">
-        <UiCard v-if="aggregates && choicesArray.length" title="Live Results" titleClass="text-primary-600 font-display" variant="glass" padding="md" interactive>
-          <VoteChart :counts="aggregates.counts || {}" :choices="choicesArray" />
+        <UiCard v-if="choicesArray.length" title="Live" titleClass="text-primary-600 font-display" variant="glass" padding="md" interactive>
+          <LiveResultsPanel :counts="aggregates?.counts || {}" :choices="choicesArray" :play-text="playText" :play-loading="playLoading" />
         </UiCard>
         <UiCard title="Comments" titleClass="text-secondary-600 font-display" variant="glass" padding="md">
           <div v-if="!joined" class="text-[10px] sm:text-xs text-gray-400">参加するとコメントできます。</div>
@@ -68,12 +68,9 @@
             <UiButton variant="primary" :disabled="!commentText" @pressed="onPostComment">Post</UiButton>
           </div>
 
-          <div class="mb-3">
-            <div class="flex items-center justify-between mb-2 text-xs sm:text-sm">
-              <div class="text-gray-600 font-medium">実況プレビュー（開発用）</div>
-              <UiButton size="sm" variant="secondary" @pressed="fetchPlay">実況更新</UiButton>
-            </div>
-            <PlayByPlay :text="playText" :loading="playLoading" />
+          <div class="mb-3 flex items-center justify-between text-[10px] sm:text-xs text-gray-500">
+            <span>実況は上部 Live パネルに表示</span>
+            <UiButton size="sm" variant="secondary" @pressed="fetchPlay">実況更新</UiButton>
           </div>
 
           <!-- LiveComment moved to be shown under choices in the left column -->
@@ -102,6 +99,7 @@ import { ref, reactive, onUnmounted, onMounted } from 'vue';
 import { ref as dbRef, runTransaction, update } from 'firebase/database';
 import useRoom from '~/composables/useRoom';
 import VoteChart from '~/components/VoteChart.vue';
+import LiveResultsPanel from '~/components/LiveResultsPanel.vue';
 import createDbListener from '~/composables/useDbListener';
 import AppShell from '~/components/ui/AppShell.vue';
 import UiButton from '~/components/ui/UiButton.vue';
