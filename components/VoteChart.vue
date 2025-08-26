@@ -137,7 +137,7 @@ const renderChart = async () => {
   const total = d.data.reduce((a, b) => a + b, 0) || 1;
   const isPie = (props.chartType || 'bar') === 'pie';
   const maxVal = Math.max(...d.data);
-  const maxIndexes = d.data.map((v, i) => (v === maxVal && maxVal > 0 ? i : -1)).filter(i => i !== -1);
+  // maxIndexes no longer needed for highlight
 
   function computeBgColors(active: number | null) {
     return d.data.map((v, i) => {
@@ -147,10 +147,8 @@ const renderChart = async () => {
       }
       const choice = (props.choices[i] as any);
       const base = choice && choice.color ? choice.color : palette[i % palette.length];
-      const isMax = maxIndexes.includes(i);
       const isDim = active !== null && active !== i;
       if (isDim) return mixWithWhite(base, 0.75);
-      if (isMax) return base; // keep vivid
       return base;
     });
   }
@@ -167,9 +165,12 @@ const renderChart = async () => {
       chart.data.labels = d.labels as any;
       chart.data.datasets![0].data = d.data as any;
       chart.data.datasets![0].backgroundColor = computeBgColors(activeIndex.value) as any;
-      // border highlight for max
-      chart.data.datasets![0].borderColor = d.data.map((v, i) => (maxIndexes.includes(i) ? '#111827' : 'transparent')) as any;
-      chart.data.datasets![0].borderWidth = d.data.map((v, i) => (maxIndexes.includes(i) ? 2 : 0)) as any;
+      chart.data.datasets![0].borderColor = isPie
+        ? d.data.map(() => '#ffffff') as any
+        : d.data.map(() => 'transparent') as any;
+      chart.data.datasets![0].borderWidth = isPie
+        ? d.data.map(() => 1) as any
+        : d.data.map(() => 0) as any;
       chart.update();
       return;
     } catch (e) {
@@ -195,18 +196,9 @@ const renderChart = async () => {
           label: 'Votes',
           data: d.data,
           backgroundColor: bgColors as any,
-          ...(isPie
-            ? {
-                // pie specific
-                borderColor: d.data.map((v, i) => (maxIndexes.includes(i) ? '#111827' : '#ffffff')) as any,
-                borderWidth: d.data.map((v, i) => (maxIndexes.includes(i) ? 2 : 1)) as any,
-              }
-            : {
-                borderRadius: 8,
-                borderSkipped: false,
-                borderColor: d.data.map((v, i) => (maxIndexes.includes(i) ? '#111827' : 'transparent')) as any,
-                borderWidth: d.data.map((v, i) => (maxIndexes.includes(i) ? 2 : 0)) as any,
-              }),
+            ...(isPie
+              ? { borderColor: d.data.map(() => '#ffffff') as any, borderWidth: d.data.map(() => 1) as any }
+              : { borderRadius: 8, borderSkipped: false, borderColor: d.data.map(() => 'transparent') as any, borderWidth: d.data.map(() => 0) as any }),
         },
       ],
     },
@@ -229,24 +221,29 @@ const renderChart = async () => {
         },
         // datalabels: バー内部に白い値ラベルを表示
          datalabels: isPie
-          ? {
-              color: '#ffffff',
-              textStrokeColor: 'rgba(0,0,0,0.45)',
-              textStrokeWidth: 2,
-              anchor: 'center',
-              align: 'center',
-              font: { weight: 700, size: 13 },
-              clamp: true,
-              formatter: (val: number) => {
-                if (val <= 0) return '';
-                const pct = Math.round((val / total) * 100);
-                return `${pct}%`;
-              },
-            }
-          : {
-              // bar: hide value labels per requirement
-              formatter: () => '',
-            },
+           ? {
+               color: '#ffffff',
+               textStrokeColor: 'rgba(0,0,0,0.45)',
+               textStrokeWidth: 2,
+               anchor: 'center',
+               align: 'center',
+               font: { weight: 700, size: 13 },
+               clamp: true,
+               formatter: (val: number) => {
+                 if (val <= 0) return '';
+                 const pct = Math.round((val / total) * 100);
+                 return `${pct}%`;
+               },
+             }
+           : {
+               color: '#ffffff',
+               textStrokeColor: 'rgba(0,0,0,0.45)',
+               textStrokeWidth: 2,
+               anchor: 'end',
+               align: 'end',
+               font: { weight: 600, size: 12 },
+               formatter: (val: number) => (val > 0 ? String(val) : ''),
+             },
       },
       animation: { duration: 600, easing: 'easeOutCubic' },
       ...(isPie
@@ -268,7 +265,7 @@ const renderChart = async () => {
           }),
       onHover: (evt, activeEls) => {
         if (!chart) return;
-        if (!isPie) {
+  if (!isPie) {
           if (activeEls.length) {
             activeIndex.value = activeEls[0].index;
           } else if (activeIndex.value !== null) {
@@ -277,8 +274,6 @@ const renderChart = async () => {
           // Recompute colors only (fast)
           const dataset = chart.data.datasets[0];
           const d2 = buildData();
-          const maxVal2 = Math.max(...d2.data);
-          const maxIdx2 = d2.data.map((v, i) => (v === maxVal2 && maxVal2 > 0 ? i : -1)).filter(i => i !== -1);
           (dataset as any).backgroundColor = d2.data.map((v, i) => {
             if (v === 0) return stripePattern || '#e5e7eb';
             const choice = (props.choices[i] as any);
@@ -286,8 +281,6 @@ const renderChart = async () => {
             const isDim = activeIndex.value !== null && activeIndex.value !== i;
             return isDim ? mixWithWhite(base, 0.75) : base;
           });
-          (dataset as any).borderColor = d2.data.map((v, i) => (maxIdx2.includes(i) ? '#111827' : 'transparent'));
-          (dataset as any).borderWidth = d2.data.map((v, i) => (maxIdx2.includes(i) ? 2 : 0));
           chart.update('none');
         }
       },

@@ -21,8 +21,8 @@
       </div>
     </div>
     <!-- Chart (下) -->
-  <div class="chart-wrapper rounded-xl border border-primary-100 bg-white/90 backdrop-blur p-3 shadow-sm overflow-hidden">
-      <div class="h-[230px]">
+    <div class="chart-wrapper rounded-xl border border-primary-100 bg-white/90 backdrop-blur p-3 shadow-sm overflow-hidden">
+      <div class="h-[260px] flex items-center justify-center">
     <VoteChart :counts="counts" :choices="choices" :chart-type="props.chartType || 'bar'" />
       </div>
     </div>
