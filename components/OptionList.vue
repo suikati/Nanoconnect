@@ -4,24 +4,28 @@
       <li
         v-for="(o, idx) in options"
         :key="o.id"
-        class="flex items-center gap-3"
+        class="flex items-center gap-3 option-row"
+        :class="{ dragging: dragIndex === idx }"
         draggable="true"
         @dragstart="onDragStart(idx, $event)"
+        @dragenter.prevent="onDragEnter(idx)"
         @dragover.prevent
         @drop="onDrop(idx, $event)"
+        @dragend="onDragEnd"
+        aria-grabbed="false"
+        aria-dropeffect="move"
       >
         <OptionItem
           :option="o"
           :index="idx"
           @update="onUpdate(idx, $event)"
           @remove="onRemove(idx)"
-          @move-up="() => moveUp(idx)"
-          @move-down="() => moveDown(idx)"
         />
       </li>
     </ul>
     <div class="pt-2">
       <button class="w-full rounded-xl py-3 text-xs sm:text-sm font-medium bg-primary-50 text-primary-600 hover:bg-primary-100 transition border border-primary-100" @click.prevent="addOption">選択肢を追加</button>
+      <p class="mt-2 text-[10px] sm:text-[11px] text-gray-500 flex items-center gap-1"><span class="inline-block w-3 h-3 text-primary-400">⠿</span> ドラッグで並び替えできます</p>
     </div>
   </div>
 </template>
@@ -103,19 +107,7 @@ const addOption = () => {
   emit('update:modelValue', toRaw(options));
 };
 
-const moveUp = (idx: number) => {
-  if (idx <= 0) return;
-  const [item] = options.splice(idx, 1);
-  options.splice(idx - 1, 0, item);
-  emit('update:modelValue', toRaw(options));
-};
-
-const moveDown = (idx: number) => {
-  if (idx >= options.length - 1) return;
-  const [item] = options.splice(idx, 1);
-  options.splice(idx + 1, 0, item);
-  emit('update:modelValue', toRaw(options));
-};
+// Up/Down ボタンは廃止（ドラッグのみ）
 
 const onUpdate = (idx: number, opt: any) => {
   if (idx >= 0 && idx < options.length) {
@@ -138,18 +130,27 @@ const emitUpdate = () => {
 let dragIndex: number | null = null;
 function onDragStart(i: number, ev: DragEvent) {
   dragIndex = i;
+  (ev.target as HTMLElement)?.classList.add('drag-origin');
   try { ev.dataTransfer?.setData('text/plain', String(i)); } catch (e) { /* ignore */ }
+  try { ev.dataTransfer!.effectAllowed = 'move'; } catch (e) { /* ignore */ }
+}
+function onDragEnter(i: number) {
+  // show placeholder effect by reordering preview? keep simple highlight only
 }
 function onDrop(i: number, ev: DragEvent) {
   let from = dragIndex;
   if (from == null) {
     try { const d = ev.dataTransfer?.getData('text/plain'); if (d) from = Number(d); } catch (e) { /* ignore */ }
   }
-  if (from == null || from === i) return;
+  if (from == null || from === i) { dragIndex = null; return; }
   const [item] = options.splice(from, 1);
   options.splice(i, 0, item);
   dragIndex = null;
   emit('update:modelValue', toRaw(options));
+}
+function onDragEnd(ev: DragEvent) {
+  dragIndex = null;
+  (ev.target as HTMLElement)?.classList.remove('drag-origin');
 }
 
 // Note: do not auto-emit from watching `options` to avoid recursive update loops.

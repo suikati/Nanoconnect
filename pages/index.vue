@@ -20,7 +20,7 @@
             <div class="flex flex-col gap-3">
               <UiButton variant="primary" size="md" @pressed="createRoom">ルーム作成</UiButton>
               <div class="flex items-center gap-2">
-                <input v-model="presenterJoinCode" placeholder="既存コードで入室" class="flex-1 border border-primary-200 focus:border-primary-400 focus:ring-2 focus:ring-primary-300/60 rounded-lg px-3 py-2 text-xs sm:text-sm bg-white/70" />
+                <input v-model="presenterJoinCode" placeholder="または既存コードで入室" class="flex-1 border border-primary-200 focus:border-primary-400 focus:ring-2 focus:ring-primary-300/60 rounded-lg px-3 py-2 text-xs sm:text-sm bg-white/70" />
                 <UiButton variant="ghost" size="sm" @pressed="enterRoomAsPresenter">入室</UiButton>
               </div>
               <div v-if="presenterRoomCode" class="text-[10px] sm:text-xs text-primary-600 font-mono">コード: {{ presenterRoomCode }}</div>
