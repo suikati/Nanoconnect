@@ -6,8 +6,8 @@
         <UiCard variant="glass" interactive padding="md">
           <template #header>
             <div class="flex items-center gap-3 flex-wrap">
-              <span class="text-secondary-600 font-display font-bold text-base sm:text-lg">Questionnaire</span>
-              <span v-if="currentCode" class="text-[10px] sm:text-xs text-secondary-600 font-mono tracking-wide">{{ currentCode }}</span>
+              <span class="text-emerald-600 font-display font-bold text-base sm:text-lg">Questionnaire</span>
+              <span v-if="currentCode" class="text-[10px] sm:text-xs text-emerald-600 font-mono tracking-wide">{{ currentCode }}</span>
             </div>
           </template>
           <div class="flex flex-wrap items-center gap-3 mb-4 text-xs sm:text-sm">
@@ -61,7 +61,7 @@
         >
           <template #header>
             <div class="flex items-center justify-between w-full">
-              <span class="text-emerald-600 font-display font-bold text-sm sm:text-base">Live</span>
+              <span class="text-primary-600 font-display font-bold text-sm sm:text-base">Live</span>
               <UiButton size="sm" variant="secondary" @pressed="fetchPlay">実況更新</UiButton>
             </div>
           </template>

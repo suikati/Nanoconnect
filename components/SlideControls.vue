@@ -2,8 +2,8 @@
   <UiCard variant="glass" interactive padding="md">
     <template #header>
       <div class="flex items-center justify-between gap-3 w-full">
-  <h2 class="text-primary-600 font-display font-bold text-sm sm:text-base">Create Questionnaire</h2>
-  <span v-if="roomCode" class="text-[10px] sm:text-xs text-primary-600 font-mono tracking-wide">{{ roomCode }}</span>
+  <h2 class="text-emerald-600 font-display font-bold text-sm sm:text-base">Create Questionnaire</h2>
+  <span v-if="roomCode" class="text-[10px] sm:text-xs text-emerald-600 font-mono tracking-wide">{{ roomCode }}</span>
       </div>
     </template>
     <div class="space-y-6">
