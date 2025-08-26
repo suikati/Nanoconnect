@@ -89,21 +89,24 @@ function updateLeaderMessage() {
   }
 }
 
-let rendering = false;
-let pending = false;
-const renderChart = async () => {
-  if (rendering) {
-    pending = true; // 更新要求をキュー
-    return;
-  }
-  rendering = true;
-  pending = false;
+let rafId: number | null = null;
+const schedule = () => {
+  if (rafId != null) return;
+  rafId = requestAnimationFrame(() => {
+    rafId = null;
+    void renderNow();
+  });
+};
+
+const renderChart = () => { schedule(); };
+
+const renderNow = async () => {
   await nextTick();
   if (!canvas.value || !container.value) {
-    rendering = false; return;
+    return;
   }
   const ctx = canvas.value.getContext('2d');
-  if (!ctx) { rendering = false; return; }
+  if (!ctx) { return; }
   const d = buildData();
   updateLeaderMessage();
   const palette = ['#6366F1', '#EC4899', '#06B6D4', '#F59E0B', '#10B981', '#F97316'];
@@ -153,21 +156,12 @@ const renderChart = async () => {
     try {
       chart.data.labels = d.labels as any;
       chart.data.datasets![0].data = d.data as any;
-  chart.data.datasets![0].backgroundColor = computeBgColors(d.data, props.choices as any, palette, activeIndex.value, stripePattern) as any;
-      chart.data.datasets![0].borderColor = isPie
-        ? d.data.map(() => '#ffffff') as any
-        : d.data.map(() => 'transparent') as any;
-      chart.data.datasets![0].borderWidth = isPie
-        ? d.data.map(() => 1) as any
-        : d.data.map(() => 0) as any;
+      chart.data.datasets![0].backgroundColor = computeBgColors(d.data, props.choices as any, palette, activeIndex.value, stripePattern) as any;
+      chart.data.datasets![0].borderColor = isPie ? d.data.map(() => '#ffffff') as any : d.data.map(() => 'transparent') as any;
+      chart.data.datasets![0].borderWidth = isPie ? d.data.map(() => 1) as any : d.data.map(() => 0) as any;
       chart.update();
-      rendering = false;
-      if (pending) void renderChart();
       return;
-    } catch (e) {
-      try { chart.destroy(); } catch(_){}
-      chart = null;
-    }
+    } catch (e) { try { chart.destroy(); } catch(_){ } chart = null; }
   }
   const bgColors2 = computeBgColors(d.data, props.choices as any, palette, activeIndex.value, stripePattern);
 
@@ -284,35 +278,19 @@ const renderChart = async () => {
     // eslint-disable-next-line no-console
     console.error('Chart init error', e);
     try { if (chart) { chart.destroy(); chart = null; } } catch (_) { /* ignore */ }
-  } finally {
-    rendering = false;
-    if (pending) { pending = false; void renderChart(); }
   }
 };
 
-onMounted(() => {
-  renderChart();
-});
+onMounted(() => { renderChart(); });
 
 // counts が変わったときに更新
-watch(
-  () => props.counts,
-  () => { void renderChart(); },
-  { deep: true },
-);
+watch(() => props.counts, () => renderChart(), { deep: true });
 
 // choices（ラベル）が変わったときの更新
-watch(
-  () => props.choices,
-  () => { void renderChart(); },
-  { deep: true, immediate: true },
-);
+watch(() => props.choices, () => renderChart(), { deep: true, immediate: true });
 
 // chartType 変更時にも再構築（タイプ切替）
-watch(
-  () => props.chartType,
-  () => { void renderChart(); },
-);
+watch(() => props.chartType, () => renderChart());
 
 function refreshColors() {
   if (!chart) return;

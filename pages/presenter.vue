@@ -49,16 +49,21 @@
               <div class="flex items-center gap-2 mb-1">
                 <input ref="titleInput" v-model="slides[currentIndex].title" @input="reorderDirty = true" placeholder="タイトル" class="flex-1 border border-primary-200 focus:border-primary-400 focus:ring-2 focus:ring-primary-300/60 rounded-lg px-3 py-2 text-xs sm:text-sm bg-white/80" />
               </div>
-              <!-- Chart type toggle -->
-              <div class="flex items-center gap-2 text-[10px] sm:text-xs">
-                <span class="text-gray-500">グラフタイプ:</span>
+              <!-- Chart type toggle (radiogroup accessible) -->
+              <div class="flex items-center gap-2 text-[10px] sm:text-xs" role="radiogroup" aria-label="グラフタイプ">
+                <span class="text-gray-500 sr-only">グラフタイプ</span>
                 <button
                   v-for="t in ['bar','pie']"
                   :key="t"
                   type="button"
-                  class="px-2 py-1 rounded-md border text-[10px] sm:text-xs font-medium transition"
-                  :class="slides[currentIndex].chartType === t || (!slides[currentIndex].chartType && t==='bar') ? 'bg-primary-600 text-white border-primary-600 shadow-sm' : 'bg-white/70 hover:bg-primary-50 text-gray-600 border-primary-200'"
+                  role="radio"
+                  :aria-checked="(slides[currentIndex].chartType || 'bar') === t"
+                  :tabindex="(slides[currentIndex].chartType || 'bar') === t ? 0 : -1"
+                  class="px-2 py-1 rounded-md border text-[10px] sm:text-xs font-medium transition focus:outline-none focus:ring-2 focus:ring-primary-400"
+                  :class="(slides[currentIndex].chartType || 'bar') === t ? 'bg-primary-600 text-white border-primary-600 shadow-sm' : 'bg-white/70 hover:bg-primary-50 text-gray-600 border-primary-200'"
                   @click="setChartType(t as any)"
+                  @keydown.enter.prevent="setChartType(t as any)"
+                  @keydown.space.prevent="setChartType(t as any)"
                 >
                   <span v-if="t==='bar'">棒</span>
                   <span v-else>円</span>
@@ -152,9 +157,9 @@ const slides = reactive<
     id: `slide_0_${Date.now()}`,
     title: '好きな色は？',
     choices: [
-      { id: `opt_0_${Date.now()}`, text: '赤', color: '#EF4444' },
-      { id: `opt_1_${Date.now()}`, text: '青', color: '#3B82F6' },
-      { id: `opt_2_${Date.now()}`, text: '緑', color: '#10B981' },
+      { id: `ch_${Math.random().toString(36).slice(2,10)}`, text: '赤', color: '#EF4444' },
+      { id: `ch_${Math.random().toString(36).slice(2,10)}`, text: '青', color: '#3B82F6' },
+      { id: `ch_${Math.random().toString(36).slice(2,10)}`, text: '緑', color: '#10B981' },
     ],
   },
 ]);
@@ -205,7 +210,7 @@ const addSlide = () => {
   slides.push({
     id: `slide_${slides.length}_${Date.now()}`,
     title: '',
-    choices: [{ id: `opt_0_${Date.now()}`, text: '', color: palette[idx] }],
+    choices: [{ id: `ch_${Math.random().toString(36).slice(2,10)}`, text: '', color: palette[idx] }],
   });
   currentIndex.value = slides.length - 1;
   nextTick(() => { try { titleInput.value?.focus(); } catch (e) {} });
@@ -264,12 +269,11 @@ const onSaveSlides = async () => {
     const choices = (s.choices || []).map((c: any, ci: number) => {
       const rawColor = c && c.color ? String(c.color) : '';
       const placeholder = '#f3f4f6';
-      const normalizedColor =
-        rawColor && rawColor.toLowerCase() !== placeholder
-          ? rawColor
-          : palette[(ci + si) % palette.length];
-      const obj: any = { text: String(c.text || '').trim() };
-      if (normalizedColor) obj.color = normalizedColor; // undefined を送らない
+      const normalizedColor = rawColor && rawColor.toLowerCase() !== placeholder
+        ? rawColor
+        : palette[(ci + si) % palette.length];
+      const obj: any = { id: c.id, text: String(c.text || '').trim() };
+      if (normalizedColor) obj.color = normalizedColor;
       return obj;
     });
     return { title: s.title || 'untitled', chartType: (s.chartType || 'bar'), choices };
@@ -529,7 +533,7 @@ const localLiveChoices = computed(() => {
   if (currentSlideChoices.value.length > 0) return currentSlideChoices.value; // DB 反映済み
   const s = slides[currentIndex.value];
   if (!s) return [];
-  return (s.choices || []).map((c, idx) => ({ key: `choice_${idx}`, text: c.text || '', color: c.color }));
+  return (s.choices || []).map((c, idx) => ({ key: c.id || `choice_${idx}`, text: c.text || '', color: c.color }));
 });
 
 function setChartType(t: 'bar' | 'pie') {

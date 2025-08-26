@@ -1,4 +1,5 @@
 import { ref as dbRef, set, push, get, runTransaction } from 'firebase/database';
+import { roomPath, slideIndexPath, slidePathById, votesPathById, aggregatesPathById, commentsPath } from '~/utils/paths';
 import type { Database } from 'firebase/database';
 
 type UseRoomApi = {
@@ -16,11 +17,14 @@ type UseRoomApi = {
 };
 
 // UI / DB shapes
-type UiChoice = { text: string; color?: string };
+type UiChoice = { id?: string; text: string; color?: string };
 type UiSlide = { title: string; choices: UiChoice[]; chartType?: 'bar' | 'pie' };
 
 type DbChoice = { text: string; index: number; color?: string };
 type DbSlide = { title: string; slideNumber: number; chartType?: 'bar' | 'pie'; choices: Record<string, DbChoice> };
+
+// Generate / normalize a stable id for a choice (uuid-lite)
+const genChoiceId = () => 'ch_' + Math.random().toString(36).slice(2, 10);
 
 const toDbSlides = (slides: UiSlide[]): Record<string, DbSlide> => {
   const slidesObj: Record<string, DbSlide> = {};
@@ -32,7 +36,9 @@ const toDbSlides = (slides: UiSlide[]): Record<string, DbSlide> => {
       const color = c && c.color ? String(c.color) : undefined;
       const base: DbChoice = { text, index: idx };
       if (color) base.color = color; // undefined を送らない
-      choicesMap[`choice_${idx}`] = base;
+  // Stable id (keep existing c.id if provided)
+  const stableId = (c && c.id && /^ch_/.test(c.id)) ? c.id : genChoiceId();
+  choicesMap[stableId] = base;
     });
     const baseSlide: any = { title: s.title || '', slideNumber: i + 1, choices: choicesMap };
     const ct = s.chartType || 'bar';
@@ -82,7 +88,7 @@ const useRoom = (): UseRoomApi => {
     const code = roomCode || generateRoomCode();
     const anonId = getAnonId();
     const now = new Date().toISOString();
-    const roomRef = dbRef(getDb(), `rooms/${code}`);
+  const roomRef = dbRef(getDb(), roomPath(code));
     await set(roomRef, {
       presenterId: anonId,
       slideIndex: 0,
@@ -94,25 +100,24 @@ const useRoom = (): UseRoomApi => {
   const joinRoom = async (
     roomCode: string,
   ): Promise<{ roomCode: string; anonId: string; room: any }> => {
-    const snap = await get(dbRef(getDb(), `rooms/${roomCode}`));
+  const snap = await get(dbRef(getDb(), roomPath(roomCode)));
     if (!snap.exists()) throw new Error('Room not found');
     return { roomCode, anonId: getAnonId(), room: snap.val() };
   };
 
   const saveSlides = async (roomCode: string, slides: UiSlide[]): Promise<void> => {
     const slidesObj = toDbSlides(slides);
-    await set(dbRef(getDb(), `rooms/${roomCode}/slides`), slidesObj);
+  await set(dbRef(getDb(), `${roomPath(roomCode)}/slides`), slidesObj);
   };
 
   const setSlideIndex = async (roomCode: string, index: number): Promise<void> => {
-    await set(dbRef(getDb(), `rooms/${roomCode}/slideIndex`), index);
+  await set(dbRef(getDb(), slideIndexPath(roomCode)), index);
   };
 
   const submitVote = async (roomCode: string, slideId: string, choiceId: string): Promise<void> => {
     const anonId = getAnonId();
-    const votePath = `rooms/${roomCode}/votes/${slideId}/${anonId}`;
-    // 同一 anonId の上書きにより重複投票を防止
-    await set(dbRef(getDb(), votePath), { choiceId, votedAt: new Date().toISOString() });
+  const votePath = votesPathById(roomCode, slideId, anonId);
+  await set(dbRef(getDb(), votePath), { choiceId, votedAt: new Date().toISOString() });
   };
 
   // 投票を変更したときに集計を調整する安全な投票処理
@@ -122,7 +127,7 @@ const useRoom = (): UseRoomApi => {
     choiceId: string,
   ): Promise<boolean> => {
     const anonId = getAnonId();
-    const voteRef = dbRef(getDb(), `rooms/${roomCode}/votes/${slideId}/${anonId}`);
+  const voteRef = dbRef(getDb(), votesPathById(roomCode, slideId, anonId));
 
     // 以前の投票を読み取る
     const prevSnap = await get(voteRef);
@@ -143,7 +148,7 @@ const useRoom = (): UseRoomApi => {
     }
 
     // 集計をトランザクションで一括調整
-    const aggRef = dbRef(getDb(), `rooms/${roomCode}/aggregates/${slideId}`);
+  const aggRef = dbRef(getDb(), aggregatesPathById(roomCode, slideId));
     try {
       await runTransaction(aggRef, (current: any) => {
         current = current || { counts: {}, total: 0 };
@@ -175,7 +180,7 @@ const useRoom = (): UseRoomApi => {
 
   const pushComment = async (roomCode: string, text: string): Promise<void> => {
     const anonId = getAnonId();
-    const commentRef = dbRef(getDb(), `rooms/${roomCode}/comments`);
+  const commentRef = dbRef(getDb(), commentsPath(roomCode));
     await push(commentRef, {
       anonId,
       text,
@@ -188,7 +193,7 @@ const useRoom = (): UseRoomApi => {
 
   const likeComment = async (roomCode: string, commentId: string): Promise<void> => {
     const anonId = getAnonId();
-    const commentRef = dbRef(getDb(), `rooms/${roomCode}/comments/${commentId}`);
+  const commentRef = dbRef(getDb(), `${commentsPath(roomCode)}/${commentId}`);
     // コメントノード全体をトランザクションで扱い、userLikes と deleted フラグを確認する
     await runTransaction(commentRef, (current: any) => {
       if (!current) return current; // コメントが存在しない場合

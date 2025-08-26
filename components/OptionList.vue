@@ -53,7 +53,7 @@ const pickNextColor = (used: Set<string>) => {
 const initial: Opt[] = (() => {
   const items: Array<{ id: string; text: string; color: string }> = (props.modelValue || []).map(
     (o: any, i: number) => ({
-      id: o.id || `opt_${i}_${Date.now()}`,
+      id: o.id || `ch_${Math.random().toString(36).slice(2,10)}`,
       text: o.text || '',
       color: (o.color || '').trim(),
     }),
@@ -92,7 +92,7 @@ watch(
     // replace array while preserving the same reactive object
     const newItems = arr.map((o: any, i: number) => {
       const existing = options[i];
-      const id = o.id || (existing && existing.id) || `opt_${i}_${Date.now()}`;
+  const id = o.id || (existing && existing.id) || `ch_${Math.random().toString(36).slice(2,10)}`;
       return { id, text: o.text || '', color: o.color || '' };
     });
     options.splice(0, options.length, ...newItems);
@@ -103,7 +103,7 @@ watch(
 const addOption = () => {
   const used = new Set<string>(options.map((o: Opt) => (o.color || '').toString()).filter(Boolean));
   const color = pickNextColor(used);
-  options.push({ id: `opt_${options.length}_${Date.now()}`, text: '', color });
+  options.push({ id: `ch_${Math.random().toString(36).slice(2,10)}`, text: '', color });
   emit('update:modelValue', toRaw(options));
 };
 
