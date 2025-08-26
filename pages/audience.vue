@@ -122,6 +122,7 @@ import CommentItem from '~/components/CommentItem.vue';
 import LiveComment from '~/components/LiveComment.vue';
 import type { Aggregate, Comment as CommentType, Choice, Slide } from '~/types/models';
 import { slideIndexPath, slidePath, aggregatesPath, votesPath, commentsPath, liveCommentPath } from '~/utils/paths';
+import { migrateLegacyChoiceIds } from '~/utils/migration';
 
 // ここで使う composable の簡易 API 形
 type RoomApi = {
@@ -246,14 +247,19 @@ const startListeners = (code: string) => {
         /* ignore */
       }
     }
-  unsubAgg = createDbListener(_db, aggregatesPath(code, idx), (snapAgg: any) => {
+  unsubAgg = createDbListener(_db, aggregatesPath(code, idx), async (snapAgg: any) => {
       const val = snapAgg.exists() ? snapAgg.val() : { counts: {} };
       const agg = val.counts || {};
       Object.keys(counts).forEach((k) => delete counts[k]);
-      Object.entries(agg).forEach(([k, v]) => {
-        counts[k] = v as number;
-      });
+      Object.entries(agg).forEach(([k, v]) => { counts[k] = v as number; });
       aggregates.value = { counts: agg, total: val.total || 0 };
+      // Attempt migration only after both slide and aggregates loaded
+      try {
+        if (slide.value) {
+          const slideId = `slide_${idx + 1}`;
+          await migrateLegacyChoiceIds(_db, code, slideId, slide.value as any, val);
+        }
+      } catch(e) { /* ignore migration failure */ }
     });
 
     // 自分の投票状態を監視するリスナー

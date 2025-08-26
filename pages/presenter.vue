@@ -74,6 +74,7 @@ import SlideControls from '~/components/SlideControls.vue';
 import SlideEditor from '~/components/SlideEditor.vue';
 import type { Aggregate, Comment as CommentType, Choice, Slide } from '~/types/models';
 import { slideIndexPath, slidePath, aggregatesPath, commentsPath } from '~/utils/paths';
+import { migrateLegacyChoiceIds } from '~/utils/migration';
 
 type RoomApi = {
   createRoom?: () => Promise<string>;
@@ -374,9 +375,15 @@ watch(roomCode, async (val: string | null) => {
     unsubAggregates = createDbListener(
       db,
       aggregatesPath(val, (currentIndex.value || 0)),
-      (snap: any) => {
+      async (snap: any) => {
         const a = snap && snap.val ? snap.val() : null;
         aggregates.value = a || { counts: {}, total: 0 };
+        try {
+          const slideId = `slide_${(currentIndex.value || 0) + 1}`;
+          if (currentSlideChoices.value.length) {
+            await migrateLegacyChoiceIds(db, val, slideId, { ...(slides[currentIndex.value] as any), slideNumber: (currentIndex.value||0)+1, choices: Object.fromEntries(currentSlideChoices.value.map((c,i)=> [c.key, { text: c.text, index: i, color: c.color }])) }, a);
+          }
+        } catch(e) { /* ignore */ }
       },
     );
 
