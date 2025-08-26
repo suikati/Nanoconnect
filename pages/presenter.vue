@@ -40,7 +40,7 @@
           :chart-type="activeChartType"
           @refresh="fetchPlay"
         />
-        <UiCard v-if="roomCode" title="Comments" titleClass="text-secondary-600 font-display" variant="glass" padding="md">
+  <UiCard v-if="roomCode" title="Comments" titleClass="font-display font-semibold text-rose-600 bg-rose-50 px-2 py-1 rounded-md inline-block" variant="glass" padding="md">
           <div class="mb-3 text-[10px] sm:text-xs text-gray-500">実況は上部 Live パネルに表示</div>
           <ul class="space-y-3 max-h-[460px] overflow-y-auto pr-1">
             <CommentItem
