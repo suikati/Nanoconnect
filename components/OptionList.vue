@@ -1,7 +1,15 @@
 <template>
   <div class="option-list space-y-3">
     <ul class="space-y-2">
-      <li v-for="(o, idx) in options" :key="o.id" class="flex items-center gap-3">
+      <li
+        v-for="(o, idx) in options"
+        :key="o.id"
+        class="flex items-center gap-3"
+        draggable="true"
+        @dragstart="onDragStart(idx, $event)"
+        @dragover.prevent
+        @drop="onDrop(idx, $event)"
+      >
         <OptionItem
           :option="o"
           :index="idx"
@@ -125,6 +133,24 @@ const onRemove = (idx: number) => {
 const emitUpdate = () => {
   emit('update:modelValue', toRaw(options));
 };
+
+// Drag & Drop
+let dragIndex: number | null = null;
+function onDragStart(i: number, ev: DragEvent) {
+  dragIndex = i;
+  try { ev.dataTransfer?.setData('text/plain', String(i)); } catch (e) { /* ignore */ }
+}
+function onDrop(i: number, ev: DragEvent) {
+  let from = dragIndex;
+  if (from == null) {
+    try { const d = ev.dataTransfer?.getData('text/plain'); if (d) from = Number(d); } catch (e) { /* ignore */ }
+  }
+  if (from == null || from === i) return;
+  const [item] = options.splice(from, 1);
+  options.splice(i, 0, item);
+  dragIndex = null;
+  emit('update:modelValue', toRaw(options));
+}
 
 // Note: do not auto-emit from watching `options` to avoid recursive update loops.
 </script>

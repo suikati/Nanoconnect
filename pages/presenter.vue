@@ -5,18 +5,9 @@
       <div class="xl:col-span-3 space-y-6">
         <UiCard variant="glass" interactive padding="md">
           <template #header>
-            <div class="flex items-center gap-3">
-              <!-- <span class="text-indigo-600 font-extrabold">発表者</span> -->
-              <UiButton size="sm" variant="primary" @pressed="onCreateRoom">ルームを作る</UiButton>
-              <div class="flex items-center gap-2">
-                <input v-model="joinCodeInput" placeholder="またはルームコードを入力" class="border border-primary-200 focus:border-primary-400 focus:ring-2 focus:ring-primary-300/60 rounded-lg px-3 py-1.5 text-xs sm:text-sm bg-white/80" />
-                <UiButton size="sm" variant="ghost" @pressed="onEnterRoom">入室</UiButton>
-              </div>
-              <span
-                v-if="roomCode"
-                class="text-xs bg-primary-50 text-primary-600 px-2 py-1 rounded-full font-mono tracking-wide"
-                >ルームコード: {{ roomCode }}</span
-              >
+            <div class="flex items-center justify-between gap-3 w-full">
+              <h2 class="text-primary-600 font-display font-bold text-sm sm:text-base">アンケート作成</h2>
+              <span v-if="roomCode" class="text-[10px] sm:text-xs bg-primary-50 text-primary-600 px-2 py-1 rounded-full font-mono tracking-wide">{{ roomCode }}</span>
             </div>
           </template>
 
@@ -139,7 +130,6 @@ type UIComment = CommentType & { id: string };
 
 let r: RoomApi | null = null;
 const roomCode = ref('');
-const joinCodeInput = ref('');
 const currentIndex = ref(0);
 const log = ref('');
 
@@ -234,33 +224,7 @@ const onMoveSlide = ({ from, to }: { from: number; to: number }) => {
   setTimeout(() => (suppressSlideSync.value = false), 250);
 };
 
-const onCreateRoom = async () => {
-  console.debug('presenter: onCreateRoom called');
-  try {
-    ensureR();
-    const code = await (r as any).createRoom();
-    roomCode.value = code;
-    log.value = `created ${code}`;
-  } catch (e: any) {
-    log.value = `create error: ${e.message}`;
-  }
-};
-
-const onEnterRoom = async () => {
-  const code = String(joinCodeInput.value || '').trim();
-  if (!code) return;
-  try {
-    ensureR();
-    // try to call joinRoom if available; otherwise just set roomCode to enable controllers
-    if ((r as any).joinRoom) {
-      await (r as any).joinRoom(code);
-    }
-    roomCode.value = code;
-    log.value = `entered ${code}`;
-  } catch (e: any) {
-    log.value = `enter error: ${e.message}`;
-  }
-};
+// ルーム作成/入室 UI は index.vue へ移動。presenter は code クエリで自動参加。
 
 const onSaveSlides = async () => {
   console.debug('presenter: onSaveSlides called');
@@ -476,6 +440,14 @@ onUnmounted(() => {
     /* ignore */
   }
   try {
+  // query からルームコードを取得
+  try {
+    const nuxt = useNuxtApp();
+    const qCode = (nuxt.$router.currentRoute.value.query.code as string) || '';
+    if (qCode) {
+      roomCode.value = qCode;
+    }
+  } catch (e) { /* ignore */ }
     if (unsubSlideContent) (unsubSlideContent as any)();
   } catch (e) {
     /* ignore */
