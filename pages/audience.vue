@@ -74,9 +74,9 @@
           />
         </UiCard>
       </div>
-      <!-- Comments Side: 固定高 864px（越えたら内部スクロール） -->
+      <!-- Comments Side: 固定高 862px（越えたら内部スクロール） -->
       <div class="lg:col-span-5 xl:col-span-2">
-        <UiCard title="Comments" titleClass="text-secondary-600 font-display" variant="glass" padding="md" class="h-[864px] flex flex-col">
+        <UiCard title="Comments" titleClass="text-secondary-600 font-display" variant="glass" padding="md" class="h-[862px] flex flex-col">
           <div class="flex flex-col gap-4 xl:flex-1 xl:min-h-0">
           <div v-if="!joined" class="text-[10px] sm:text-xs text-gray-400">参加するとコメントできます。</div>
           <div v-else class="flex gap-3 mb-4">
