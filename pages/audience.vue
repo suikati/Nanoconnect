@@ -121,6 +121,7 @@ import VoteOption from '~/components/VoteOption.vue';
 import CommentItem from '~/components/CommentItem.vue';
 import LiveComment from '~/components/LiveComment.vue';
 import type { Aggregate, Comment as CommentType, Choice, Slide } from '~/types/models';
+import { slideIndexPath, slidePath, aggregatesPath, votesPath, commentsPath, liveCommentPath } from '~/utils/paths';
 
 // ここで使う composable の簡易 API 形
 type RoomApi = {
@@ -212,7 +213,7 @@ const startListeners = (code: string) => {
       /* ignore */
     }
   }
-  unsubSlide = createDbListener(_db, `rooms/${code}/slideIndex`, async (snap: any) => {
+  unsubSlide = createDbListener(_db, slideIndexPath(code), async (snap: any) => {
     const idx = snap.exists() ? snap.val() : 0;
     slideNumber.value = idx + 1;
 
@@ -225,7 +226,7 @@ const startListeners = (code: string) => {
       }
       unsubSlideContent = null;
     }
-  unsubSlideContent = createDbListener(_db, `rooms/${code}/slides/slide_${idx + 1}`, (s: any) => {
+  unsubSlideContent = createDbListener(_db, slidePath(code, idx), (s: any) => {
       slide.value = s.exists() ? (s.val() as Slide) : null;
       if (slide.value && slide.value.choices) {
         choicesArray.value = Object.entries(slide.value.choices).map(([k, v]) => {
@@ -245,7 +246,7 @@ const startListeners = (code: string) => {
         /* ignore */
       }
     }
-  unsubAgg = createDbListener(_db, `rooms/${code}/aggregates/slide_${idx + 1}`, (snapAgg: any) => {
+  unsubAgg = createDbListener(_db, aggregatesPath(code, idx), (snapAgg: any) => {
       const val = snapAgg.exists() ? snapAgg.val() : { counts: {} };
       const agg = val.counts || {};
       Object.keys(counts).forEach((k) => delete counts[k]);
@@ -266,7 +267,7 @@ const startListeners = (code: string) => {
     if (anonId.value) {
       unsubVotes = createDbListener(
         _db,
-        `rooms/${code}/votes/slide_${idx + 1}/${anonId.value}`,
+  votesPath(code, idx, anonId.value),
         (s: any) => {
           if (s.exists()) {
             myVote.value = s.val().choiceId as string;
@@ -290,7 +291,7 @@ const startListeners = (code: string) => {
         /* ignore */
       }
     }
-  unsubComments = createDbListener(_db, `rooms/${code}/comments`, (snap: any) => {
+  unsubComments = createDbListener(_db, commentsPath(code), (snap: any) => {
       const arr: UIComment[] = [];
       snap.forEach((child: any) => {
         const v = child.val() as CommentType;
@@ -304,7 +305,7 @@ const startListeners = (code: string) => {
       try { unsubLiveComment(); } catch (e) { /* ignore */ }
       unsubLiveComment = null;
     }
-  unsubLiveComment = createDbListener(_db, `rooms/${code}/liveComment/slide_${idx + 1}`, (snap: any) => {
+  unsubLiveComment = createDbListener(_db, liveCommentPath(code, idx), (snap: any) => {
       if (!snap.exists()) {
         commentTextLive.value = '';
         liveCommentError.value = null;

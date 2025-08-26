@@ -31,15 +31,15 @@
 
       <!-- Right: Unified Live panel & Comments -->
   <div class="xl:col-span-2 space-y-6">
-        <UiCard v-if="localLiveChoices.length" variant="glass" padding="md" interactive>
-          <template #header>
-            <div class="flex items-center justify-between w-full">
-              <span class="text-primary-600 font-display font-bold text-sm sm:text-base">Live</span>
-              <UiButton size="sm" variant="secondary" @pressed="fetchPlay">実況更新</UiButton>
-            </div>
-          </template>
-          <LiveResultsPanel :counts="aggregates?.counts || {}" :choices="localLiveChoices" :play-text="playText" :play-loading="playLoading" :chart-type="activeChartType" />
-        </UiCard>
+        <LivePanelWrapper
+          v-if="localLiveChoices.length"
+          :counts="aggregates?.counts || {}"
+          :choices="localLiveChoices"
+          :play-text="playText"
+          :play-loading="playLoading"
+          :chart-type="activeChartType"
+          @refresh="fetchPlay"
+        />
         <UiCard v-if="roomCode" title="Comments" titleClass="text-secondary-600 font-display" variant="glass" padding="md">
           <div class="mb-3 text-[10px] sm:text-xs text-gray-500">実況は上部 Live パネルに表示</div>
           <ul class="space-y-3 max-h-[460px] overflow-y-auto pr-1">
@@ -68,10 +68,12 @@ import AppShell from '~/components/ui/AppShell.vue';
 import UiButton from '~/components/ui/UiButton.vue';
 import UiCard from '~/components/ui/UiCard.vue';
 import CommentItem from '~/components/CommentItem.vue';
-import LiveResultsPanel from '~/components/LiveResultsPanel.vue';
+import LiveResultsPanel from '~/components/LiveResultsPanel.vue'; // still used inside wrapper; keep for tree-shaking
+import LivePanelWrapper from '~/components/LivePanelWrapper.vue';
 import SlideControls from '~/components/SlideControls.vue';
 import SlideEditor from '~/components/SlideEditor.vue';
 import type { Aggregate, Comment as CommentType, Choice, Slide } from '~/types/models';
+import { slideIndexPath, slidePath, aggregatesPath, commentsPath } from '~/utils/paths';
 
 type RoomApi = {
   createRoom?: () => Promise<string>;
@@ -298,7 +300,7 @@ watch(roomCode, async (val: string | null) => {
     unsubSlideIndex();
     unsubSlideIndex = null;
   }
-  unsubSlideIndex = createDbListener(db, `rooms/${val}/slideIndex`, (snap: any) => {
+  unsubSlideIndex = createDbListener(db, slideIndexPath(val), (snap: any) => {
     if (!snap) return;
     const idx = snap.val();
     currentIndex.value = typeof idx === 'number' ? idx : 0;
@@ -313,8 +315,8 @@ watch(roomCode, async (val: string | null) => {
       unsubSlideContent = null;
     }
     unsubSlideContent = createDbListener(
-      db,
-      `rooms/${val}/slides/slide_${(currentIndex.value || 0) + 1}`,
+  db,
+  slidePath(val, (currentIndex.value || 0)),
       (s: any) => {
     if (suppressSlideSync.value) return; // 並び替え直後の一時抑制
         const slideObj = s && s.val ? (s.val() as Slide) : null;
@@ -371,7 +373,7 @@ watch(roomCode, async (val: string | null) => {
     }
     unsubAggregates = createDbListener(
       db,
-      `rooms/${val}/aggregates/slide_${(currentIndex.value || 0) + 1}`,
+      aggregatesPath(val, (currentIndex.value || 0)),
       (snap: any) => {
         const a = snap && snap.val ? snap.val() : null;
         aggregates.value = a || { counts: {}, total: 0 };
@@ -387,7 +389,7 @@ watch(roomCode, async (val: string | null) => {
       }
       unsubComments = null;
     }
-    unsubComments = createDbListener(db, `rooms/${val}/comments`, (snap: any) => {
+  unsubComments = createDbListener(db, commentsPath(val), (snap: any) => {
       const arr: UIComment[] = [];
       snap.forEach((child: any) => {
         arr.unshift({ id: child.key as string, ...(child.val() as CommentType) });
