@@ -22,7 +22,7 @@
             </div>
           </template>
           <div class="space-y-5">
-            <p class="text-xs sm:text-sm text-gray-600">ルームを作成して進行開始</p>
+            <p class="text-xs sm:text-sm text-gray-600">ルームを作成してアンケートを設定・プレゼンを進行</p>
             <div class="flex flex-col sm:flex-row gap-3">
               <UiButton class="sm:w-40" variant="primary" size="md" @pressed="createRoom">ルーム作成</UiButton>
               <div class="flex-1 flex items-center gap-2">
