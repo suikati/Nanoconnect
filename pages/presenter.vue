@@ -123,10 +123,13 @@ async function fetchPlay() {
   if (!roomCode.value) return;
   playLoading.value = true;
   try {
+    // audience 側と揃えて votes を付与（割合計算に必要）
+    const countsMap = aggregates.value?.counts || {};
+    const choicesForApi = currentSlideChoices.value.map(c => ({ id: c.key, text: c.text, votes: countsMap[c.key] || 0 }));
     const resp = await fetch('/api/openai', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ title: slides[currentIndex.value]?.title || '', choices: currentSlideChoices.value }),
+      body: JSON.stringify({ title: slides[currentIndex.value]?.title || '', choices: choicesForApi }),
     });
     const data = await resp.json();
     playText.value = data?.text || '(生成失敗)';
