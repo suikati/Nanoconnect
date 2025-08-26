@@ -3,6 +3,29 @@
   <div class="max-w-6xl mx-auto grid xl:grid-cols-5 gap-8">
       <!-- Left: Compact slide editor + control -->
       <div class="xl:col-span-3 space-y-6">
+        <!-- Slide Sorter -->
+        <UiCard variant="glass" padding="sm" title="スライド一覧" titleClass="text-primary-600 font-display" interactive>
+          <div class="flex items-center justify-between mb-2 text-[11px] sm:text-xs">
+            <div class="flex items-center gap-2">
+              <span class="text-gray-600">順序編集</span>
+              <span v-if="reorderDirty" class="text-rose-600 font-semibold">未保存</span>
+            </div>
+            <UiButton size="sm" variant="secondary" @pressed="addSlide">追加</UiButton>
+          </div>
+          <SlideSorter
+            :slides="slides"
+            :current-slide-id="slides[currentIndex]?.id"
+            @select="(i:number) => setIdx(i)"
+            @move="onMoveSlide"
+            @remove="removeSlide"
+          />
+          <div class="mt-3 flex gap-2 justify-end">
+            <UiButton size="sm" variant="primary" :disabled="!roomCode || savingSlides || !reorderDirty" @pressed="onSaveSlides">
+              <span v-if="!savingSlides">順序を保存</span>
+              <span v-else>保存中...</span>
+            </UiButton>
+          </div>
+        </UiCard>
         <UiCard variant="glass" interactive padding="md">
           <template #header>
             <div class="flex items-center gap-3">
@@ -105,6 +128,7 @@ import UiCard from '~/components/ui/UiCard.vue';
 import CommentItem from '~/components/CommentItem.vue';
 import OptionList from '~/components/OptionList.vue';
 import PlayByPlay from '~/components/PlayByPlay.vue';
+import SlideSorter from '~/components/SlideSorter.vue';
 import type { Aggregate, Comment as CommentType, Choice, Slide } from '~/types/models';
 
 type RoomApi = {
@@ -147,6 +171,9 @@ const isDev = false; // simplified: devログ非表示
 const playText = ref('');
 const playLoading = ref(false);
 const titleInput = ref<HTMLInputElement | null>(null);
+const reorderDirty = ref(false);
+const suppressSlideSync = ref(false);
+const savingSlides = ref(false);
 
 async function fetchPlay() {
   if (!roomCode.value) return;
@@ -203,6 +230,20 @@ const removeSlide = (i: number) => {
   if (currentIndex.value >= slides.length) {
     currentIndex.value = Math.max(0, slides.length - 1);
   }
+  reorderDirty.value = true;
+};
+
+const onMoveSlide = ({ from, to }: { from: number; to: number }) => {
+  if (to < 0 || to >= slides.length || from === to) return;
+  suppressSlideSync.value = true;
+  const keepId = slides[currentIndex.value]?.id;
+  const item = slides.splice(from, 1)[0];
+  slides.splice(to, 0, item);
+  const newIdx = slides.findIndex((s) => s.id === keepId);
+  if (newIdx >= 0) currentIndex.value = newIdx;
+  reorderDirty.value = true;
+  // しばらくしたら同期再開（リスナーからの上書きを抑制）
+  setTimeout(() => (suppressSlideSync.value = false), 250);
 };
 
 const onCreateRoom = async () => {
@@ -239,6 +280,7 @@ const onSaveSlides = async () => {
     log.value = 'no room';
     return;
   }
+  savingSlides.value = true;
 
   // UI validation: each slide must have at least 2 non-empty choices
   const palette = ['#4F46E5', '#EC4899', '#F97316', '#10B981', '#06B6D4', '#F59E0B'];
@@ -247,6 +289,7 @@ const onSaveSlides = async () => {
     if (nonEmpty.length < 2) {
       // user-visible validation
       window.alert(`スライド "${s.title || '無題'}" は最低2つの選択肢が必要です。`);
+      savingSlides.value = false;
       return;
     }
   }
@@ -270,10 +313,22 @@ const onSaveSlides = async () => {
 
   try {
     ensureR();
+    const keepId = slides[currentIndex.value]?.id;
     await (r as any).saveSlides(roomCode.value, payload);
+    // current スライドの新しい index を再計算し共有 slideIndex を更新
+    if (keepId) {
+      const idx = slides.findIndex((s) => s.id === keepId);
+      if (idx >= 0) {
+        await (r as any).setSlideIndex(roomCode.value, idx);
+        currentIndex.value = idx;
+      }
+    }
     log.value = 'saved slides';
+    reorderDirty.value = false;
   } catch (e: any) {
     log.value = `save error: ${e.message}`;
+  } finally {
+    savingSlides.value = false;
   }
 };
 
@@ -345,6 +400,7 @@ watch(roomCode, async (val: string | null) => {
       db,
       `rooms/${val}/slides/slide_${(currentIndex.value || 0) + 1}`,
       (s: any) => {
+    if (suppressSlideSync.value) return; // 並び替え直後の一時抑制
         const slideObj = s && s.val ? (s.val() as Slide) : null;
         if (slideObj && slideObj.choices) {
           currentSlideChoices.value = Object.entries(slideObj.choices).map(([k, v]) => {
