@@ -1520,7 +1520,7 @@ async function getIslandContext(event) {
   return ctx;
 }
 
-const _lazy_8YV8Oq = () => Promise.resolve().then(function () { return openai; });
+const _lazy_8YV8Oq = () => Promise.resolve().then(function () { return openai$1; });
 const _lazy_Le40_l = () => Promise.resolve().then(function () { return renderer$1; });
 
 const handlers = [
@@ -1860,12 +1860,12 @@ function getOpenAI() {
   var _a;
   let key;
   try {
-    const config = globalThis.useRuntimeConfig ? globalThis.useRuntimeConfig() : void 0;
-    key = ((_a = config == null ? void 0 : config.private) == null ? void 0 : _a.openaiApiKey) || process.env.OPENAI_KEY;
+    const config = typeof useRuntimeConfig === "function" ? useRuntimeConfig() : void 0;
+    key = ((_a = config == null ? void 0 : config.private) == null ? void 0 : _a.openaiApiKey) || process.env.OPENAI_KEY || process.env.OPENAI_API_KEY;
   } catch (e) {
-    key = process.env.OPENAI_KEY;
+    key = process.env.OPENAI_KEY || process.env.OPENAI_API_KEY;
   }
-  if (!key) throw new Error("OpenAI API key not configured");
+  if (!key) throw new Error("OpenAI API key not configured. Set OPENAI_KEY or OPENAI_API_KEY or runtime config private.openaiApiKey.");
   return new OpenAI({ apiKey: key });
 }
 
@@ -2029,12 +2029,13 @@ async function handler(event) {
     return { error: "openai_error", detail: String((err == null ? void 0 : err.message) || err) };
   }
 }
+const openai = eventHandler(handler);
 
-const openai = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty({
+const openai$1 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty({
   __proto__: null,
   buildCommentPrompt: buildCommentPrompt,
   buildPlaybyplayPrompt: buildPlaybyplayPrompt,
-  default: handler,
+  default: openai,
   handler: handler
 }, Symbol.toStringTag, { value: 'Module' }));
 
