@@ -230,10 +230,12 @@ const startListeners = (code: string) => {
   unsubSlideContent = createDbListener(_db, slidePath(code, idx), (s: any) => {
       slide.value = s.exists() ? (s.val() as Slide) : null;
       if (slide.value && slide.value.choices) {
-        choicesArray.value = Object.entries(slide.value.choices).map(([k, v]) => {
-          const item = v as { text: string; color?: string };
-          return { key: k, text: item.text, color: item.color };
-        });
+        // index プロパティに基づき並び順を復元
+        const entries = Object.entries(slide.value.choices).map((e, i) => {
+          const [k, v] = e; const it = v as any;
+          return { key: k, text: it.text, color: it.color, _order: typeof it.index === 'number' ? it.index : i };
+        }).sort((a, b) => a._order - b._order);
+        choicesArray.value = entries.map(e => ({ key: e.key, text: e.text, color: e.color }));
       } else {
         choicesArray.value = [];
       }

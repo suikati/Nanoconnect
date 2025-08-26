@@ -321,10 +321,13 @@ watch(roomCode, async (val: string | null) => {
     if (suppressSlideSync.value) return; // 並び替え直後の一時抑制
         const slideObj = s && s.val ? (s.val() as Slide) : null;
         if (slideObj && slideObj.choices) {
-          currentSlideChoices.value = Object.entries(slideObj.choices).map(([k, v]) => {
-            const item = v as { text: string; color?: string };
-            return { key: k, text: item.text, color: item.color };
-          });
+          // index プロパティでソート（欠如時は元順）
+          const entries = Object.entries(slideObj.choices).map((e, i) => {
+            const [k, v] = e;
+            const it = v as any;
+            return { key: k, text: it.text, color: it.color, _order: typeof it.index === 'number' ? it.index : i };
+          }).sort((a, b) => a._order - b._order);
+          currentSlideChoices.value = entries.map(e => ({ key: e.key, text: e.text, color: e.color }));
         } else {
           currentSlideChoices.value = [];
         }
@@ -335,11 +338,14 @@ watch(roomCode, async (val: string | null) => {
           if (slideObj2) {
             const idx = currentIndex.value || 0;
             const editorChoices = slideObj2.choices
-              ? Object.entries(slideObj2.choices).map(([k, v]) => ({
-                  id: k,
-                  text: (v as any).text || '',
-                  color: (v as any).color,
-                }))
+              ? Object.entries(slideObj2.choices)
+                  .map((e, i) => {
+                    const [k, v] = e;
+                    const it = v as any;
+                    return { id: k, text: it.text || '', color: it.color, _order: typeof it.index === 'number' ? it.index : i };
+                  })
+                  .sort((a, b) => a._order - b._order)
+                  .map(o => ({ id: o.id, text: o.text, color: o.color }))
               : [];
             while (slides.length <= idx)
               slides.push({
