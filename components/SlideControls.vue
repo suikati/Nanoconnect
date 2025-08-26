@@ -3,7 +3,7 @@
     <template #header>
       <div class="flex items-center justify-between gap-3 w-full">
         <h2 class="font-display font-bold text-sm sm:text-base inline-block px-2 py-1 rounded-md bg-primary-50 text-primary-600">
-          アンケート作成
+          Create Questionnaire
         </h2>
         <span v-if="roomCode" class="text-[10px] sm:text-xs bg-primary-50 text-primary-600 px-2 py-1 rounded-full font-mono tracking-wide">{{ roomCode }}</span>
       </div>
