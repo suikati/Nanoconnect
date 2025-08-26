@@ -14,9 +14,9 @@
             <div v-if="!joined" class="text-gray-500">
               ルームコードが自動的に適用されます。トップ画面からコードで参加してください。
             </div>
-            <div v-if="joined" class="text-gray-500">
+            <!-- <div v-if="joined" class="text-gray-500">
               as <strong class="text-primary-600 font-mono">{{ anonId }}</strong>
-            </div>
+            </div> -->
           </div>
 
           <div v-if="joined && slide" class="space-y-8">
@@ -45,9 +45,9 @@
             <div class="mt-3">
               <LiveComment :text="commentTextLive" :loading="commentLoading" />
             </div>
-            <div v-if="voted" class="text-xs text-green-600">
+            <!-- <div v-if="voted" class="text-xs text-green-600">
               Voted: <strong>{{ myVote }}</strong>
-            </div>
+            </div> -->
 
           </div>
         </UiCard>
