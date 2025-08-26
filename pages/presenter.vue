@@ -41,7 +41,6 @@
           @refresh="fetchPlay"
         />
   <UiCard v-if="roomCode" title="Comments" titleClass="font-display font-semibold text-rose-600" variant="glass" padding="md">
-          <div class="mb-3 text-[10px] sm:text-xs text-gray-500">実況は上部 Live パネルに表示</div>
           <ul class="space-y-3 max-h-[460px] overflow-y-auto pr-1">
             <CommentItem
               v-for="c in comments"

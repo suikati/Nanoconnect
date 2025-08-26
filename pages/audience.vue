@@ -93,7 +93,7 @@
               placeholder="コメント、質問お待ちしてます！"
               class="flex-1 border border-primary-200 focus:border-primary-400 focus:ring-2 focus:ring-primary-300/60 rounded-lg px-3 py-2 text-xs sm:text-sm bg-white/80"
             />
-            <UiButton variant="primary" :disabled="!commentText" @pressed="onPostComment">Post</UiButton>
+            <UiButton variant="primary" :disabled="!commentText" @pressed="onPostComment">ポスト</UiButton>
           </div>
           <!-- LiveComment は投票ブロック直下 / Live パネルはスライド下へ配置 -->
           <ul class="space-y-3 overflow-y-auto pr-1 flex-1 min-h-0">
