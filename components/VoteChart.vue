@@ -108,82 +108,72 @@ const renderChart = async () => {
   const d = buildData();
   updateLeaderMessage();
   const palette = ['#6366F1', '#EC4899', '#06B6D4', '#F59E0B', '#10B981', '#F97316'];
-  const color = palette[0];
-  // Prepare stripe pattern for zero values once
   if (!stripePattern) {
     const pCanvas = document.createElement('canvas');
     pCanvas.width = 8; pCanvas.height = 8;
     const pctx = pCanvas.getContext('2d');
     if (pctx) {
       pctx.fillStyle = '#f3f4f6';
-      pctx.fillRect(0, 0, 8, 8);
+      pctx.fillRect(0,0,8,8);
       pctx.strokeStyle = '#e5e7eb';
       pctx.lineWidth = 2;
       pctx.beginPath();
-      pctx.moveTo(0, 8);
-      pctx.lineTo(8, 0);
-      pctx.stroke();
-      stripePattern = pctx.createPattern(pCanvas, 'repeat');
+      pctx.moveTo(0,8); pctx.lineTo(8,0); pctx.stroke();
+      stripePattern = pctx.createPattern(pCanvas,'repeat');
     }
   }
-
-  const total = d.data.reduce((a, b) => a + b, 0) || 1;
+  const total = d.data.reduce((a,b)=>a+b,0)||1;
   const maxVal = Math.max(...d.data);
-  const maxIndexes = d.data.map((v, i) => (v === maxVal && maxVal > 0 ? i : -1)).filter(i => i !== -1);
+  const maxIdxs = d.data.map((v,i)=> v===maxVal && maxVal>0 ? i : -1).filter(i=>i!==-1);
 
-  function computeBgColors(active: number | null) {
-    return d.data.map((v, i) => {
-      // zero value pattern
-      if (v === 0) {
-        return stripePattern || '#e5e7eb';
-      }
+  function computeGradients(active: number | null) {
+    const vertical = !(props.choices.length > 6);
+    const area = (chart && (chart as any).chartArea) || { right:120, bottom:120 };
+    return d.data.map((v,i)=>{
+      if (v===0) return stripePattern || '#e5e7eb';
       const choice = (props.choices[i] as any);
       const base = choice && choice.color ? choice.color : palette[i % palette.length];
-      const isMax = maxIndexes.includes(i);
-      const isDim = active !== null && active !== i;
-      if (isDim) return mixWithWhite(base, 0.75);
-      if (isMax) return base; // keep vivid
-      return base;
+      const isDim = active!==null && active!==i;
+  const grad = ctx!.createLinearGradient(0,0, vertical?0:area.right, vertical?area.bottom:0);
+      const lighten = (amt=0.15)=>{ const c = base.replace('#',''); const r=parseInt(c.slice(0,2),16),g=parseInt(c.slice(2,4),16),b=parseInt(c.slice(4,6),16); return `rgb(${Math.min(255,Math.round(r+(255-r)*amt))},${Math.min(255,Math.round(g+(255-g)*amt))},${Math.min(255,Math.round(b+(255-b)*amt))})`; };
+      const darken = (amt=0.25)=>{ const c = base.replace('#',''); const r=parseInt(c.slice(0,2),16),g=parseInt(c.slice(2,4),16),b=parseInt(c.slice(4,6),16); return `rgb(${Math.round(r*(1-amt))},${Math.round(g*(1-amt))},${Math.round(b*(1-amt))})`; };
+      const top = lighten();
+      const bottom = darken();
+      grad.addColorStop(0, isDim? mixWithWhite(top,0.65): top);
+      grad.addColorStop(1, isDim? mixWithWhite(bottom,0.65): bottom);
+      return grad;
     });
   }
-  // 既にチャートが存在する場合は新規作成せず更新する
+
   if (chart) {
     try {
       chart.data.labels = d.labels as any;
       chart.data.datasets![0].data = d.data as any;
-      chart.data.datasets![0].backgroundColor = computeBgColors(activeIndex.value) as any;
-      // border highlight for max
-      chart.data.datasets![0].borderColor = d.data.map((v, i) => (maxIndexes.includes(i) ? '#111827' : 'transparent')) as any;
-      chart.data.datasets![0].borderWidth = d.data.map((v, i) => (maxIndexes.includes(i) ? 2 : 0)) as any;
+      chart.data.datasets![0].backgroundColor = computeGradients(activeIndex.value) as any;
+      chart.data.datasets![0].borderColor = d.data.map((v,i)=> maxIdxs.includes(i)? '#111827':'transparent') as any;
+      chart.data.datasets![0].borderWidth = d.data.map((v,i)=> maxIdxs.includes(i)?2:0) as any;
       chart.update();
       return;
-    } catch (e) {
-      // 更新に失敗したら破棄して再作成する
-      try {
-        chart.destroy();
-      } catch (err) {
-        /* ignore */
-      }
+    } catch(e) {
+      try { chart.destroy(); } catch(_) {}
       chart = null;
     }
   }
-  const bgColors = computeBgColors(activeIndex.value);
 
+  const bgColors = computeGradients(activeIndex.value);
   chart = new Chart(ctx, {
     type: 'bar',
     data: {
       labels: d.labels,
-      datasets: [
-        {
-          label: 'Votes',
-          data: d.data,
-          backgroundColor: bgColors as any,
-          borderRadius: 8,
-          borderSkipped: false,
-          borderColor: d.data.map((v, i) => (maxIndexes.includes(i) ? '#111827' : 'transparent')) as any,
-          borderWidth: d.data.map((v, i) => (maxIndexes.includes(i) ? 2 : 0)) as any,
-        },
-      ],
+      datasets: [{
+        label: 'Votes',
+        data: d.data,
+        backgroundColor: bgColors as any,
+        borderRadius: 14,
+        borderSkipped: false,
+        borderColor: d.data.map((v,i)=> maxIdxs.includes(i)? '#111827':'transparent') as any,
+        borderWidth: d.data.map((v,i)=> maxIdxs.includes(i)?2:0) as any,
+      }]
     },
     options: {
       responsive: true,
@@ -191,59 +181,27 @@ const renderChart = async () => {
       indexAxis: props.choices.length > 6 ? 'y' : 'x',
       plugins: {
         legend: { display: false },
-        tooltip: {
-          callbacks: {
-            label: (ctx: any) => {
-              const v = ctx.parsed.y ?? ctx.parsed;
-              const totalLocal = d.data.reduce((a: number, b: number) => a + b, 0) || 1;
-              const pct = Math.round((v / totalLocal) * 100);
-              return `${v} (${pct}%)`;
-            },
-          },
-        },
-        // datalabels: バー内部に白い値ラベルを表示
+  tooltip: { backgroundColor:'#111827', titleFont:{weight:600}, bodyFont:{weight:500}, callbacks:{
+          label: (ctx:any)=>{ const v = ctx.parsed.y ?? ctx.parsed; const tot = d.data.reduce((a:number,b:number)=>a+b,0)||1; const pct = Math.round((v/tot)*100); return `${v} (${pct}%)`; }
+        }},
         datalabels: {
-          color: '#ffffff',
-          anchor: 'end',
-          align: 'end',
-          font: { weight: 600, size: 12 },
-            formatter: (val: number, ctx: any) => {
-              if (val <= 0) return '';
-              const pct = Math.round((val / total) * 100);
-              // avoid overflow in horizontal small bars
-              return `${val} (${pct}%)`;
-            },
-        },
-      },
-      animation: { duration: 600, easing: 'easeOutCubic' },
-      scales: {
-        x: { grid: { display: false }, ticks: { maxRotation: 0, autoSkip: false } },
-        y: { beginAtZero: true, ticks: { precision: 0 } },
-      },
-      onHover: (evt, activeEls) => {
-        if (!chart) return;
-        if (activeEls.length) {
-          activeIndex.value = activeEls[0].index;
-        } else if (activeIndex.value !== null) {
-          activeIndex.value = null;
+          anchor:'end', align:'end', font:{weight:600,size:12}, color:'#fff',
+          formatter:(val:number)=>{ if(val<=0) return ''; const pct=Math.round((val/total)*100); return `${val} (${pct}%)`; }
         }
-        // Recompute colors only (fast)
-        const dataset = chart.data.datasets[0];
-        const d2 = buildData();
-        const maxVal2 = Math.max(...d2.data);
-        const maxIdx2 = d2.data.map((v, i) => (v === maxVal2 && maxVal2 > 0 ? i : -1)).filter(i => i !== -1);
-        (dataset as any).backgroundColor = d2.data.map((v, i) => {
-          if (v === 0) return stripePattern || '#e5e7eb';
-          const choice = (props.choices[i] as any);
-          const base = choice && choice.color ? choice.color : palette[i % palette.length];
-          const isDim = activeIndex.value !== null && activeIndex.value !== i;
-          return isDim ? mixWithWhite(base, 0.75) : base;
-        });
-        (dataset as any).borderColor = d2.data.map((v, i) => (maxIdx2.includes(i) ? '#111827' : 'transparent'));
-        (dataset as any).borderWidth = d2.data.map((v, i) => (maxIdx2.includes(i) ? 2 : 0));
-        chart.update('none');
       },
-    },
+      animation:{ duration:600, easing:'easeOutCubic' },
+      scales:{
+        x:{ grid:{display:false}, ticks:{ maxRotation:0, autoSkip:false, callback:(v:any,i:number)=>{ const lbl=d.labels[i]||''; return lbl.length>8? lbl.slice(0,7)+'…': lbl; }, font:{weight:500} } },
+        y:{ beginAtZero:true, ticks:{ precision:0, callback:(v:any,i:number)=>{ const lbl=d.labels[i]||''; return lbl.length>10? lbl.slice(0,9)+'…': lbl; }, font:{weight:500} } }
+      },
+      onHover:(evt,activeEls)=>{
+        if(!chart) return;
+        if(activeEls.length) activeIndex.value = activeEls[0].index; else if(activeIndex.value!==null) activeIndex.value=null;
+        const dataset = chart.data.datasets[0];
+        (dataset as any).backgroundColor = computeGradients(activeIndex.value);
+        chart.update('none');
+      }
+    }
   });
 };
 
@@ -271,12 +229,24 @@ function refreshColors() {
   const maxVal = Math.max(...d.data);
   const maxIdx = d.data.map((v, i) => (v === maxVal && maxVal > 0 ? i : -1)).filter(i => i !== -1);
   const dataset = chart.data.datasets[0];
-  (dataset as any).backgroundColor = d.data.map((v, i) => {
-    if (v === 0) return stripePattern || '#e5e7eb';
+  const ctx = canvas.value?.getContext('2d');
+  if (!ctx) return;
+  const area = (chart as any).chartArea || { right:120, bottom:120 };
+  const palette = ['#6366F1', '#EC4899', '#06B6D4', '#F59E0B', '#10B981', '#F97316'];
+  const vertical = !(props.choices.length > 6);
+  (dataset as any).backgroundColor = d.data.map((v,i)=>{
+    if (v===0) return stripePattern || '#e5e7eb';
     const choice = (props.choices[i] as any);
-    const base = choice && choice.color ? choice.color : ['#6366F1', '#EC4899', '#06B6D4', '#F59E0B', '#10B981', '#F97316'][i % 6];
-    const isDim = activeIndex.value !== null && activeIndex.value !== i;
-    return isDim ? mixWithWhite(base, 0.75) : base;
+    const base = choice && choice.color ? choice.color : palette[i % palette.length];
+    const isDim = activeIndex.value!==null && activeIndex.value!==i;
+    const grad = ctx.createLinearGradient(0,0, vertical?0:area.right, vertical?area.bottom:0);
+    const lighten = (amt=0.15)=>{ const c = base.replace('#',''); const r=parseInt(c.slice(0,2),16),g=parseInt(c.slice(2,4),16),b=parseInt(c.slice(4,6),16); return `rgb(${Math.min(255,Math.round(r+(255-r)*amt))},${Math.min(255,Math.round(g+(255-g)*amt))},${Math.min(255,Math.round(b+(255-b)*amt))})`; };
+    const darken = (amt=0.25)=>{ const c = base.replace('#',''); const r=parseInt(c.slice(0,2),16),g=parseInt(c.slice(2,4),16),b=parseInt(c.slice(4,6),16); return `rgb(${Math.round(r*(1-amt))},${Math.round(g*(1-amt))},${Math.round(b*(1-amt))})`; };
+    const top = lighten();
+    const bottom = darken();
+    grad.addColorStop(0, isDim? mixWithWhite(top,0.65): top);
+    grad.addColorStop(1, isDim? mixWithWhite(bottom,0.65): bottom);
+    return grad;
   });
   (dataset as any).borderColor = d.data.map((v, i) => (maxIdx.includes(i) ? '#111827' : 'transparent'));
   (dataset as any).borderWidth = d.data.map((v, i) => (maxIdx.includes(i) ? 2 : 0));
