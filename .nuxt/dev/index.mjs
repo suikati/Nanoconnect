@@ -661,7 +661,7 @@ const _inlineRuntimeConfig = {
     }
   },
   "private": {
-    "openaiApiKey": "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"
+    "openaiApiKey": "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"
   }
 };
 const envOptions = {
