@@ -9,7 +9,7 @@
 1. Presenter 画面でルーム作成 → 投票スライド追加・編集
 2. 表示された参加コードを共有し、Audience が参加
 3. Audienceは選択肢をタップして投票。投票状況はリアルタイム更新・グラフで視覚化
-4. 投票後や進行中にAIによるライブコメントが自動生成されます <!-- APIキーはStackBlitz Environment Variables で管理しているため、この共有URLからは利用できません。 -->
+4. 投票後や進行中にAIによるライブコメントが自動生成されます // APIキーはStackBlitz Environment Variables で管理しているため、この共有URLからは利用できません。
 
 ## 主な機能
 
