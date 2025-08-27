@@ -4,11 +4,11 @@
   "type": "module",
   "scripts": {
     "build": "nuxt build",
-  "dev": "nuxt dev --host 0.0.0.0 --port 5173",
+    "dev": "nuxt dev --host 0.0.0.0 --port 5172",
     "format": "prettier --write \"**/*.{js,ts,vue,json,css,md}\"",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
-  "postinstall": "nuxt prepare && node scripts/ensure-gitignore.mjs",
+    "postinstall": "nuxt prepare && node scripts/ensure-gitignore.mjs",
     "test": "vitest",
     "test-openai": "node ./scripts/test-openai.mjs"
   },
