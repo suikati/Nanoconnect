@@ -90,7 +90,6 @@ const roomCode = ref('');
 const currentIndex = ref(0);
 const log = ref('');
 
-// TODO: 開発終了後 placeholder へ差し替え検討
 const palette = ['#4F46E5', '#EC4899', '#F97316', '#10B981', '#06B6D4', '#F59E0B'];
 const slides = reactive<
   Array<{ id: string; title: string; chartType?: 'bar' | 'pie'; choices: Array<{ id?: string; text: string; color?: string }> }>

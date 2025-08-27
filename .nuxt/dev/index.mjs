@@ -5,7 +5,7 @@ import { resolve, dirname, join } from 'node:path';
 import nodeCrypto, { createHash } from 'node:crypto';
 import { parentPort, threadId } from 'node:worker_threads';
 import { escapeHtml } from 'file:///home/suikati/Nanoconnect/node_modules/.pnpm/@vue+shared@3.5.20/node_modules/@vue/shared/dist/shared.cjs.js';
-import OpenAI from 'file:///home/suikati/Nanoconnect/node_modules/.pnpm/openai@5.15.0/node_modules/openai/index.mjs';
+import OpenAI from 'file:///home/suikati/Nanoconnect/node_modules/.pnpm/openai@5.16.0/node_modules/openai/index.mjs';
 import { createRenderer, getRequestDependencies, getPreloadLinks, getPrefetchLinks } from 'file:///home/suikati/Nanoconnect/node_modules/.pnpm/vue-bundle-renderer@2.1.2/node_modules/vue-bundle-renderer/dist/runtime.mjs';
 import { parseURL, withoutBase, joinURL, getQuery, withQuery, withTrailingSlash, decodePath, withLeadingSlash, withoutTrailingSlash, joinRelativeURL } from 'file:///home/suikati/Nanoconnect/node_modules/.pnpm/ufo@1.6.1/node_modules/ufo/dist/index.mjs';
 import { renderToString } from 'file:///home/suikati/Nanoconnect/node_modules/.pnpm/vue@3.5.20_typescript@5.9.2/node_modules/vue/server-renderer/index.mjs';
@@ -27,7 +27,7 @@ import { ErrorParser } from 'file:///home/suikati/Nanoconnect/node_modules/.pnpm
 import { Youch } from 'file:///home/suikati/Nanoconnect/node_modules/.pnpm/youch@4.1.0-beta.8/node_modules/youch/build/index.js';
 import { SourceMapConsumer } from 'file:///home/suikati/Nanoconnect/node_modules/.pnpm/source-map@0.7.6/node_modules/source-map/source-map.js';
 import { AsyncLocalStorage } from 'node:async_hooks';
-import { stringify, uneval } from 'file:///home/suikati/Nanoconnect/node_modules/.pnpm/devalue@5.1.1/node_modules/devalue/index.js';
+import { stringify, uneval } from 'file:///home/suikati/Nanoconnect/node_modules/.pnpm/devalue@5.3.2/node_modules/devalue/index.js';
 import { captureRawStackTrace, parseRawStackTrace } from 'file:///home/suikati/Nanoconnect/node_modules/.pnpm/errx@0.1.0/node_modules/errx/dist/index.js';
 import { isVNode, toValue, isRef } from 'file:///home/suikati/Nanoconnect/node_modules/.pnpm/vue@3.5.20_typescript@5.9.2/node_modules/vue/index.mjs';
 import { promises } from 'node:fs';
@@ -1113,22 +1113,7 @@ const plugins = [
   _RIYwG3bV6oPW9VwHwWomGNvEqgjn_QslzJ0A4pK3qU
 ];
 
-const assets = {
-  "/index.mjs": {
-    "type": "text/javascript; charset=utf-8",
-    "etag": "\"151fb-Lher4tgSt0GOvY+MXKfETOe1ygg\"",
-    "mtime": "2025-08-26T14:31:41.230Z",
-    "size": 86523,
-    "path": "index.mjs"
-  },
-  "/index.mjs.map": {
-    "type": "application/json",
-    "etag": "\"50f8d-eJHsd3lYm9WuGp2B4YuAHgTC4OQ\"",
-    "mtime": "2025-08-26T14:31:41.231Z",
-    "size": 331661,
-    "path": "index.mjs.map"
-  }
-};
+const assets = {};
 
 function readAsset (id) {
   const serverDir = dirname$1(fileURLToPath(globalThis._importMeta_.url));
