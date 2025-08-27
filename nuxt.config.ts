@@ -2,6 +2,13 @@
 export default defineNuxtConfig({
   compatibilityDate: '2024-04-03',
   devtools: { enabled: false },
+  // Vite の依存最適化を起動直後に実施して初回インタラクションでの
+  // "new dependencies optimized" → reload を防ぐ
+  vite: {
+    optimizeDeps: {
+      include: ['chart.js', 'chartjs-plugin-datalabels'],
+    },
+  },
   modules: [
     '@nuxtjs/tailwindcss',
   ],
