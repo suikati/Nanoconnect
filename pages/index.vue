@@ -26,7 +26,7 @@
             <div class="flex flex-col sm:flex-row gap-3">
               <UiButton class="sm:w-40" variant="primary" size="md" @pressed="createRoom">ルーム作成</UiButton>
               <div class="flex-1 flex items-center gap-2">
-                <input v-model="presenterJoinCode" placeholder="または既存コードで入室("test"にダミーを用意しています)" class="flex-1 border border-primary-200 focus:border-primary-400 focus:ring-2 focus:ring-primary-300/60 rounded-lg px-3 py-2 text-xs sm:text-sm bg-white/70" />
+                <input v-model="presenterJoinCode" placeholder="または既存コードで入室(「test」にダミーを用意しています)" class="flex-1 border border-primary-200 focus:border-primary-400 focus:ring-2 focus:ring-primary-300/60 rounded-lg px-3 py-2 text-xs sm:text-sm bg-white/70" />
                 <UiButton variant="ghost" size="sm" @pressed="enterRoomAsPresenter">入室</UiButton>
               </div>
             </div>
@@ -47,7 +47,7 @@
             <div class="flex flex-col sm:flex-row gap-3">
               <input
                 v-model="codeInput"
-                placeholder="ルームコードを入力（"test"にダミーを用意しています）"
+                placeholder="ルームコードを入力（「test」にダミーを用意しています）"
                 class="flex-1 border border-primary-200 focus:border-primary-400 focus:ring-2 focus:ring-primary-300/60 rounded-lg px-3 py-2 text-sm bg-white/70 backdrop-blur placeholder:text-gray-400"
               />
               <UiButton class="sm:w-32" variant="secondary" size="md" @pressed="joinAsAudience">参加</UiButton>
