@@ -44,13 +44,13 @@ document/        仕様・スキーマメモ
 
 ## 主要ファイル
 
-- `pages/presenter.vue`: 発表者 UI（スライド操作・結果監視・AI コメントトリガ）
-- `pages/audience.vue`: 参加者 UI（投票 / ライブ表示）
+- `pages/presenter.vue`: 発表者 UI（スライド操作 / ライブ表示 / コメント確認）
+- `pages/audience.vue`: 参加者 UI（投票 / ライブ表示 / コメント投票）
 
 - `server/api/openai.ts`: OpenAI へのプロンプト組立とレスポンス整形
 - `composables/useRoom.ts`: 投票処理・スライド編集・コメント CRUD・トランザクション制御
 - `composables/useDbListener.ts`: Realtime DB リスナー登録と重複防止管理
-- `utils/paths.ts`: Firebase パス集中管理（typo/分散防止）
+- `utils/paths.ts`: Firebase パス管理
 
 - `components/LiveResultsPanel.vue`: チャート,リンカ
 - `components/LiveComment.vue`: ナノすけ
