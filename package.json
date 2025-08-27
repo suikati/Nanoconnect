@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "build": "nuxt build",
-    "dev": "HOST=0.0.0.0 nuxt dev",
+  "dev": "nuxt dev --host 0.0.0.0 --port 5173",
     "format": "prettier --write \"**/*.{js,ts,vue,json,css,md}\"",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
