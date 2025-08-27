@@ -19,7 +19,7 @@
 </template>
 
 <script setup lang="ts">
-import { defineProps, computed, ref, watch, onMounted } from 'vue';
+import { computed, ref, watch, onMounted } from 'vue';
 const props = defineProps<{ text?: string; loading?: boolean; animationType?: 'auto' | 'bounce' | 'squish' | 'float' | 'none'; popOnUpdate?: boolean }>();
 const text = computed(() => (props.text ?? ''));
 const loading = computed(() => (props.loading ?? false));
