@@ -1,3 +1,4 @@
+# Canonical gitignore template (restored automatically if missing)
 node_modules
 .env
 .env.*.local
@@ -18,5 +19,4 @@ coverage
 pnpm-debug.log*
 package-lock.json
 yarn.lock
-# Firebase local emulators state (if used)
 firebase-debug.log*
