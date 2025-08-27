@@ -1,1 +1,0 @@
-export { default } from "file:///home/suikati/Nanoconnect/node_modules/.pnpm/@nuxt+vite-builder@3.18.1_@types+node@20.19.11_typescript@5.9.2_vue@3.5.20/node_modules/@nuxt/vite-builder/dist/runtime/client.manifest.mjs"
