@@ -2,24 +2,32 @@
 
 ## アプリ概要
 
-リアルタイム投票 & ライブコメント生成を行うアンケートアプリです。Firebase Realtime Database を用いた低レイテンシ同期、リンカによるライブ実況/ナノすけによるコメント生成、Chart.js による動的グラフ描画を組み合わせています。Presenter (発表者) と Audience (参加者) の 2 画面構成。
+リアルタイム・アンケートサービスです。Firebase Realtime Databaseでリアルタイム同期、OpenAI API でライブ実況 / コメント生成、Chart.js で動的グラフ描画を行っています。Presenter (発表者) と Audience (参加者) の 2 画面構成です。
 
 ## 使い方
 
 1. Presenter 画面でルーム作成 → 投票スライド追加・編集
-2. 表示された参加コード を共有し、Audience が参加
-3. Audience は選択肢をタップして投票。結果はリアルタイム更新
-4. 投票後や進行中に AI ライブコメントが自動生成されます
+2. 表示された参加コードを共有し、Audience が参加
+3. Audienceは選択肢をタップして投票。投票状況はリアルタイム更新・グラフで視覚化
+4. 投票後や進行中にAIによるライブコメントが自動生成されます <!-- APIキーはStackBlitz Environment Variables で管理しているため、この共有URLからは利用できません。 -->
 
-## 主要機能
+## 主な機能
 
 - リアルタイム投票（選択肢入替 / 追加 / 削除対応）
-- Chart.js + datalabels によるレスポンシブ棒 / 円グラフ切替
+- Chart.js + datalabels による棒 / 円グラフ切替
 - AI ライブ実況 / コメント自動生成
 - ドラッグ＆ドロップでスライド並び替え / 選択肢順序変更
 - コメント投稿 / いいね / 削除
 
-## リポジトリ構成（抜粋）
+## 技術選定
+- フレームワーク： Nuxt.js (Vue 3) + TypeScript
+- ライブラリ：
+  - UI/CSS: Tailwind CSS
+  - グラフ：Chart.js
+  - AI機能：openai
+- データベース：Firebase Realtime Database
+
+## リポジトリ構成
 
 ```text
 app.vue
@@ -32,22 +40,23 @@ server/api/      OpenAI 経由コメント生成 API
 server/utils/    OpenAI クライアント
 utils/           Chart ヘルパ / パス定義
 types/           型定義
-tests/           単体テスト (migration / vote / chart 等)
-document/        仕様・スキーマ
+document/        仕様・スキーマメモ
 ```
 
 ## 主要ファイル
 
-- `composables/useRoom.ts`: 投票処理・スライド編集・コメント CRUD・トランザクション制御の中核
-- `composables/useDbListener.ts`: Realtime DB リスナー登録と重複防止管理
-- `utils/paths.ts`: Firebase パス集中管理（typo/分散防止）
-- `components/LiveResultsPanel.vue`: チャート,リンカ
-- `components/LiveComment.vue`: ナノすけ
 - `pages/presenter.vue`: 発表者 UI（スライド操作・結果監視・AI コメントトリガ）
 - `pages/audience.vue`: 参加者 UI（投票 / ライブ表示）
-- `server/api/openai.ts`: OpenAI へのプロンプト組立とレスポンス整形
 
-## データベーススキーマ (Firebase Realtime Database)
+- `server/api/openai.ts`: OpenAI へのプロンプト組立とレスポンス整形
+- `composables/useRoom.ts`: 投票処理・スライド編集・コメント CRUD・トランザクション制御
+- `composables/useDbListener.ts`: Realtime DB リスナー登録と重複防止管理
+- `utils/paths.ts`: Firebase パス集中管理（typo/分散防止）
+
+- `components/LiveResultsPanel.vue`: チャート,リンカ
+- `components/LiveComment.vue`: ナノすけ
+
+## データベーススキーマ
 
 基点: `/rooms/{roomId}`
 
@@ -94,7 +103,7 @@ rooms/{roomId} = {
  liveComment: {               // 最新 AI ライブコメント（単一）
   id: string,
   text: string,
-  role: 'mascot' | 'commentator',
+  role: 'nanosuke' | 'commentator',
   createdAt: number
  }
 }
